@@ -24,10 +24,10 @@ import { useTheme } from "../hooks/useTheme";
 type TabIconName =
   | "grid"
   | "grid-outline"
-  | "bar-chart"
-  | "bar-chart-outline"
-  | "reader"
-  | "reader-outline";
+  | "options"
+  | "options-outline"
+  | "archive"
+  | "archive-outline";
 
 interface TabConfig {
   readonly label: string;
@@ -52,13 +52,13 @@ const TAB_CONFIG: Readonly<Record<string, TabConfig>> = {
   },
   sanctuary: {
     label: "Sanctuary",
-    activeIcon: "bar-chart",
-    inactiveIcon: "bar-chart-outline",
+    activeIcon: "options",
+    inactiveIcon: "options-outline",
   },
   "lost-found": {
     label: "Lost-Found",
-    activeIcon: "reader",
-    inactiveIcon: "reader-outline",
+    activeIcon: "archive",
+    inactiveIcon: "archive-outline",
   },
 } as const;
 
@@ -136,7 +136,7 @@ export default function TabBar({
               ],
             ]}
           >
-            <Ionicons name={iconName} size={20} color={iconColor} />
+            <Ionicons name={iconName} size={22} color={iconColor} />
             <Text
               style={[
                 styles.tabLabel,
@@ -163,24 +163,22 @@ const styles: TabBarStyles = StyleSheet.create<TabBarStyles>({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    paddingTop: 8,
+    paddingTop: 12,
     paddingHorizontal: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   tabButton: {
     alignItems: "center",
     justifyContent: "center",
-    flexDirection: "row",
-    gap: 6,
+    flexDirection: "column",
+    gap: 4,
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 24,
-    minWidth: 70,
+    paddingHorizontal: 20,
+    borderRadius: 28,
+    minWidth: 96,
   },
   tabButtonActive: {
-    paddingHorizontal: 20,
     elevation: 2,
-    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
     shadowRadius: 4,
