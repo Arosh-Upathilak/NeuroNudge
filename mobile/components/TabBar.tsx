@@ -173,9 +173,9 @@ const styles: TabBarStyles = StyleSheet.create<TabBarStyles>({
     flexDirection: "column",
     gap: 4,
     paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 28,
-    minWidth: 96,
+    paddingHorizontal: 32,
+    borderRadius: 30,
+    minWidth: 120,
   },
   tabButtonActive: {
     elevation: 2,
