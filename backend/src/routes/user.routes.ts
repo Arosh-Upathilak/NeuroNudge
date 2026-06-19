@@ -6,7 +6,7 @@ const router = Router();
 
 /**
  * @openapi
- * /api/protected/profile:
+ * /api/user/profile:
  *   get:
  *     summary: Retrieve user profile
  *     description: Requires valid App Check token and Firebase ID token.
@@ -21,7 +21,7 @@ router.get("/profile", appCheck, apiGatewayAuth(), (req: AuthRequest, res: Respo
 
 /**
  * @openapi
- * /api/protected/admin:
+ * /api/user/admin:
  *   get:
  *     summary: Retrieve admin panel context
  *     description: Requires valid App Check token and Firebase token with 'admin' scope.

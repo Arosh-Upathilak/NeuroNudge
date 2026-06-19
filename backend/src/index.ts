@@ -2,7 +2,7 @@ import express ,{ Request, Response } from "express";
 import "dotenv/config";
 import http from "http";
 import imageRoutes from "./routes/object.routes";
-import protectedRoutes from "./routes/protected.routes";
+import userRoutes from "./routes/user.routes";
 import { errorHandler } from "./middleware/error.middleware";
 
 const server = express();
@@ -18,7 +18,7 @@ server.get("/",(_req : Request,res : Response)=>{
 
 // Register routes
 server.use("/api/images", imageRoutes);
-server.use("/api/protected", protectedRoutes);
+server.use("/api/user", userRoutes);
 
 // Centralized Error Handler (must be registered last)
 server.use(errorHandler);
