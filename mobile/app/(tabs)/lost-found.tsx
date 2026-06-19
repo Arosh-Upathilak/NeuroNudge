@@ -4,38 +4,34 @@
  */
 
 import React from "react";
-import { View, Text, StyleSheet, type ViewStyle, type TextStyle } from "react-native";
-import { Fonts, FontSizes, type ThemeColors } from "../../constants/theme";
+import { View, Text, type ViewStyle, type TextStyle } from "react-native";
+import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 
-interface LostFoundStyles {
-  container: ViewStyle;
-  title: TextStyle;
-}
 
-// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function LostFoundScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.title, { color: colors.text }]}>
         Lost-to-Found
       </Text>
-    </View>
+    </SafeAreaView>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles: LostFoundStyles = StyleSheet.create<LostFoundStyles>({
+import { ScaledSheet } from "react-native-size-matters";
+
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 8,
+    paddingHorizontal: "20@s",
+    paddingTop: "8@vs",
   },
   title: {
     fontSize: FontSizes.xxl,

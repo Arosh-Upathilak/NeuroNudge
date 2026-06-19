@@ -13,36 +13,15 @@ import {
   type ViewStyle,
   type TextStyle,
 } from "react-native";
-import { useSafeAreaInsets, type EdgeInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Fonts, FontSizes, type ThemeColors } from "../constants/theme";
+import { Fonts, FontSizes } from "../constants/theme";
+import { ScaledSheet } from "react-native-size-matters";
 import { useTheme } from "../hooks/useTheme";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 
-type TabIconName =
-  | "grid"
-  | "grid-outline"
-  | "options"
-  | "options-outline"
-  | "archive"
-  | "archive-outline";
 
-interface TabConfig {
-  readonly label: string;
-  readonly activeIcon: TabIconName;
-  readonly inactiveIcon: TabIconName;
-}
-
-interface TabBarStyles {
-  container: ViewStyle;
-  tabButton: ViewStyle;
-  tabButtonActive: ViewStyle;
-  tabLabel: TextStyle;
-}
-
-// ─── Tab Configuration ───────────────────────────────────────────────────────
 
 const TAB_CONFIG: Readonly<Record<string, TabConfig>> = {
   index: {
@@ -62,7 +41,6 @@ const TAB_CONFIG: Readonly<Record<string, TabConfig>> = {
   },
 } as const;
 
-// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function TabBar({
   state,
@@ -70,16 +48,16 @@ export default function TabBar({
   navigation,
 }: BottomTabBarProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
-  const insets: EdgeInsets = useSafeAreaInsets();
 
   return (
-    <View
+    <SafeAreaView
+      edges={['bottom']}
       style={[
         styles.container,
         {
           backgroundColor: colors.navbarBackground,
           borderTopColor: colors.navbarBorder,
-          paddingBottom: Math.max(insets.bottom, 10),
+          paddingBottom: 10,
         },
       ]}
     >
@@ -152,30 +130,29 @@ export default function TabBar({
           </TouchableOpacity>
         );
       })}
-    </View>
+    </SafeAreaView>
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles: TabBarStyles = StyleSheet.create<TabBarStyles>({
+const styles = ScaledSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
-    paddingTop: 12,
-    paddingHorizontal: 16,
+    paddingTop: "12@vs",
+    paddingHorizontal: "16@s",
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   tabButton: {
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "column",
-    gap: 4,
-    paddingVertical: 10,
-    paddingHorizontal: 32,
-    borderRadius: 30,
-    minWidth: 120,
+    gap: "4@vs",
+    paddingVertical: "10@vs",
+    paddingHorizontal: "32@s",
+    borderRadius: "30@s",
+    minWidth: "120@s",
   },
   tabButtonActive: {
     elevation: 2,

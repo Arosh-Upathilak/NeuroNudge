@@ -5,35 +5,26 @@
 
 import React, { createContext, useContext, useState, useCallback, type PropsWithChildren } from "react";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 
-interface DrawerContextType {
-  readonly isOpen: boolean;
-  readonly openDrawer: () => void;
-  readonly closeDrawer: () => void;
-  readonly toggleDrawer: () => void;
-}
 
-// ─── Context ─────────────────────────────────────────────────────────────────
 
 const DrawerContext = createContext<DrawerContextType | undefined>(undefined);
 
-// ─── Provider ────────────────────────────────────────────────────────────────
 
 export function DrawerProvider({ children }: PropsWithChildren): React.JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const openDrawer = useCallback((): void => {
     setIsOpen(true);
-  }, []);
+  }, [setIsOpen]);
 
   const closeDrawer = useCallback((): void => {
     setIsOpen(false);
-  }, []);
+  }, [setIsOpen]);
 
   const toggleDrawer = useCallback((): void => {
     setIsOpen((prev: boolean) => !prev);
-  }, []);
+  }, [setIsOpen]);
 
   const value: DrawerContextType = {
     isOpen,
@@ -49,7 +40,6 @@ export function DrawerProvider({ children }: PropsWithChildren): React.JSX.Eleme
   );
 }
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
 
 export function useDrawer(): DrawerContextType {
   const context: DrawerContextType | undefined = useContext(DrawerContext);

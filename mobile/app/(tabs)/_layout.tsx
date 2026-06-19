@@ -13,7 +13,6 @@ import { Tabs } from "expo-router";
 import Header from "../../components/Header";
 import TabBar from "../../components/TabBar";
 
-// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function TabsLayout(): React.JSX.Element {
   return (

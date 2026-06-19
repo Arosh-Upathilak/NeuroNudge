@@ -22,48 +22,18 @@ import {
 } from "react-native";
 import { useSafeAreaInsets, type EdgeInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { Fonts, FontSizes, type ThemeColors } from "../constants/theme";
+import { Fonts, FontSizes } from "../constants/theme";
+import { ScaledSheet } from "react-native-size-matters";
 import { useTheme } from "../hooks/useTheme";
 import { useDrawer } from "../contexts/DrawerContext";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
 
 const SCREEN_WIDTH: number = Dimensions.get("window").width;
 const DRAWER_WIDTH: number = SCREEN_WIDTH * 0.78;
 const ANIMATION_DURATION: number = 280;
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 
-interface MenuItemProps {
-  readonly icon: keyof typeof Ionicons.glyphMap;
-  readonly label: string;
-  readonly onPress?: () => void;
-  readonly colors: ThemeColors;
-}
 
-interface SideDrawerStyles {
-  overlay: ViewStyle;
-  backdrop: ViewStyle;
-  drawer: ViewStyle;
-  profileSection: ViewStyle;
-  avatarCircle: ViewStyle;
-  profileInfo: ViewStyle;
-  profileName: TextStyle;
-  signOutText: TextStyle;
-  closeButton: ViewStyle;
-  separator: ViewStyle;
-  menuSection: ViewStyle;
-  menuItem: ViewStyle;
-  menuLabel: TextStyle;
-  themeSection: ViewStyle;
-  themeToggleRow: ViewStyle;
-  themeLabel: TextStyle;
-  toggleTrack: ViewStyle;
-  toggleThumb: ViewStyle;
-  toggleIcon: ViewStyle;
-}
-
-// ─── MenuItem Sub-component ──────────────────────────────────────────────────
 
 function MenuItem({ icon, label, onPress, colors }: MenuItemProps): React.JSX.Element {
   return (
@@ -82,14 +52,13 @@ function MenuItem({ icon, label, onPress, colors }: MenuItemProps): React.JSX.El
   );
 }
 
-// ─── Main Component ──────────────────────────────────────────────────────────
 
 export default function SideDrawer(): React.JSX.Element | null {
   const { isOpen, closeDrawer } = useDrawer();
   const { colors, isDark, toggleTheme } = useTheme();
   const insets: EdgeInsets = useSafeAreaInsets();
 
-  // Animated values
+
   const translateX = useRef<Animated.Value>(new Animated.Value(DRAWER_WIDTH)).current;
   const backdropOpacity = useRef<Animated.Value>(new Animated.Value(0)).current;
 
@@ -123,7 +92,7 @@ export default function SideDrawer(): React.JSX.Element | null {
     }
   }, [isOpen, translateX, backdropOpacity]);
 
-  // Toggle thumb position
+
   const thumbTranslateX = useRef<Animated.Value>(
     new Animated.Value(isDark ? 28 : 0)
   ).current;
@@ -143,7 +112,7 @@ export default function SideDrawer(): React.JSX.Element | null {
 
   return (
     <View style={styles.overlay} pointerEvents={isOpen ? "auto" : "none"}>
-      {/* Backdrop */}
+
       <TouchableWithoutFeedback onPress={closeDrawer}>
         <Animated.View
           style={[
@@ -153,7 +122,7 @@ export default function SideDrawer(): React.JSX.Element | null {
         />
       </TouchableWithoutFeedback>
 
-      {/* Drawer Panel */}
+
       <Animated.View
         style={[
           styles.drawer,
@@ -167,7 +136,7 @@ export default function SideDrawer(): React.JSX.Element | null {
           },
         ]}
       >
-        {/* ── Profile Section ── */}
+
         <View style={styles.profileSection}>
           <View style={[styles.avatarCircle, { borderColor: colors.textMuted }]}>
             <Ionicons name="person-outline" size={28} color={colors.textSecondary} />
@@ -195,10 +164,10 @@ export default function SideDrawer(): React.JSX.Element | null {
           </TouchableOpacity>
         </View>
 
-        {/* ── Separator ── */}
+
         <View style={[styles.separator, { backgroundColor: colors.navbarBorder }]} />
 
-        {/* ── Menu Items ── */}
+
         <View style={styles.menuSection}>
           <MenuItem
             icon="settings-outline"
@@ -212,10 +181,10 @@ export default function SideDrawer(): React.JSX.Element | null {
           />
         </View>
 
-        {/* ── Spacer ── */}
+
         <View style={{ flex: 1 }} />
 
-        {/* ── Theme Toggle ── */}
+
         <View style={styles.themeSection}>
           <View style={styles.themeToggleRow}>
             <Text style={[styles.themeLabel, { color: colors.text, fontFamily: Fonts.medium }]}>
@@ -254,7 +223,7 @@ export default function SideDrawer(): React.JSX.Element | null {
                   />
                 </Animated.View>
 
-                {/* Static background icons */}
+
                 <View style={[styles.toggleIcon, { left: 6 }]}>
                   <Ionicons name="sunny" size={14} color={isDark ? colors.textMuted : "transparent"} />
                 </View>
@@ -270,9 +239,8 @@ export default function SideDrawer(): React.JSX.Element | null {
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles: SideDrawerStyles = StyleSheet.create<SideDrawerStyles>({
+const styles = ScaledSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
     zIndex: 1000,
@@ -287,7 +255,7 @@ const styles: SideDrawerStyles = StyleSheet.create<SideDrawerStyles>({
     top: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: 24,
+    paddingHorizontal: "24@s",
     shadowColor: "#000",
     shadowOffset: { width: -4, height: 0 },
     shadowOpacity: 0.2,
@@ -297,75 +265,75 @@ const styles: SideDrawerStyles = StyleSheet.create<SideDrawerStyles>({
   profileSection: {
     flexDirection: "row",
     alignItems: "center",
-    paddingBottom: 16,
+    paddingBottom: "16@vs",
   },
   avatarCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: "48@s",
+    height: "48@s",
+    borderRadius: "24@s",
     borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
   },
   profileInfo: {
     flex: 1,
-    marginLeft: 12,
+    marginLeft: "12@s",
   },
   profileName: {
     fontSize: FontSizes.lg,
-    marginBottom: 2,
+    marginBottom: "2@vs",
   },
   signOutText: {
     fontSize: FontSizes.sm,
     color: "#C0392B",
   },
   closeButton: {
-    padding: 4,
+    padding: "4@s",
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    marginBottom: 20,
+    marginBottom: "20@vs",
   },
   menuSection: {
-    gap: 8,
+    gap: "8@s",
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 14,
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    borderRadius: 10,
+    gap: "14@s",
+    paddingVertical: "12@vs",
+    paddingHorizontal: "4@s",
+    borderRadius: "10@s",
   },
   menuLabel: {
     fontSize: FontSizes.md,
   },
   themeSection: {
-    paddingTop: 16,
+    paddingTop: "16@vs",
   },
   themeToggleRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",
-    gap: 10,
+    gap: "10@s",
   },
   themeLabel: {
     fontSize: FontSizes.sm,
   },
   toggleTrack: {
-    width: 56,
-    height: 28,
-    borderRadius: 14,
+    width: "56@s",
+    height: "28@vs",
+    borderRadius: "14@s",
     justifyContent: "center",
     position: "relative",
   },
   toggleThumb: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: "24@s",
+    height: "24@s",
+    borderRadius: "12@s",
     alignItems: "center",
     justifyContent: "center",
-    marginLeft: 2,
+    marginLeft: "2@s",
     zIndex: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -375,7 +343,7 @@ const styles: SideDrawerStyles = StyleSheet.create<SideDrawerStyles>({
   },
   toggleIcon: {
     position: "absolute",
-    top: 7,
+    top: "7@vs",
     zIndex: 1,
   },
 });

@@ -8,7 +8,7 @@
  */
 
 import React, { useEffect } from "react";
-import { View, StyleSheet, type ViewStyle } from "react-native";
+import { View, type ViewStyle } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -23,19 +23,13 @@ import { ThemeProvider } from "../contexts/ThemeContext";
 import { DrawerProvider } from "../contexts/DrawerContext";
 import SideDrawer from "../components/SideDrawer";
 import { useTheme } from "../hooks/useTheme";
-import type { ThemeColors } from "../constants/theme";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 
-interface RootStyles {
-  container: ViewStyle;
-}
 
-// ─── Prevent splash screen auto-hide ─────────────────────────────────────────
+
 
 SplashScreen.preventAutoHideAsync();
 
-// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function RootLayout(): React.JSX.Element | null {
   const [fontsLoaded]: [boolean, Error | null] = useFonts({
@@ -82,9 +76,10 @@ function ThemedApp(): React.JSX.Element {
   );
 }
 
-// ─── Styles ──────────────────────────────────────────────────────────────────
 
-const styles: RootStyles = StyleSheet.create<RootStyles>({
+import { ScaledSheet } from "react-native-size-matters";
+
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
   },

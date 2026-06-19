@@ -15,27 +15,16 @@ import React, {
 } from "react";
 import { useColorScheme, type ColorSchemeName } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Colors, type ThemeColors, type ThemeMode } from "../constants/theme";
+import { Colors } from "../constants/theme";
 
-// ─── Constants ───────────────────────────────────────────────────────────────
 
 const THEME_STORAGE_KEY: string = "neuronudge_theme_mode";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
 
-interface ThemeContextType {
-  readonly isDark: boolean;
-  readonly colors: ThemeColors;
-  readonly themeMode: ThemeMode;
-  readonly toggleTheme: () => void;
-  readonly setThemeMode: (mode: ThemeMode) => void;
-}
 
-// ─── Context ─────────────────────────────────────────────────────────────────
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-// ─── Provider ────────────────────────────────────────────────────────────────
 
 export function ThemeProvider({ children }: PropsWithChildren): React.JSX.Element {
   const systemColorScheme: ColorSchemeName = useColorScheme();
@@ -56,7 +45,7 @@ export function ThemeProvider({ children }: PropsWithChildren): React.JSX.Elemen
       }
     };
     loadTheme();
-  }, []);
+  }, [setThemeModeState]);
 
   const isDark: boolean = themeMode === "dark";
   const colors: ThemeColors = isDark ? Colors.dark : Colors.light;
@@ -96,7 +85,6 @@ export function ThemeProvider({ children }: PropsWithChildren): React.JSX.Elemen
   );
 }
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
 
 export function useThemeContext(): ThemeContextType {
   const context: ThemeContextType | undefined = useContext(ThemeContext);
