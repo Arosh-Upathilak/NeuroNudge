@@ -19,7 +19,7 @@ export const MemoryController = {
    * CREATE MEMORY
    */
   createMemory: async (
-    req: AuthRequest<any, any, CreateMemoryInput>,
+    req: AuthRequest< {id: string }, unknown, CreateMemoryInput>,
     res: Response
   ) => {
     try {
@@ -45,10 +45,10 @@ export const MemoryController = {
         success: true,
         data: memory,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: (error as Error).message,
       });
     }
   },
@@ -66,10 +66,10 @@ export const MemoryController = {
         success: true,
         data: memories,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: (error as Error).message,
       });
     }
   },
@@ -78,7 +78,7 @@ export const MemoryController = {
    * GET MEMORY BY ID
    */
   getMemoryById: async (
-    req: AuthRequest<any, any, GetandDeleteMemoryInput>,
+    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
     res: Response
   ) => {
     try {
@@ -98,10 +98,10 @@ export const MemoryController = {
         success: true,
         data: memory,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: (error as Error).message,
       });
     }
   },
@@ -110,7 +110,7 @@ export const MemoryController = {
    * UPDATE MEMORY
    */
   updateMemory: async (
-    req: AuthRequest<any, any, UpdateMemoryInput>,
+    req: AuthRequest<{id: string }, unknown, UpdateMemoryInput>,
     res: Response
   ) => {
     try {
@@ -127,10 +127,10 @@ export const MemoryController = {
         success: true,
         data: result,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: (error as Error).message,
       });
     }
   },
@@ -139,7 +139,7 @@ export const MemoryController = {
    * DELETE MEMORY
    */
   deleteMemory: async (
-    req: AuthRequest<any, any, GetandDeleteMemoryInput>,
+    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
     res: Response
   ) => {
     try {
@@ -152,10 +152,10 @@ export const MemoryController = {
         success: true,
         message: "Memory deleted successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: (error as Error).message,
       });
     }
   },
@@ -164,7 +164,7 @@ export const MemoryController = {
    * UPSERT MEMORY IMAGE
    */
   upsertMemoryImage: async (
-    req: AuthRequest<any, any, UpsertMemoryImageInput>,
+    req: AuthRequest<{id: string }, unknown, UpsertMemoryImageInput>,
     res: Response
   ) => {
     try {
@@ -186,10 +186,10 @@ export const MemoryController = {
         success: true,
         data: result,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: (error as Error).message,
       });
     }
   },
@@ -198,7 +198,7 @@ export const MemoryController = {
    * DELETE MEMORY IMAGE
    */
   deleteMemoryImage: async (
-    req: AuthRequest<any, any, GetandDeleteMemoryInput>,
+    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
     res: Response
   ) => {
     try {
@@ -210,10 +210,10 @@ export const MemoryController = {
         success: true,
         message: "Image deleted successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: (error as Error).message,
       });
     }
   },
