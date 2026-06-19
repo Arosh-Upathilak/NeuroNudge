@@ -1,3 +1,6 @@
+/**
+ * Express router defining endpoints for image file uploading and management.
+ */
 import { Router } from "express";
 import { UploadController } from "../controllers/object.controller";
 import { upload } from "../middleware/upload.middleware";

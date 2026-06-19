@@ -1,3 +1,6 @@
+/**
+ * Express router defining endpoints for user profiles, login, and registration.
+ */
 import { Router, Response } from "express";
 import { apiGatewayAuth, appCheck } from "../middleware/auth";
 import { AuthRequest } from "../types/auth.types";

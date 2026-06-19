@@ -10,14 +10,11 @@ const isJwt = (token: string): boolean => {
 };
 
 /**
- * Middleware to validate third-party OAuth tokens (Google, Facebook) via Firebase.
- * 
- * @param requiredScopes Optional array of scopes required to access the endpoint
+ * Middleware to validate third-party OAuth tokens via Firebase and check scope permissions.
  */
 export const oauthAuth = (requiredScopes: string[] = []) => {
   return async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
-      // 1. Enforce HTTPS in production behind API gateway
       if (
         process.env.NODE_ENV === "production" &&
         !req.secure &&
@@ -33,12 +30,9 @@ export const oauthAuth = (requiredScopes: string[] = []) => {
         return;
       }
 
-      // 2. Set Cache-Control headers for auth responses
       res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
       res.setHeader("Pragma", "no-cache");
       res.setHeader("Expires", "0");
-
-      // 3. Extract authorization token
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith("Bearer ")) {
         res.status(401).json({
@@ -53,7 +47,6 @@ export const oauthAuth = (requiredScopes: string[] = []) => {
 
       const token = authHeader.split(" ")[1];
 
-      // 4. Extract and validate provider from custom header
       const providerId = req.headers["x-oauth-provider"] as string;
       if (!providerId) {
         res.status(400).json({
@@ -68,7 +61,7 @@ export const oauthAuth = (requiredScopes: string[] = []) => {
 
       const webApiKey = process.env.FIREBASE_WEB_API_KEY;
       if (!webApiKey && process.env.NODE_ENV !== "test") {
-        console.error("❌ Firebase Web API Key (FIREBASE_WEB_API_KEY) is not configured in .env");
+        console.error("Firebase Web API Key (FIREBASE_WEB_API_KEY) is not configured in .env");
         res.status(500).json({
           success: false,
           error: {
@@ -79,7 +72,6 @@ export const oauthAuth = (requiredScopes: string[] = []) => {
         return;
       }
 
-      // 5. Construct postBody based on provider and token type
       let postBody = "";
       if (providerId === "google.com") {
         if (isJwt(token)) {
@@ -88,11 +80,9 @@ export const oauthAuth = (requiredScopes: string[] = []) => {
           postBody = `access_token=${encodeURIComponent(token)}&providerId=google.com`;
         }
       } else {
-        // Facebook and other providers typically use access_token
         postBody = `access_token=${encodeURIComponent(token)}&providerId=${encodeURIComponent(providerId)}`;
       }
 
-      // 6. Call Firebase REST API to exchange OAuth token for Firebase ID token
       const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${webApiKey || "dummy-key"}`;
       const response = await fetch(endpoint, {
         method: "POST",
@@ -134,10 +124,8 @@ export const oauthAuth = (requiredScopes: string[] = []) => {
         return;
       }
 
-      // 7. Verify the returned Firebase ID Token using Admin SDK
       const decodedToken = await auth.verifyIdToken(firebaseIdToken, true);
 
-      // 8. Map claims to AuthPayload
       const userScopes = decodedToken.scopes || [];
       const userPayload: AuthPayload = {
         uid: decodedToken.uid,
@@ -147,7 +135,6 @@ export const oauthAuth = (requiredScopes: string[] = []) => {
         providerId: decodedToken.firebase.sign_in_provider,
       };
 
-      // 9. Verify Scopes
       if (requiredScopes.length > 0) {
         const hasAllScopes = requiredScopes.every((scope) => userScopes.includes(scope));
         if (!hasAllScopes) {
@@ -162,7 +149,6 @@ export const oauthAuth = (requiredScopes: string[] = []) => {
         }
       }
 
-      // 10. Attach to request and continue
       req.user = userPayload;
       next();
     } catch (error: unknown) {

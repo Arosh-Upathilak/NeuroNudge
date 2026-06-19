@@ -4,11 +4,7 @@ import { oauthAuth } from "./oauth.middleware";
 import { AuthRequest } from "../../types/auth.types";
 
 /**
- * Composed authentication middleware for the API Gateway.
- * Automatically detects whether to run standard JWT verification (default)
- * or OAuth third-party provider validation (if 'x-oauth-provider' header is present).
- * 
- * @param requiredScopes Optional array of scopes required to access the endpoint
+ * Composed authentication middleware that routes to standard JWT or OAuth verification.
  */
 export const apiGatewayAuth = (requiredScopes: string[] = []) => {
   const jwtMiddleware = jwtAuth(requiredScopes);

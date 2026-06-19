@@ -2,12 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import { getAppCheck } from "firebase-admin/app-check";
 
 /**
- * Middleware to verify Firebase App Check tokens.
- * Enforces that requests originate from a legitimate, attestation-verified application instance.
+ * Middleware to verify Firebase App Check tokens for client attestation.
  */
 export const appCheck = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    // 1. Enforce HTTPS in production
     if (
       process.env.NODE_ENV === "production" &&
       !req.secure &&
@@ -23,12 +21,10 @@ export const appCheck = async (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    // 2. Set Cache-Control headers
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
     res.setHeader("Pragma", "no-cache");
     res.setHeader("Expires", "0");
 
-    // 3. Extract the token from X-Firebase-AppCheck header
     const appCheckToken = req.headers["x-firebase-appcheck"] as string;
     if (!appCheckToken) {
       res.status(401).json({
@@ -41,22 +37,17 @@ export const appCheck = async (req: Request, res: Response, next: NextFunction):
       return;
     }
 
-    // 4. Local Development/Test Bypass Check (explicitly blocked in production)
     const bypassToken = process.env.APP_CHECK_BYPASS_TOKEN;
     if (
       process.env.NODE_ENV !== "production" &&
       bypassToken &&
       appCheckToken === bypassToken
     ) {
-      // Local development or CI/test bypass
       next();
       return;
     }
 
-    // 5. Verify the token using Firebase Admin App Check SDK
-    // In local testing/CI mode we check if the environment requires a mock
     if (process.env.NODE_ENV === "test") {
-      // Handled/Mocked in Jest tests
       next();
       return;
     }

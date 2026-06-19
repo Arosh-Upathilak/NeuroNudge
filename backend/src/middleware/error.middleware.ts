@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 
 /**
- * Custom Error class that supports status codes and error keys
+ * Custom application error containing HTTP status codes and error keys.
  */
 export class AppError extends Error {
   public status: number;
@@ -16,8 +16,7 @@ export class AppError extends Error {
 }
 
 /**
- * Centralized error handling middleware.
- * Standardizes all error responses across the backend application.
+ * Centralized error handling middleware to standardize error responses.
  */
 export const errorHandler = (
   err: Error & { status?: number; code?: string },
@@ -29,9 +28,8 @@ export const errorHandler = (
   const code = err.code || "INTERNAL_SERVER_ERROR";
   const message = err.message || "An unexpected error occurred";
 
-  // Log the failure using console.error (safely without leaking token data)
   console.error(`[Error Handler] [${code}] ${status} - ${message}`);
-  
+
   if (err.stack && process.env.NODE_ENV !== "production") {
     console.error(err.stack);
   }

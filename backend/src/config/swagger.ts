@@ -1,3 +1,6 @@
+/**
+ * Swagger JSDoc and Swagger UI setup options configuration.
+ */
 import swaggerJSDoc from "swagger-jsdoc";
 
 const port = process.env.PORT || 5000;
