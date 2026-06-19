@@ -17,8 +17,6 @@ import {
   TouchableWithoutFeedback,
   Animated,
   Dimensions,
-  type ViewStyle,
-  type TextStyle,
 } from "react-native";
 import { useSafeAreaInsets, type EdgeInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";

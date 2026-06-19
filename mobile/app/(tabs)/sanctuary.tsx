@@ -4,7 +4,7 @@
  */
 
 import React from "react";
-import { View, Text, type ViewStyle, type TextStyle } from "react-native";
+import { Text } from "react-native";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 
@@ -12,6 +12,9 @@ import { useTheme } from "../../hooks/useTheme";
 
 
 import { SafeAreaView } from "react-native-safe-area-context";
+
+
+import { ScaledSheet } from "react-native-size-matters";
 
 export default function SanctuaryScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
@@ -24,9 +27,6 @@ export default function SanctuaryScreen(): React.JSX.Element {
     </SafeAreaView>
   );
 }
-
-
-import { ScaledSheet } from "react-native-size-matters";
 
 const styles = ScaledSheet.create({
   container: {

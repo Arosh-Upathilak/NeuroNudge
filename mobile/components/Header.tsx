@@ -13,14 +13,15 @@ import {
   Text,
 
   TouchableOpacity,
-  type ViewStyle,
-  type TextStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts, FontSizes } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
 import { useDrawer } from "../contexts/DrawerContext";
+
+
+import { ScaledSheet } from "react-native-size-matters";
 
 
 
@@ -75,9 +76,6 @@ export default function Header({
     </SafeAreaView>
   );
 }
-
-
-import { ScaledSheet } from "react-native-size-matters";
 
 const styles = ScaledSheet.create({
   container: {
