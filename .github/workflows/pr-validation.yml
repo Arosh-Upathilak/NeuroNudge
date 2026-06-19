@@ -1,0 +1,17 @@
+name: Validate PR Target
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check target branch
+        run: |
+          if [[ "${{ github.base_ref }}" != "dev" && "${{ github.base_ref }}" != "main" ]]; then
+            echo "PRs are only allowed to dev or main"
+            exit 1
+          fi
