@@ -2,6 +2,7 @@ import express ,{ Request, Response } from "express";
 import "dotenv/config";
 import http from "http";
 import imageRoutes from "./routes/object.routes";
+import memoryRoutes from "./routes/memory.routes";
 
 const server = express();
 // This is required when integrating Socket.IO because Socket.IO
@@ -16,7 +17,7 @@ server.get("/",(_req : Request,res : Response)=>{
 
 // Register routes
 server.use("/api/images", imageRoutes);
-
+server.use("/api/memories",memoryRoutes); 
 // Start Server
 const startServer = async () => {
     httpServer.listen(port, () => {
