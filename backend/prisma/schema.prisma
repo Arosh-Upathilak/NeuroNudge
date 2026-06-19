@@ -1,70 +1,86 @@
 generator client {
-    provider = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id        String   @id @default(uuid())
-    email     String   @unique
-    name      String?
-    password  String?
-    createdAt DateTime @default(now())
-    memories  Memory[]
-    chats     Chat[]
+  id            String          @id @default(uuid())
+  email         String          @unique
+  name          String?
+  password      String?
+  createdAt     DateTime        @default(now())
+  provider      String?
+  providerId    String?
+  chats         Chat[]
+  memories      Memory[]
+  refresh_token refresh_token[]
+
+  @@index([provider, providerId])
 }
 
 model Memory {
-    memoryId    String  @id @default(uuid())
-    user        User    @relation(fields: [userId], references: [id])
-    userId      String
-    title       String
-    description String?
-    imageUrl    String?
-    publicId    String?
-    createdAt   DateTime @default(now())
-    latitude    Float?
-    longitude   Float?
-    messages    Message[]
+  memoryId    String    @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  imageUrl    String?
+  publicId    String?
+  createdAt   DateTime  @default(now())
+  latitude    Float?
+  longitude   Float?
+  user        User      @relation(fields: [userId], references: [id])
+  messages    Message[]
 
-    @@index([userId, createdAt(sort: Desc)])
-    @@map("memory")
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("memory")
 }
 
 model Chat {
-    chatId    String    @id @default(uuid())
-    user      User      @relation(fields: [userId], references: [id])
-    userId    String
-    messages  Message[]
-    createdAt DateTime  @default(now())
+  chatId    String    @id @default(uuid())
+  userId    String
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+  messages  Message[]
 
-    @@map("chat")
-}
-
-enum MessageRole {
-    user
-    assistant
-}
-
-enum Action {
-    created
-    retrieved
+  @@map("chat")
 }
 
 model Message {
-    messageId String      @id @default(uuid())
-    chat      Chat        @relation(fields: [chatId], references: [chatId])
-    chatId    String
-    role      MessageRole
-    content   String
-    memory    Memory? @relation(fields:[memoryId], references: [memoryId])
-    memoryId  String?
-    action    Action?
-    createdAt DateTime @default(now())
+  messageId String      @id @default(uuid())
+  chatId    String
+  role      MessageRole
+  content   String
+  memoryId  String?
+  action    Action?
+  createdAt DateTime    @default(now())
+  chat      Chat        @relation(fields: [chatId], references: [chatId])
+  memory    Memory?     @relation(fields: [memoryId], references: [memoryId])
 
-    @@index([chatId, createdAt(sort: Asc)])
-    @@map("message")
+  @@index([chatId, createdAt])
+  @@map("message")
+}
+
+model refresh_token {
+  id        String   @id
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  User      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum MessageRole {
+  user
+  assistant
+}
+
+enum Action {
+  created
+  retrieved
 }
