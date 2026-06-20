@@ -87,8 +87,13 @@ export default function CheckEmailScreen() {
           ]}
           onPress={openEmailApp}
         >
-          <Text style={styles.primaryButtonText}>
-            Open Email App
+          <Text
+          style={[
+            styles.primaryButtonText,
+            { color: colors.surface },
+          ]}
+        >
+          Open Email App
           </Text>
         </TouchableOpacity>
 
@@ -154,7 +159,6 @@ const styles = StyleSheet.create({
   },
 
   primaryButtonText: {
-    color: "#FFFFFF",
     fontSize: 17,
     fontWeight: "700",
   },
