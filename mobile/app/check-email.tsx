@@ -4,13 +4,13 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   Linking,
   Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTheme } from "../hooks/useTheme";
+import { ScaledSheet } from "react-native-size-matters";
 
 export default function CheckEmailScreen() {
   const { colors } = useTheme();
@@ -88,12 +88,12 @@ export default function CheckEmailScreen() {
           onPress={openEmailApp}
         >
           <Text
-          style={[
-            styles.primaryButtonText,
-            { color: colors.surface },
-          ]}
-        >
-          Open Email App
+            style={[
+              styles.primaryButtonText,
+              { color: colors.surface },
+            ]}
+          >
+            Open Email App
           </Text>
         </TouchableOpacity>
 
@@ -115,7 +115,7 @@ export default function CheckEmailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const styles = ScaledSheet.create({
   container: {
     flex: 1,
   },
@@ -124,47 +124,47 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 30,
+    paddingHorizontal: "30@s",
   },
 
   iconContainer: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: "110@s",
+    height: "110@s",
+    borderRadius: "55@s",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 30,
+    marginBottom: "30@vs",
   },
 
   title: {
-    fontSize: 30,
+    fontSize: "30@s",
     fontWeight: "700",
-    marginBottom: 15,
+    marginBottom: "15@vs",
   },
 
   subtitle: {
     textAlign: "center",
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 40,
+    fontSize: "16@s",
+    lineHeight: "24@vs",
+    marginBottom: "40@vs",
   },
 
   primaryButton: {
     width: "100%",
-    height: 58,
-    borderRadius: 32,
+    height: "58@vs",
+    borderRadius: "32@s",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: "20@vs",
   },
 
   primaryButtonText: {
-    fontSize: 17,
+    fontSize: "17@s",
     fontWeight: "700",
   },
 
   backText: {
-    fontSize: 16,
+    fontSize: "16@s",
     fontWeight: "600",
   },
 });
