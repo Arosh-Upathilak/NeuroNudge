@@ -5,40 +5,87 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
+  Linking,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useTheme } from "../hooks/useTheme";
 
 export default function CheckEmailScreen() {
+  const { colors } = useTheme();
+
+  const openEmailApp = async () => {
+    try {
+      const supported = await Linking.canOpenURL("mailto:");
+
+      if (supported) {
+        await Linking.openURL("mailto:");
+      } else {
+        Alert.alert(
+          "Email App Not Found",
+          "No email application is installed on this device."
+        );
+      }
+    } catch {
+      Alert.alert(
+        "Error",
+        "Unable to open the email application."
+      );
+    }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+      ]}
+    >
       <View style={styles.content}>
         {/* Mail Icon */}
-        <View style={styles.iconContainer}>
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: colors.card },
+          ]}
+        >
           <Feather
             name="mail"
             size={50}
-            color="#486B5A"
+            color={colors.primary}
           />
         </View>
 
         {/* Title */}
-        <Text style={styles.title}>
+        <Text
+          style={[
+            styles.title,
+            { color: colors.primary },
+          ]}
+        >
           Check your mail
         </Text>
 
         {/* Description */}
-        <Text style={styles.subtitle}>
+        <Text
+          style={[
+            styles.subtitle,
+            { color: colors.textSecondary },
+          ]}
+        >
           We have sent password reset instructions
+          {"\n"}
           to your email address.
         </Text>
 
         {/* Open Email App Button */}
         <TouchableOpacity
-          style={styles.primaryButton}
-          onPress={() => {
-            // Later you can open Gmail/Email app here
-          }}
+          style={[
+            styles.primaryButton,
+            { backgroundColor: colors.primary },
+          ]}
+          onPress={openEmailApp}
         >
           <Text style={styles.primaryButtonText}>
             Open Email App
@@ -49,7 +96,12 @@ export default function CheckEmailScreen() {
         <TouchableOpacity
           onPress={() => router.replace("/")}
         >
-          <Text style={styles.backText}>
+          <Text
+            style={[
+              styles.backText,
+              { color: colors.primary },
+            ]}
+          >
             Back to Login
           </Text>
         </TouchableOpacity>
@@ -61,7 +113,6 @@ export default function CheckEmailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F3EC",
   },
 
   content: {
@@ -75,7 +126,6 @@ const styles = StyleSheet.create({
     width: 110,
     height: 110,
     borderRadius: 55,
-    backgroundColor: "#D8D7D1",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 30,
@@ -84,14 +134,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: "700",
-    color: "#486B5A",
     marginBottom: 15,
   },
 
   subtitle: {
     textAlign: "center",
     fontSize: 16,
-    color: "#555",
     lineHeight: 24,
     marginBottom: 40,
   },
@@ -99,7 +147,6 @@ const styles = StyleSheet.create({
   primaryButton: {
     width: "100%",
     height: 58,
-    backgroundColor: "#486B5A",
     borderRadius: 32,
     justifyContent: "center",
     alignItems: "center",
@@ -107,14 +154,13 @@ const styles = StyleSheet.create({
   },
 
   primaryButtonText: {
-    color: "#FFF",
+    color: "#FFFFFF",
     fontSize: 17,
     fontWeight: "700",
   },
 
   backText: {
     fontSize: 16,
-    color: "#486B5A",
     fontWeight: "600",
   },
 });
