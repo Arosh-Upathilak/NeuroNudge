@@ -7,9 +7,7 @@ const router = Router();
 
 const auth = mockAuth;
 
-/**
- * CREATE MEMORY
- */
+
 router.post(
   "/",
   auth,
@@ -35,7 +33,7 @@ router.get(
 );
 
 /**
- * UPDATE MEMORY (title, description)
+ * UPDATE MEMORY (title, description,location)
  */
 router.put(
   "/:id",

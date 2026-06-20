@@ -4,6 +4,7 @@ import http from "http";
 import imageRoutes from "./routes/object.routes";
 import memoryRoutes from "./routes/memory.routes";
 
+
 const server = express();
 // This is required when integrating Socket.IO because Socket.IO
 const httpServer = http.createServer(server); 
@@ -18,6 +19,7 @@ server.get("/",(_req : Request,res : Response)=>{
 // Register routes
 server.use("/api/images", imageRoutes);
 server.use("/api/memories",memoryRoutes); 
+
 // Start Server
 const startServer = async () => {
     httpServer.listen(port, () => {
