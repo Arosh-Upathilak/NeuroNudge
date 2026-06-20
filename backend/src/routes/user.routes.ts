@@ -2,13 +2,13 @@
  * Express router defining endpoints for user profiles, login, and registration.
  */
 import { Router, Response } from "express";
-import { apiGatewayAuth, appCheck } from "../middleware/auth";
+import { authMiddleware } from "../middleware/auth.middleware";
 import { AuthRequest } from "../types/auth.types";
 import prisma from "../config/prisma";
 
 const router = Router();
 
-router.post("/register", appCheck, apiGatewayAuth(), async (req: AuthRequest, res: Response): Promise<void> => {
+router.post("/register", authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
   const firebaseUser = req.user;
 
   if (!firebaseUser) {
@@ -65,7 +65,7 @@ router.post("/register", appCheck, apiGatewayAuth(), async (req: AuthRequest, re
   }
 });
 
-router.post("/login", appCheck, apiGatewayAuth(), async (req: AuthRequest, res: Response): Promise<void> => {
+router.post("/login", authMiddleware, async (req: AuthRequest, res: Response): Promise<void> => {
   const firebaseUser = req.user;
 
   if (!firebaseUser) {
@@ -114,7 +114,7 @@ router.post("/login", appCheck, apiGatewayAuth(), async (req: AuthRequest, res: 
   }
 });
 
-router.get("/profile", appCheck, apiGatewayAuth(), (req: AuthRequest, res: Response) => {
+router.get("/profile", authMiddleware, (req: AuthRequest, res: Response) => {
   res.status(200).json({
     success: true,
     message: "Profile retrieved successfully",
