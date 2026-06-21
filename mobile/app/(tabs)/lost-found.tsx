@@ -4,12 +4,10 @@
  */
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, TextInput, Platform, Animated, Keyboard } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, TextInput, Platform, Animated, Keyboard, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts, FontSizes } from "../../constants/theme";
-import { useTheme } from "../../hooks/useTheme";
-
-import { ScaledSheet } from "react-native-size-matters";
+import { useTheme } from "../../hooks/useTheme";import { ScaledSheet, scale } from "react-native-size-matters";
 import MemoryCard from "../../components/MemoryCard";
 import ChatMessage, { type ChatMessageData } from "../../components/ChatMessage";
 
@@ -67,8 +65,14 @@ export default function LostFoundScreen(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<"Memories" | "Chat">("Chat");
   const keyboardOffset = useRef(new Animated.Value(0)).current;
 
+  // Calculate the exact initial width of a single toggle tab to prevent visual pop-in on first render
+  const initialTabWidth = useMemo(() => {
+    // Screen width - container padding (20*2) - toggleContainer margin (16) - toggleContainer inner padding (4*2)
+    return (Dimensions.get("window").width - scale(40) - scale(16) - scale(8)) / 2;
+  }, []);
+
   // Toggle slider animation
-  const [tabWidth, setTabWidth] = useState(0);
+  const [tabWidth, setTabWidth] = useState(initialTabWidth);
   const slideAnim = useRef(new Animated.Value(1)).current; // Starts at 1 because initial state is "Chat"
 
   useEffect(() => {

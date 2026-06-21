@@ -19,10 +19,11 @@ interface ChatMessageProps {
   message: ChatMessageData;
 }
 
-export default function ChatMessage({ message }: ChatMessageProps): React.JSX.Element {
+export default function ChatMessage({ message }: ChatMessageProps): React.JSX.Element | null {
   const { colors }: { colors: ThemeColors } = useTheme();
 
   if (message.type === "user") {
+    if (!message.text) return null;
     return (
       <View style={styles.userContainer}>
         <View style={[styles.userBubble, { backgroundColor: colors.primary }]}>
@@ -33,6 +34,7 @@ export default function ChatMessage({ message }: ChatMessageProps): React.JSX.El
   }
 
   if (message.type === "system") {
+    if (!message.text) return null;
     return (
       <View style={styles.systemContainer}>
         <View style={[styles.systemBubble, { backgroundColor: colors.card }]}>
@@ -47,12 +49,16 @@ export default function ChatMessage({ message }: ChatMessageProps): React.JSX.El
     return (
       <View style={styles.systemContainer}>
         <View style={[styles.widgetContainer, { backgroundColor: colors.card }]}>
-          <Text style={[styles.widgetTitle, { color: colors.text }]}>{message.title}</Text>
+          {!!message.title && (
+            <Text style={[styles.widgetTitle, { color: colors.text }]}>{message.title}</Text>
+          )}
           
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
-            <Text style={[styles.locationText, { color: colors.textSecondary }]}>{message.location}</Text>
-          </View>
+          {!!message.location && (
+            <View style={styles.locationRow}>
+              <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
+              <Text style={[styles.locationText, { color: colors.textSecondary }]}>{message.location}</Text>
+            </View>
+          )}
 
           <View style={styles.imageWrapper}>
             {message.imageUri ? (
@@ -61,10 +67,12 @@ export default function ChatMessage({ message }: ChatMessageProps): React.JSX.El
               <View style={[styles.imagePlaceholder, { backgroundColor: colors.background }]} />
             )}
             
-            <View style={[styles.badgeContainer, { backgroundColor: colors.surface }]}>
-              <Ionicons name="time-outline" size={12} color={colors.textSecondary} />
-              <Text style={[styles.badgeText, { color: colors.textSecondary }]}>{message.timeAgo}</Text>
-            </View>
+            {!!message.timeAgo && (
+              <View style={[styles.badgeContainer, { backgroundColor: colors.surface }]}>
+                <Ionicons name="time-outline" size={12} color={colors.textSecondary} />
+                <Text style={[styles.badgeText, { color: colors.textSecondary }]}>{message.timeAgo}</Text>
+              </View>
+            )}
           </View>
 
           <TouchableOpacity style={[styles.mapButton, { backgroundColor: colors.primary }]}>

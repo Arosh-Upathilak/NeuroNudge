@@ -12,8 +12,6 @@ import { useTheme } from "../../hooks/useTheme";
 
 
 
-
-
 import { ScaledSheet } from "react-native-size-matters";
 
 export default function DashboardScreen(): React.JSX.Element {
