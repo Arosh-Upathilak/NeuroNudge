@@ -4,12 +4,17 @@
  */
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, TextInput, Platform, Animated, Keyboard, Dimensions } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, TextInput, Platform, Animated, Keyboard, Dimensions, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts, FontSizes } from "../../constants/theme";
-import { useTheme } from "../../hooks/useTheme";import { ScaledSheet, scale } from "react-native-size-matters";
+import { useTheme } from "../../hooks/useTheme";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ScaledSheet, scale } from "react-native-size-matters";
 import MemoryCard from "../../components/MemoryCard";
 import ChatMessage, { type ChatMessageData } from "../../components/ChatMessage";
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
+import * as ImagePicker from "expo-image-picker";
+import { Image } from "expo-image";
 
 const MOCK_MEMORIES = [
   {
@@ -61,9 +66,103 @@ const MOCK_CHAT: ChatMessageData[] = [
 
 export default function LostFoundScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
+  const [chatInput, setChatInput] = useState("");
   const [activeTab, setActiveTab] = useState<"Memories" | "Chat">("Chat");
+  const [isListening, setIsListening] = useState(false);
+  const [capturedPhotoUri, setCapturedPhotoUri] = useState<string | null>(null);
   const keyboardOffset = useRef(new Animated.Value(0)).current;
+  const micScaleAnim = useRef(new Animated.Value(1)).current;
+  const originalInputRef = useRef("");
+  const chatInputRef = useRef(chatInput);
+
+  useEffect(() => {
+    chatInputRef.current = chatInput;
+  }, [chatInput]);
+  const micLoopAnimRef = useRef<Animated.CompositeAnimation | null>(null);
+
+  useEffect(() => {
+    if (isListening) {
+      micLoopAnimRef.current = Animated.loop(
+        Animated.sequence([
+          Animated.timing(micScaleAnim, {
+            toValue: 1.2,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(micScaleAnim, {
+            toValue: 1,
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ])
+      );
+      micLoopAnimRef.current.start();
+    } else {
+      if (micLoopAnimRef.current) {
+        micLoopAnimRef.current.stop();
+      }
+      micScaleAnim.stopAnimation();
+      micScaleAnim.setValue(1);
+    }
+
+    return () => {
+      if (micLoopAnimRef.current) {
+        micLoopAnimRef.current.stop();
+      }
+      micScaleAnim.stopAnimation();
+    };
+  }, [isListening, micScaleAnim]);
+
+  useSpeechRecognitionEvent("start", () => {
+    setIsListening(true);
+    originalInputRef.current = chatInputRef.current;
+  });
+  useSpeechRecognitionEvent("end", () => setIsListening(false));
+  useSpeechRecognitionEvent("result", (event) => {
+    const transcript = event.results[0]?.transcript || "";
+    const orig = originalInputRef.current;
+    setChatInput(orig + (orig && transcript ? " " : "") + transcript);
+  });
+  useSpeechRecognitionEvent("error", (event) => {
+    console.log("Speech Error:", event.error, event.message);
+    setIsListening(false);
+  });
+
+  const handleMicPress = async () => {
+    if (chatInput.trim().length > 0 && !isListening) {
+      // Send message logic would go here
+      return;
+    }
+    if (isListening) {
+      ExpoSpeechRecognitionModule.stop();
+      return;
+    }
+    const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    if (!result.granted) {
+      Alert.alert("Permission Required", "Please allow microphone access to use voice dictation.");
+      return;
+    }
+    ExpoSpeechRecognitionModule.start({ lang: "en-US", interimResults: true, continuous: false });
+  };
+
+  const handleCameraPress = async () => {
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert("Permission Required", "Please allow camera access to take a photo.");
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setCapturedPhotoUri(result.assets[0].uri);
+    }
+  };
 
   // Calculate the exact initial width of a single toggle tab to prevent visual pop-in on first render
   const initialTabWidth = useMemo(() => {
@@ -221,18 +320,45 @@ export default function LostFoundScreen(): React.JSX.Element {
           />
 
           {/* Chat Input Area */}
-          <Animated.View style={[styles.chatInputWrapper, { transform: [{ translateY: keyboardOffset }] }]}>
-            <View style={[styles.chatInputContainer, { backgroundColor: colors.card }]}>
-              <Ionicons name="camera-outline" size={24} color={colors.textSecondary} style={styles.chatCameraIcon} />
-              <TextInput
-                style={[styles.searchInput, { color: colors.text }]}
-                placeholder="What are you looking for?"
-                placeholderTextColor={colors.textSecondary}
-              />
+          <Animated.View 
+            style={[styles.chatInputWrapper, { transform: [{ translateY: keyboardOffset }], paddingBottom: Math.max(0, insets.bottom - 10) }]}
+            pointerEvents="box-none"
+          >
+            {capturedPhotoUri && (
+              <View style={styles.photoPreviewContainer}>
+                <Image source={{ uri: capturedPhotoUri }} style={styles.photoPreviewImage} contentFit="cover" />
+                <TouchableOpacity style={styles.photoCancelButton} onPress={() => setCapturedPhotoUri(null)}>
+                  <Ionicons name="close" size={16} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            )}
+            <View style={styles.chatInputRow}>
+              <View style={[styles.chatInputContainer, { backgroundColor: colors.card }]}>
+                <TouchableOpacity onPress={handleCameraPress}>
+                  <Ionicons name="camera-outline" size={24} color={colors.textSecondary} style={styles.chatCameraIcon} />
+                </TouchableOpacity>
+                <TextInput
+                  style={[styles.searchInput, { color: colors.text }]}
+                  placeholder={isListening ? "Listening..." : "What are you looking for?"}
+                  placeholderTextColor={colors.textSecondary}
+                  value={chatInput}
+                  onChangeText={setChatInput}
+                />
+              </View>
+              <TouchableOpacity 
+                style={[styles.chatMicButton, { backgroundColor: isListening ? "#ff4444" : colors.primary }]}
+                onPress={handleMicPress}
+              >
+                <Animated.View style={{ transform: [{ scale: micScaleAnim }] }}>
+                  <Ionicons 
+                    name={chatInput.trim().length > 0 && !isListening ? "send" : "mic-outline"} 
+                    size={chatInput.trim().length > 0 && !isListening ? 20 : 24} 
+                    color={colors.surface} 
+                    style={chatInput.trim().length > 0 && !isListening ? { marginLeft: 4 } : undefined}
+                  />
+                </Animated.View>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity style={[styles.chatMicButton, { backgroundColor: colors.primary }]}>
-              <Ionicons name="mic-outline" size={24} color={colors.surface} />
-            </TouchableOpacity>
           </Animated.View>
         </>
       )}
@@ -345,8 +471,35 @@ const styles = ScaledSheet.create({
     bottom: "20@vs",
     left: "20@s",
     right: "20@s",
+  },
+  chatInputRow: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  photoPreviewContainer: {
+    alignSelf: "flex-start",
+    marginBottom: "12@vs",
+    borderRadius: "12@s",
+    overflow: "hidden",
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  photoPreviewImage: {
+    width: "80@s",
+    height: "100@s",
+    borderRadius: "12@s",
+  },
+  photoCancelButton: {
+    position: "absolute",
+    top: "4@s",
+    right: "4@s",
+    backgroundColor: "rgba(0,0,0,0.6)",
+    borderRadius: "12@s",
+    padding: "4@s",
   },
   chatInputContainer: {
     flex: 1,

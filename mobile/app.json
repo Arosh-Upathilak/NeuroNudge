@@ -40,7 +40,20 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow NeuroNudge to access your microphone for voice dictation.",
+          "speechRecognitionPermission": "Allow NeuroNudge to use speech recognition to convert your voice to text."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow NeuroNudge to access your camera to take photos of missing objects."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
