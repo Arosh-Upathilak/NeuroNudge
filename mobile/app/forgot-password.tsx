@@ -12,7 +12,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 
 export default function ForgotPasswordScreen() {
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState<string>("");
 
   const handleResetPassword = () => {
     if (!email) {
