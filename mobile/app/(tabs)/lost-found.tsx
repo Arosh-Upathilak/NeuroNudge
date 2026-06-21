@@ -11,6 +11,7 @@ import { useTheme } from "../../hooks/useTheme";
 
 import { ScaledSheet } from "react-native-size-matters";
 import MemoryCard from "../../components/MemoryCard";
+import ChatMessage, { type ChatMessageData } from "../../components/ChatMessage";
 
 const MOCK_MEMORIES = [
   {
@@ -47,10 +48,42 @@ const MOCK_MEMORIES = [
   },
 ];
 
+const MOCK_CHAT: ChatMessageData[] = [
+  { id: "1", type: "user", text: "Where did I put my wallet?" },
+  { id: "2", type: "system", text: "I found a recent match for your wallet based on your scans." },
+  { 
+    id: "3", 
+    type: "widget", 
+    title: "Wallet", 
+    location: "Inside the top drawer of the hallway console", 
+    timeAgo: "Added 40 mins ago",
+    imageUri: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&q=80&w=800"
+  }
+];
+
 export default function LostFoundScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"Memories" | "Chat">("Chat");
   const keyboardOffset = useRef(new Animated.Value(0)).current;
+
+  // Toggle slider animation
+  const [tabWidth, setTabWidth] = useState(0);
+  const slideAnim = useRef(new Animated.Value(1)).current; // Starts at 1 because initial state is "Chat"
+
+  useEffect(() => {
+    Animated.spring(slideAnim, {
+      toValue: activeTab === "Memories" ? 0 : 1,
+      useNativeDriver: true,
+      bounciness: 4,
+      speed: 14,
+    }).start();
+  }, [activeTab, slideAnim]);
+
+  const translateX = slideAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, tabWidth],
+  });
 
   useEffect(() => {
     const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
@@ -96,56 +129,109 @@ export default function LostFoundScreen(): React.JSX.Element {
       {/* Toggle Bar */}
       <View style={styles.toggleRow}>
         <View style={[styles.toggleContainer, { backgroundColor: colors.card }]}>
-          <TouchableOpacity style={[styles.toggleButton, styles.toggleButtonActive, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.toggleText, { color: colors.surface }]}>Memories</Text>
+          {tabWidth > 0 && (
+            <Animated.View 
+              style={[
+                styles.sliderPill, 
+                { 
+                  backgroundColor: colors.primary, 
+                  width: tabWidth, 
+                  transform: [{ translateX }] 
+                }
+              ]} 
+            />
+          )}
+          <TouchableOpacity 
+            style={styles.toggleButton}
+            onLayout={(e) => setTabWidth(e.nativeEvent.layout.width)}
+            onPress={() => setActiveTab("Memories")}
+          >
+            <Text style={[styles.toggleText, { color: activeTab === "Memories" ? colors.surface : colors.textSecondary }]}>Memories</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.toggleButton}>
-            <Text style={[styles.toggleText, { color: colors.textSecondary }]}>Chat</Text>
+          <TouchableOpacity 
+            style={styles.toggleButton}
+            onPress={() => setActiveTab("Chat")}
+          >
+            <Text style={[styles.toggleText, { color: activeTab === "Chat" ? colors.surface : colors.textSecondary }]}>Chat</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={[styles.addButton, { backgroundColor: colors.primary }]}>
-          <Ionicons name="add" size={24} color={colors.surface} />
-        </TouchableOpacity>
+        {activeTab === "Memories" && (
+          <TouchableOpacity 
+            style={[styles.addButton, { backgroundColor: colors.primary }]}
+            onPress={() => setActiveTab("Chat")}
+          >
+            <Ionicons name="add" size={24} color={colors.surface} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Header Row */}
       <View style={styles.headerRow}>
-        <Text style={[styles.title, { color: colors.text }]}>Memories</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Sorted by Added Date</Text>
+        <Text style={[styles.title, { color: colors.text }]}>{activeTab === "Memories" ? "Memories" : "Chat"}</Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{activeTab === "Memories" ? "Sorted by Added Date" : "AI Assistant"}</Text>
       </View>
 
-      {/* List */}
-      <FlatList
-        data={filteredMemories}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <MemoryCard
-            title={item.title}
-            location={item.location}
-            dateStr={item.dateStr}
-            highlightDate={item.highlightDate}
-            iconName={item.iconName}
+      {/* Content Area */}
+      {activeTab === "Memories" ? (
+        <>
+          <FlatList
+            data={filteredMemories}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            renderItem={({ item }) => (
+              <MemoryCard
+                title={item.title}
+                location={item.location}
+                dateStr={item.dateStr}
+                highlightDate={item.highlightDate}
+                iconName={item.iconName}
+              />
+            )}
           />
-        )}
-      />
 
-      {/* Floating Search Bar */}
-      <Animated.View 
-        style={[styles.searchContainerWrapper, { transform: [{ translateY: keyboardOffset }] }]}
-      >
-        <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-          <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search stored Memories..."
-            placeholderTextColor={colors.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
+          {/* Floating Search Bar */}
+          <Animated.View 
+            style={[styles.searchContainerWrapper, { transform: [{ translateY: keyboardOffset }] }]}
+          >
+            <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+              <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+              <TextInput
+                style={[styles.searchInput, { color: colors.text }]}
+                placeholder="Search stored Memories..."
+                placeholderTextColor={colors.textSecondary}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+              />
+            </View>
+          </Animated.View>
+        </>
+      ) : (
+        <>
+          <FlatList
+            data={MOCK_CHAT}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.chatListContent}
+            renderItem={({ item }) => <ChatMessage message={item} />}
           />
-        </View>
-      </Animated.View>
+
+          {/* Chat Input Area */}
+          <Animated.View style={[styles.chatInputWrapper, { transform: [{ translateY: keyboardOffset }] }]}>
+            <View style={[styles.chatInputContainer, { backgroundColor: colors.card }]}>
+              <Ionicons name="camera-outline" size={24} color={colors.textSecondary} style={styles.chatCameraIcon} />
+              <TextInput
+                style={[styles.searchInput, { color: colors.text }]}
+                placeholder="What are you looking for?"
+                placeholderTextColor={colors.textSecondary}
+              />
+            </View>
+            <TouchableOpacity style={[styles.chatMicButton, { backgroundColor: colors.primary }]}>
+              <Ionicons name="mic-outline" size={24} color={colors.surface} />
+            </TouchableOpacity>
+          </Animated.View>
+        </>
+      )}
     </View>
   );
 }
@@ -167,6 +253,19 @@ const styles = ScaledSheet.create({
     borderRadius: "24@s",
     padding: "4@s",
     marginRight: "16@s",
+    position: "relative",
+  },
+  sliderPill: {
+    position: "absolute",
+    top: "4@s",
+    bottom: "4@s",
+    left: "4@s",
+    borderRadius: "20@s",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   toggleButton: {
     flex: 1,
@@ -174,13 +273,6 @@ const styles = ScaledSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderRadius: "20@s",
-  },
-  toggleButtonActive: {
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
   },
   toggleText: {
     fontSize: FontSizes.md,
@@ -239,5 +331,46 @@ const styles = ScaledSheet.create({
     fontSize: FontSizes.md,
     fontFamily: Fonts.regular,
     padding: 0, // Remove default padding on Android
+  },
+  chatListContent: {
+    paddingBottom: "80@vs", // Space for the floating chat input
+    paddingTop: "8@vs",
+  },
+  chatInputWrapper: {
+    position: "absolute",
+    bottom: "20@vs",
+    left: "20@s",
+    right: "20@s",
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  chatInputContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: "16@s",
+    paddingVertical: "12@vs",
+    borderRadius: "24@s",
+    marginRight: "12@s",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  chatCameraIcon: {
+    marginRight: "12@s",
+  },
+  chatMicButton: {
+    width: "48@s",
+    height: "48@s",
+    borderRadius: "24@s",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
 });
