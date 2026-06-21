@@ -4,14 +4,14 @@
  */
 
 import React from "react";
-import { Text } from "react-native";
+import { View, Text } from "react-native";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 
 
 
 
-import { SafeAreaView } from "react-native-safe-area-context";
+
 
 
 import { ScaledSheet } from "react-native-size-matters";
@@ -20,14 +20,14 @@ export default function DashboardScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Text style={[styles.greeting, { color: colors.text }]}>
         Good morning, Alex
       </Text>
       <Text style={[styles.date, { color: colors.textSecondary }]}>
         Friday, June 12
       </Text>
-    </SafeAreaView>
+    </View>
   );
 }
 
