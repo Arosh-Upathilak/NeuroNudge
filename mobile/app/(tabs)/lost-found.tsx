@@ -72,7 +72,7 @@ export default function LostFoundScreen(): React.JSX.Element {
   const [chatInput, setChatInput] = useState("");
   const [activeTab, setActiveTab] = useState<"Memories" | "Chat">("Chat");
   const [isListening, setIsListening] = useState(false);
-  const [chatMessages, setChatMessages] = useState<ChatMessageData[]>(MOCK_CHAT);
+  const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([...MOCK_CHAT].reverse());
   const [isProcessing, setIsProcessing] = useState(false);
   const [inputBarHeight, setInputBarHeight] = useState(80);
   const chatListRef = useRef<FlatList>(null);
@@ -150,13 +150,14 @@ export default function LostFoundScreen(): React.JSX.Element {
         text: currentText,
         imageUri: currentPhoto || undefined,
       };
-      setChatMessages((prev) => [...prev, newUserMsg]);
+      // For inverted list, new messages go to the FRONT
+      setChatMessages((prev) => [newUserMsg, ...prev]);
       setChatInput("");
       setCapturedPhotoUri(null);
       setIsProcessing(true);
       
-      // Force scroll to bottom when USER sends a message
-      setTimeout(() => chatListRef.current?.scrollToEnd({ animated: true }), 100);
+      // Force scroll to visual bottom (offset 0) when USER sends a message
+      setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 100);
 
       // 3. Now perform heavy asynchronous work (GPS)
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -189,17 +190,17 @@ export default function LostFoundScreen(): React.JSX.Element {
       setTimeout(() => {
         setIsProcessing(false);
         setChatMessages((prev) => [
-          ...prev,
           {
             id: (Date.now() + 1).toString(),
             type: "system",
             text: "Memory logged successfully! I've securely stored your GPS coordinates and photo."
-          }
+          },
+          ...prev
         ]);
         
-        // Smart scroll: Only scroll if user was at the bottom
+        // Smart scroll: Only scroll if user was at the visual bottom (offset 0)
         if (isAtBottomRef.current) {
-          setTimeout(() => chatListRef.current?.scrollToEnd({ animated: true }), 100);
+          setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 100);
         }
       }, 1000);
 
@@ -279,9 +280,9 @@ export default function LostFoundScreen(): React.JSX.Element {
         })
       ]).start();
       
-      // Smart scroll: Only scroll if user is at the bottom
+      // Smart scroll: Only scroll if user is at the visual bottom
       if (isAtBottomRef.current) {
-        setTimeout(() => chatListRef.current?.scrollToEnd({ animated: true }), 50);
+        setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 50);
       }
     });
 
@@ -407,15 +408,16 @@ export default function LostFoundScreen(): React.JSX.Element {
             data={chatMessages}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={[styles.chatListContent, { paddingBottom: inputBarHeight + scale(30) }]}
+            inverted={true}
+            contentContainerStyle={[styles.chatListContent, { paddingTop: inputBarHeight + scale(30), paddingBottom: scale(20) }]}
             onScroll={(e) => {
-              const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
-              // 50px tolerance for "at bottom"
-              isAtBottomRef.current = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
+              const { contentOffset } = e.nativeEvent;
+              // 50px tolerance for "at visual bottom" (offset 0 in inverted list)
+              isAtBottomRef.current = contentOffset.y <= 50;
             }}
             scrollEventThrottle={16}
             renderItem={({ item }) => <ChatMessage message={item} />}
-            ListFooterComponent={
+            ListHeaderComponent={
               <View>
                 {isProcessing && (
                   <View style={styles.systemContainer}>
