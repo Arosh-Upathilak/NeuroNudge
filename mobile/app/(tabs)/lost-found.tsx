@@ -8,7 +8,7 @@ import { View, Text, FlatList, TouchableOpacity, TextInput, Platform, Animated, 
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import { ScaledSheet, scale } from "react-native-size-matters";
 import MemoryCard from "../../components/MemoryCard";
 import ChatMessage, { type ChatMessageData } from "../../components/ChatMessage";
@@ -67,7 +67,6 @@ const MOCK_CHAT: ChatMessageData[] = [
 
 export default function LostFoundScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
-  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [activeTab, setActiveTab] = useState<"Memories" | "Chat">("Chat");
@@ -305,7 +304,7 @@ export default function LostFoundScreen(): React.JSX.Element {
       showSub.remove();
       hideSub.remove();
     };
-  }, [keyboardOffset]);
+  }, [keyboardOffset, kbSpacerAnim]);
 
   const filteredMemories = useMemo(() => {
     if (!searchQuery.trim()) return MOCK_MEMORIES;
@@ -365,8 +364,8 @@ export default function LostFoundScreen(): React.JSX.Element {
       </View>
 
       {/* Content Area */}
-      <View style={{ flex: 1, position: 'relative' }}>
-        {/* Memories View */}
+      <View style={{ flex: 1, position: 'relative', justifyContent: 'flex-end' }}>
+        {/* Memories View (Absolute behind floating inputs) */}
         <View 
           style={{ 
             ...StyleSheet.absoluteFillObject, 
@@ -389,33 +388,10 @@ export default function LostFoundScreen(): React.JSX.Element {
             />
           )}
         />
+        </View>
 
-        {/* Floating Search Bar */}
-        <Animated.View 
-          style={[
-            styles.searchContainerWrapper, 
-            { 
-              transform: [{ translateY: keyboardOffset }],
-              width: Dimensions.get("window").width - scale(40),
-              left: scale(20)
-            }
-          ]}
-        >
-          <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-            <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Search stored Memories..."
-              placeholderTextColor={colors.textSecondary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        </Animated.View>
-      </View>
-
-      {/* Chat View */}
-      <View 
+        {/* Chat View */}
+        <View 
           style={{ 
             ...StyleSheet.absoluteFillObject, 
             opacity: activeTab === "Chat" ? 1 : 0 
@@ -450,20 +426,33 @@ export default function LostFoundScreen(): React.JSX.Element {
               </View>
             }
           />
+        </View>
 
-          {/* Chat Input Area */}
-          <Animated.View 
-            style={[
-              styles.chatInputWrapper, 
-              { 
-                transform: [{ translateY: keyboardOffset }],
-                width: Dimensions.get("window").width - scale(40),
-                left: scale(20)
-              }
-            ]}
-            pointerEvents="box-none"
-            onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
-          >
+        {/* Floating Inputs (Standard flex layout at the bottom of the screen) */}
+        {activeTab === "Memories" ? (
+          <View style={styles.staticWrapper} pointerEvents="box-none">
+            <Animated.View 
+              style={[styles.animatedContainer, { transform: [{ translateY: keyboardOffset }] }]}
+            >
+              <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+                <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+                <TextInput
+                  style={[styles.searchInput, { color: colors.text }]}
+                  placeholder="Search stored Memories..."
+                  placeholderTextColor={colors.textSecondary}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+              </View>
+            </Animated.View>
+          </View>
+        ) : (
+          <View style={styles.staticWrapper} pointerEvents="box-none">
+            <Animated.View 
+              style={[styles.animatedContainer, { transform: [{ translateY: keyboardOffset }] }]}
+              pointerEvents="box-none"
+              onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
+            >
             {capturedPhotoUri && (
               <View style={styles.photoPreviewContainer}>
                 <Image source={{ uri: capturedPhotoUri }} style={styles.photoPreviewImage} contentFit="cover" />
@@ -500,8 +489,9 @@ export default function LostFoundScreen(): React.JSX.Element {
                 </Animated.View>
               </TouchableOpacity>
             </View>
-          </Animated.View>
-        </View>
+            </Animated.View>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -574,10 +564,12 @@ const styles = ScaledSheet.create({
   listContent: {
     paddingBottom: "80@vs", 
   },
-  searchContainerWrapper: {
-    position: "absolute",
-    bottom: "20@vs",
-    alignItems: "center",
+  staticWrapper: {
+    width: "100%",
+    marginBottom: "20@vs",
+  },
+  animatedContainer: {
+    width: "100%",
   },
   searchContainer: {
     flexDirection: "row",
@@ -603,10 +595,6 @@ const styles = ScaledSheet.create({
   },
   chatListContent: {
     paddingTop: "8@vs",
-  },
-  chatInputWrapper: {
-    position: "absolute",
-    bottom: "20@vs",
   },
   chatInputRow: {
     flexDirection: "row",
