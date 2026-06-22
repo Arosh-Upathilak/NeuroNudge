@@ -8,20 +8,15 @@ datasource db {
 }
 
 model User {
-  id            String          @id @default(uuid())
+  id            String          @id
   email         String          @unique
   name          String?
-  password      String?
   createdAt     DateTime        @default(now())
-  provider      String?
-  providerId    String?
   chats         Chat[]
   memories      Memory[]
   noiseSettings NoiseSetting[]
   notifications Notification[]
   searchHistory SearchHistory[]
-
-  @@index([provider, providerId])
 }
 
 model Memory {

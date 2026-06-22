@@ -61,6 +61,80 @@ PORT=5000
 | Variable | Description                     |
 | -------- | ------------------------------- |
 | PORT     | Port used by the backend server |
+| FIREBASE_PROJECT_ID | Firebase Project ID |
+| FIREBASE_CLIENT_EMAIL | Firebase Service Account Client Email |
+| FIREBASE_PRIVATE_KEY | Firebase Service Account Private Key (escaped newlines) |
+| FIREBASE_WEB_API_KEY | Firebase Web API Key for OAuth token exchange |
+
+---
+
+## Authentication
+
+NeuroNudge uses a composed, robust API Gateway Authentication middleware leveraging **Firebase Authentication**. It supports both Firebase-issued ID tokens (JWTs) and third-party OAuth access/ID tokens (Google, Facebook, etc.).
+
+### Composed Middleware: `apiGatewayAuth`
+
+The gateway middleware (`apiGatewayAuth`) automatically detects the auth type based on request headers:
+
+1. **Standard JWT Verification (Default)**:
+   - Header: `Authorization: Bearer <firebase_id_token>`
+   - The token is verified against the Firebase Admin SDK. Token revocation checks are enabled.
+
+2. **OAuth Provider Token Exchange**:
+   - Header: `Authorization: Bearer <provider_oauth_token>`
+   - Header: `x-oauth-provider: <provider_id>` (e.g. `google.com`, `facebook.com`)
+   - The provider token is securely exchanged via Firebase's Identity Toolkit REST API for a Firebase token, verified, and mapped to the user.
+
+### Usage in Routes
+
+```typescript
+import { Router } from "express";
+import { apiGatewayAuth } from "../middleware/auth";
+
+const router = Router();
+
+// 1. Any authenticated user can access:
+router.get("/profile", apiGatewayAuth(), profileHandler);
+
+// 2. Only users with the 'admin' scope custom claim can access:
+router.get("/admin", apiGatewayAuth(["admin"]), adminHandler);
+```
+
+### Request Context
+
+Once authenticated, user information is attached to the request object as `req.user` (typed via `AuthRequest` interface):
+
+```typescript
+export interface AuthPayload {
+  uid: string;
+  email?: string;
+  name?: string;
+  scopes: string[];
+  providerId: string;
+}
+```
+
+### Standalone Middleware: `appCheck`
+
+To lock down API endpoints so they can only be consumed from your official Android/iOS application installations (preventing unauthorized external scripts or Postman calls), apply the standalone `appCheck` middleware:
+
+1. **Header Requirement**:
+   - Every request must supply the header `X-Firebase-AppCheck: <token>` containing a valid token generated on the client by Firebase App Check (e.g. via Play Integrity on Android or DeviceCheck/App Attest on iOS).
+2. **Local Development & Automated Test Bypass**:
+   - Configure the environment variable `APP_CHECK_BYPASS_TOKEN` in your local `.env`.
+   - When the client sends a matching token in the `X-Firebase-AppCheck` header, the backend skips native signature verification, facilitating seamless local execution and testing.
+
+#### Usage in Routes
+
+```typescript
+import { Router } from "express";
+import { apiGatewayAuth, appCheck } from "../middleware/auth";
+
+const router = Router();
+
+// Secure the route with both App Check (app attestation) and User Auth:
+router.get("/profile", appCheck, apiGatewayAuth(), profileHandler);
+```
 
 ---
 
