@@ -73,6 +73,7 @@ function ThemedApp(): React.JSX.Element {
       <StatusBar style={isDark ? "light" : "dark"} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
       </Stack>
       <SideDrawer />
     </View>
