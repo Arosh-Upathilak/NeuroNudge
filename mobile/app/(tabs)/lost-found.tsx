@@ -364,43 +364,45 @@ export default function LostFoundScreen(): React.JSX.Element {
       </View>
 
       {/* Content Area */}
-      {activeTab === "Memories" ? (
-        <>
-          <FlatList
-            data={filteredMemories}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-            renderItem={({ item }) => (
-              <MemoryCard
-                title={item.title}
-                location={item.location}
-                dateStr={item.dateStr}
-                highlightDate={item.highlightDate}
-                iconName={item.iconName}
-              />
-            )}
-          />
+      
+      {/* Memories View */}
+      <View style={{ flex: 1, display: activeTab === "Memories" ? "flex" : "none" }}>
+        <FlatList
+          data={filteredMemories}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => (
+            <MemoryCard
+              title={item.title}
+              location={item.location}
+              dateStr={item.dateStr}
+              highlightDate={item.highlightDate}
+              iconName={item.iconName}
+            />
+          )}
+        />
 
-          {/* Floating Search Bar */}
-          <Animated.View 
-            style={[styles.searchContainerWrapper, { transform: [{ translateY: keyboardOffset }] }]}
-          >
-            <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-              <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
-              <TextInput
-                style={[styles.searchInput, { color: colors.text }]}
-                placeholder="Search stored Memories..."
-                placeholderTextColor={colors.textSecondary}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
-          </Animated.View>
-        </>
-      ) : (
-        <>
-          <FlatList
+        {/* Floating Search Bar */}
+        <Animated.View 
+          style={[styles.searchContainerWrapper, { transform: [{ translateY: keyboardOffset }] }]}
+        >
+          <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
+            <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+            <TextInput
+              style={[styles.searchInput, { color: colors.text }]}
+              placeholder="Search stored Memories..."
+              placeholderTextColor={colors.textSecondary}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </Animated.View>
+      </View>
+
+      {/* Chat View */}
+      <View style={{ flex: 1, display: activeTab === "Chat" ? "flex" : "none" }}>
+        <FlatList
             ref={chatListRef}
             data={chatMessages}
             keyExtractor={(item) => item.id}
@@ -470,8 +472,7 @@ export default function LostFoundScreen(): React.JSX.Element {
               </TouchableOpacity>
             </View>
           </Animated.View>
-        </>
-      )}
+      </View>
     </View>
   );
 }
