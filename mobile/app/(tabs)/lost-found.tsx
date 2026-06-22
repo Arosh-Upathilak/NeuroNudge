@@ -601,6 +601,7 @@ const styles = ScaledSheet.create({
   chatInputRow: {
     flexDirection: "row",
     alignItems: "center",
+    width: "100%",
   },
   photoPreviewContainer: {
     alignSelf: "flex-start",
