@@ -365,9 +365,15 @@ export default function LostFoundScreen(): React.JSX.Element {
       </View>
 
       {/* Content Area */}
-      
-      {/* Memories View */}
-      <View style={{ flex: 1, display: activeTab === "Memories" ? "flex" : "none" }}>
+      <View style={{ flex: 1, position: 'relative' }}>
+        {/* Memories View */}
+        <View 
+          style={{ 
+            ...StyleSheet.absoluteFillObject, 
+            opacity: activeTab === "Memories" ? 1 : 0 
+          }} 
+          pointerEvents={activeTab === "Memories" ? "auto" : "none"}
+        >
         <FlatList
           data={filteredMemories}
           keyExtractor={(item) => item.id}
@@ -402,7 +408,13 @@ export default function LostFoundScreen(): React.JSX.Element {
       </View>
 
       {/* Chat View */}
-      <View style={{ flex: 1, display: activeTab === "Chat" ? "flex" : "none" }}>
+      <View 
+          style={{ 
+            ...StyleSheet.absoluteFillObject, 
+            opacity: activeTab === "Chat" ? 1 : 0 
+          }} 
+          pointerEvents={activeTab === "Chat" ? "box-none" : "none"}
+        >
         <FlatList
             ref={chatListRef}
             data={chatMessages}
@@ -457,6 +469,7 @@ export default function LostFoundScreen(): React.JSX.Element {
                   placeholderTextColor={colors.textSecondary}
                   value={chatInput}
                   onChangeText={setChatInput}
+                  multiline={false}
                 />
               </View>
               <TouchableOpacity 
@@ -474,6 +487,7 @@ export default function LostFoundScreen(): React.JSX.Element {
               </TouchableOpacity>
             </View>
           </Animated.View>
+        </View>
       </View>
     </View>
   );
