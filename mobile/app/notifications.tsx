@@ -7,72 +7,22 @@ import Animated, { FadeIn, FadeOut, Layout } from "react-native-reanimated";
 import { ScaledSheet, scale, verticalScale } from "react-native-size-matters";
 import { Fonts, FontSizes } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
+import {
+  useNotifications,
+  type NotificationFilter,
+  type NotificationItem,
+} from "../contexts/NotificationContext";
 
-interface Notification {
-  id: string;
-  category: string;
-  iconName: keyof typeof Ionicons.glyphMap;
-  timeAgo: string;
-  isUnread: boolean;
-  message: string;
-  section: "TODAY" | "EARLIER";
-}
-
-const INITIAL_NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    category: "Sound Sanctuary",
-    iconName: "stats-chart", // closest to sound waves
-    timeAgo: "2 min ago",
-    isUnread: true,
-    message: "Ambient noise level exceeded your comfort threshold. Rain sounds activated automatically.",
-    section: "TODAY",
-  },
-  {
-    id: "2",
-    category: "Lost-to-Found",
-    iconName: "archive",
-    timeAgo: "15 min ago",
-    isUnread: true,
-    message: "New item Memory Created Successfully: 'Blue Headphones'.",
-    section: "TODAY",
-  },
-  {
-    id: "3",
-    category: "Lost-to-Found",
-    iconName: "archive",
-    timeAgo: "3 hr ago",
-    isUnread: false,
-    message: "New item Memory Created Successfully: 'Gray Laptop Bag'.",
-    section: "EARLIER",
-  },
-];
-
-const FILTER_PILLS = ["All", "Unread", "Sound", "Items"];
+const FILTER_PILLS: NotificationFilter[] = ["All", "Unread", "Sound", "Items"];
 
 export default function NotificationsScreen(): React.JSX.Element {
   const router = useRouter();
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { unreadCount, markAllAsRead, getFilteredNotifications } = useNotifications();
   
-  const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS);
-  const [activeFilter, setActiveFilter] = useState("All");
+  const [activeFilter, setActiveFilter] = useState<NotificationFilter>("All");
 
-  // Handlers
-  const handleMarkAllAsRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, isUnread: false })));
-  };
-
-  // Derived state
-  const unreadCount = notifications.filter(n => n.isUnread).length;
-
-  const filteredNotifications = notifications.filter((n) => {
-    if (activeFilter === "All") return true;
-    if (activeFilter === "Unread") return n.isUnread;
-    if (activeFilter === "Sound") return n.category === "Sound Sanctuary";
-    if (activeFilter === "Items") return n.category === "Lost-to-Found";
-    return true;
-  });
-
+  const filteredNotifications = getFilteredNotifications(activeFilter);
   const todayNotifications = filteredNotifications.filter((n) => n.section === "TODAY");
   const earlierNotifications = filteredNotifications.filter((n) => n.section === "EARLIER");
 
@@ -133,7 +83,7 @@ export default function NotificationsScreen(): React.JSX.Element {
             layout={Layout.springify()}
             style={styles.markReadButton}
           >
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: scale(4) }} onPress={handleMarkAllAsRead}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: scale(4) }} onPress={markAllAsRead}>
               <Ionicons name="checkmark-done-outline" size={16} color={colors.primary} />
               <Text style={[styles.markReadText, { color: colors.primary }]}>Mark all as read</Text>
             </TouchableOpacity>
@@ -175,7 +125,7 @@ export default function NotificationsScreen(): React.JSX.Element {
   );
 }
 
-function NotificationCard({ notification, colors }: { notification: Notification, colors: ThemeColors }) {
+function NotificationCard({ notification, colors }: { notification: NotificationItem, colors: ThemeColors }) {
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       {/* Left Icon */}
