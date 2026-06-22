@@ -3,6 +3,9 @@ import { CloudinaryService } from "../services/image.service";
 
 const cloudinaryService = new CloudinaryService();
 
+/**
+ * Controller to handle image uploads, replacements, and deletions.
+ */
 export class UploadController {
   async uploadImage(req: Request, res: Response) {
     try {
