@@ -6,6 +6,7 @@ export interface CreateMemoryInput {
   publicId?: string;
   latitude?: number;
   longitude?: number;
+  memoryId?: string;
 }
 
 export interface UpdateMemoryInput {
@@ -26,3 +27,4 @@ export interface UpsertMemoryImageInput {
 export interface GetandDeleteMemoryInput {
     memoryId: string;
 }
+
