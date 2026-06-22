@@ -392,7 +392,14 @@ export default function LostFoundScreen(): React.JSX.Element {
 
         {/* Floating Search Bar */}
         <Animated.View 
-          style={[styles.searchContainerWrapper, { transform: [{ translateY: keyboardOffset }] }]}
+          style={[
+            styles.searchContainerWrapper, 
+            { 
+              transform: [{ translateY: keyboardOffset }],
+              width: Dimensions.get("window").width - scale(40),
+              left: scale(20)
+            }
+          ]}
         >
           <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
             <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
@@ -446,7 +453,14 @@ export default function LostFoundScreen(): React.JSX.Element {
 
           {/* Chat Input Area */}
           <Animated.View 
-            style={[styles.chatInputWrapper, { transform: [{ translateY: keyboardOffset }] }]}
+            style={[
+              styles.chatInputWrapper, 
+              { 
+                transform: [{ translateY: keyboardOffset }],
+                width: Dimensions.get("window").width - scale(40),
+                left: scale(20)
+              }
+            ]}
             pointerEvents="box-none"
             onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
           >
@@ -563,8 +577,6 @@ const styles = ScaledSheet.create({
   searchContainerWrapper: {
     position: "absolute",
     bottom: "20@vs",
-    left: "20@s",
-    right: "20@s",
     alignItems: "center",
   },
   searchContainer: {
@@ -595,8 +607,6 @@ const styles = ScaledSheet.create({
   chatInputWrapper: {
     position: "absolute",
     bottom: "20@vs",
-    left: "20@s",
-    right: "20@s",
   },
   chatInputRow: {
     flexDirection: "row",
