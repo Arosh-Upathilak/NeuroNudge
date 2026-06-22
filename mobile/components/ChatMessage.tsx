@@ -23,12 +23,19 @@ export default function ChatMessage({ message }: ChatMessageProps): React.JSX.El
   const { colors }: { colors: ThemeColors } = useTheme();
 
   if (message.type === "user") {
-    if (!message.text) return null;
+    if (!message.text && !message.imageUri) return null;
     return (
       <View style={styles.userContainer}>
-        <View style={[styles.userBubble, { backgroundColor: colors.primary }]}>
-          <Text style={[styles.userText, { color: colors.surface }]}>{message.text}</Text>
-        </View>
+        {message.imageUri && (
+          <View style={styles.userImageWrapper}>
+            <Image source={{ uri: message.imageUri }} style={styles.image} resizeMode="cover" />
+          </View>
+        )}
+        {!!message.text && (
+          <View style={[styles.userBubble, { backgroundColor: colors.primary }]}>
+            <Text style={[styles.userText, { color: colors.surface }]}>{message.text}</Text>
+          </View>
+        )}
       </View>
     );
   }
@@ -92,6 +99,13 @@ const styles = ScaledSheet.create({
     alignItems: "flex-end",
     marginBottom: "16@vs",
     paddingLeft: "40@s",
+  },
+  userImageWrapper: {
+    width: "180@s",
+    height: "140@vs",
+    borderRadius: "12@s",
+    overflow: "hidden",
+    marginBottom: "8@vs",
   },
   userBubble: {
     paddingHorizontal: "16@s",

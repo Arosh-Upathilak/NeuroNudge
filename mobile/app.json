@@ -53,6 +53,12 @@
         {
           "cameraPermission": "Allow NeuroNudge to access your camera to take photos of missing objects."
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow NeuroNudge to capture your location when logging a lost object."
+        }
       ]
     ],
     "experiments": {

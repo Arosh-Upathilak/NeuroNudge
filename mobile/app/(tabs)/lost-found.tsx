@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, TextInput, Platform, Animated, Keyboard, Dimensions, Alert } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, TextInput, Platform, Animated, Keyboard, Dimensions, Alert, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
@@ -15,6 +15,7 @@ import ChatMessage, { type ChatMessageData } from "../../components/ChatMessage"
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
+import * as Location from "expo-location";
 
 const MOCK_MEMORIES = [
   {
@@ -71,11 +72,17 @@ export default function LostFoundScreen(): React.JSX.Element {
   const [chatInput, setChatInput] = useState("");
   const [activeTab, setActiveTab] = useState<"Memories" | "Chat">("Chat");
   const [isListening, setIsListening] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessageData[]>(MOCK_CHAT);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [inputBarHeight, setInputBarHeight] = useState(80);
+  const chatListRef = useRef<FlatList>(null);
   const [capturedPhotoUri, setCapturedPhotoUri] = useState<string | null>(null);
   const keyboardOffset = useRef(new Animated.Value(0)).current;
+  const kbSpacerAnim = useRef(new Animated.Value(0)).current;
   const micScaleAnim = useRef(new Animated.Value(1)).current;
   const originalInputRef = useRef("");
   const chatInputRef = useRef(chatInput);
+  const isAtBottomRef = useRef(true);
 
   useEffect(() => {
     chatInputRef.current = chatInput;
@@ -132,7 +139,70 @@ export default function LostFoundScreen(): React.JSX.Element {
 
   const handleMicPress = async () => {
     if (chatInput.trim().length > 0 && !isListening) {
-      // Send message logic would go here
+      // 1. Capture values synchronously
+      const currentText = chatInput.trim();
+      const currentPhoto = capturedPhotoUri;
+
+      // 2. Immediately update UI to show message and clear inputs
+      const newUserMsg: ChatMessageData = {
+        id: Date.now().toString(),
+        type: "user",
+        text: currentText,
+        imageUri: currentPhoto || undefined,
+      };
+      setChatMessages((prev) => [...prev, newUserMsg]);
+      setChatInput("");
+      setCapturedPhotoUri(null);
+      setIsProcessing(true);
+      
+      // Force scroll to bottom when USER sends a message
+      setTimeout(() => chatListRef.current?.scrollToEnd({ animated: true }), 100);
+
+      // 3. Now perform heavy asynchronous work (GPS)
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      let locationPayload = null;
+      
+      if (status === 'granted') {
+        const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
+        locationPayload = {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        };
+      } else {
+        Alert.alert(
+          "Location Disabled",
+          "Your memory is being saved without GPS coordinates because location access was denied."
+        );
+      }
+
+      // 4. Build payload
+      const messagePayload = {
+        text: currentText,
+        photoUri: currentPhoto,
+        location: locationPayload,
+        timestamp: new Date().toISOString(),
+      };
+      
+      console.log("SENDING PAYLOAD:", JSON.stringify(messagePayload, null, 2));
+
+      // 5. Mock AI response (GPS wait acts as natural delay, add 1s buffer)
+      setTimeout(() => {
+        setIsProcessing(false);
+        setChatMessages((prev) => [
+          ...prev,
+          {
+            id: (Date.now() + 1).toString(),
+            type: "system",
+            text: "Memory logged successfully! I've securely stored your GPS coordinates and photo."
+          }
+        ]);
+        
+        // Smart scroll: Only scroll if user was at the bottom
+        if (isAtBottomRef.current) {
+          setTimeout(() => chatListRef.current?.scrollToEnd({ animated: true }), 100);
+        }
+      }, 1000);
+
       return;
     }
     if (isListening) {
@@ -193,22 +263,41 @@ export default function LostFoundScreen(): React.JSX.Element {
     const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
     const showSub = Keyboard.addListener(showEvent, (e) => {
-      // Dramatically increase the subtraction to account for the TabBar and Safe Areas.
-      // This prevents the search bar from flying into the middle of the screen.
       const offset = Platform.OS === "ios" ? e.endCoordinates.height - 130 : e.endCoordinates.height - 110;
-      Animated.timing(keyboardOffset, {
-        toValue: -(offset > 0 ? offset : 0),
-        duration: e.duration || 250,
-        useNativeDriver: true,
-      }).start();
+      const finalOffset = offset > 0 ? offset : 0;
+      
+      Animated.parallel([
+        Animated.timing(keyboardOffset, {
+          toValue: -finalOffset,
+          duration: e.duration || 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(kbSpacerAnim, {
+          toValue: finalOffset,
+          duration: e.duration || 250,
+          useNativeDriver: false,
+        })
+      ]).start();
+      
+      // Smart scroll: Only scroll if user is at the bottom
+      if (isAtBottomRef.current) {
+        setTimeout(() => chatListRef.current?.scrollToEnd({ animated: true }), 50);
+      }
     });
 
     const hideSub = Keyboard.addListener(hideEvent, (e) => {
-      Animated.timing(keyboardOffset, {
-        toValue: 0,
-        duration: e.duration || 250,
-        useNativeDriver: true,
-      }).start();
+      Animated.parallel([
+        Animated.timing(keyboardOffset, {
+          toValue: 0,
+          duration: e.duration || 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(kbSpacerAnim, {
+          toValue: 0,
+          duration: e.duration || 250,
+          useNativeDriver: false,
+        })
+      ]).start();
     });
 
     return () => {
@@ -312,17 +401,38 @@ export default function LostFoundScreen(): React.JSX.Element {
       ) : (
         <>
           <FlatList
-            data={MOCK_CHAT}
+            ref={chatListRef}
+            data={chatMessages}
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.chatListContent}
+            contentContainerStyle={[styles.chatListContent, { paddingBottom: inputBarHeight + scale(30) }]}
+            onScroll={(e) => {
+              const { layoutMeasurement, contentOffset, contentSize } = e.nativeEvent;
+              // 50px tolerance for "at bottom"
+              isAtBottomRef.current = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
+            }}
+            scrollEventThrottle={16}
             renderItem={({ item }) => <ChatMessage message={item} />}
+            ListFooterComponent={
+              <View>
+                {isProcessing && (
+                  <View style={styles.systemContainer}>
+                    <View style={[styles.systemBubble, { backgroundColor: colors.card }]}>
+                      <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
+                      <Text style={[styles.systemText, { color: colors.textSecondary }]}>AI is thinking...</Text>
+                    </View>
+                  </View>
+                )}
+                <Animated.View style={{ height: kbSpacerAnim }} />
+              </View>
+            }
           />
 
           {/* Chat Input Area */}
           <Animated.View 
-            style={[styles.chatInputWrapper, { transform: [{ translateY: keyboardOffset }], paddingBottom: Math.max(0, insets.bottom - 10) }]}
+            style={[styles.chatInputWrapper, { transform: [{ translateY: keyboardOffset }] }]}
             pointerEvents="box-none"
+            onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
           >
             {capturedPhotoUri && (
               <View style={styles.photoPreviewContainer}>
@@ -431,7 +541,7 @@ const styles = ScaledSheet.create({
     marginBottom: "4@vs",
   },
   listContent: {
-    paddingBottom: "80@vs", // Space for the floating search bar
+    paddingBottom: "80@vs", 
   },
   searchContainerWrapper: {
     position: "absolute",
@@ -463,7 +573,6 @@ const styles = ScaledSheet.create({
     padding: 0, // Remove default padding on Android
   },
   chatListContent: {
-    paddingBottom: "80@vs", // Space for the floating chat input
     paddingTop: "8@vs",
   },
   chatInputWrapper: {
@@ -516,7 +625,25 @@ const styles = ScaledSheet.create({
     elevation: 3,
   },
   chatCameraIcon: {
-    marginRight: "12@s",
+    marginRight: "8@s",
+  },
+  systemContainer: {
+    alignItems: "flex-start",
+    marginTop: "8@vs",
+    marginBottom: "16@vs",
+    paddingRight: "40@s",
+  },
+  systemBubble: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: "16@s",
+    paddingVertical: "12@vs",
+    borderRadius: "20@s",
+    borderTopLeftRadius: "4@s",
+  },
+  systemText: {
+    fontFamily: Fonts.regular,
+    fontSize: FontSizes.md,
   },
   chatMicButton: {
     width: "48@s",
