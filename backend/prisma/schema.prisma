@@ -1,0 +1,124 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String          @id
+  email         String          @unique
+  name          String?
+  createdAt     DateTime        @default(now())
+  chats         Chat[]
+  memories      Memory[]
+  noiseSettings NoiseSetting[]
+  notifications Notification[]
+  searchHistory SearchHistory[]
+}
+
+model Memory {
+  memoryId    String    @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  messages    Message[]
+  location    Location?
+  image       Image?
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("memory")
+}
+
+model Location {
+  id        String @id @default(uuid())
+  latitude  Float
+  longitude Float
+  memoryId  String @unique
+  memory    Memory @relation(fields: [memoryId], references: [memoryId], onDelete: Cascade)
+
+  @@map("location")
+}
+
+model Image {
+  id       String  @id @default(uuid())
+  imageUrl String
+  publicId String?
+  memoryId String  @unique
+  memory   Memory  @relation(fields: [memoryId], references: [memoryId], onDelete: Cascade)
+
+  @@map("image")
+}
+
+model Chat {
+  chatId    String    @id @default(uuid())
+  userId    String
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+  messages  Message[]
+
+  @@map("chat")
+}
+
+model Message {
+  messageId String      @id @default(uuid())
+  chatId    String
+  role      MessageRole
+  content   String
+  memoryId  String?
+  action    Action?
+  createdAt DateTime    @default(now())
+  chat      Chat        @relation(fields: [chatId], references: [chatId])
+  memory    Memory?     @relation(fields: [memoryId], references: [memoryId])
+
+  @@index([chatId, createdAt])
+  @@map("message")
+}
+
+enum MessageRole {
+  user
+  assistant
+}
+
+enum Action {
+  created
+  retrieved
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String
+  body      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model NoiseSetting {
+  id          String  @id @default(uuid())
+  userId      String
+  isActive    Boolean @default(true)
+  threshold   Float   @default(65.0)
+  audioSource String? @default("sea-breeze")
+  ancEnabled  Boolean @default(true)
+  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SearchHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  query     String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
