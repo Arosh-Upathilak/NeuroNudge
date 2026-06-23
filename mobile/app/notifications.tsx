@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -21,6 +21,7 @@ export default function NotificationsScreen(): React.JSX.Element {
   const { unreadCount, markAllAsRead, getFilteredNotifications, deleteNotification } = useNotifications();
   
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>("All");
+  const [notificationToDelete, setNotificationToDelete] = useState<string | null>(null);
 
   const filteredNotifications = getFilteredNotifications(activeFilter);
   const todayNotifications = filteredNotifications.filter((n) => n.section === "TODAY");
@@ -99,7 +100,7 @@ export default function NotificationsScreen(): React.JSX.Element {
                 <NotificationCard 
                   notification={notification} 
                   colors={colors} 
-                  onDelete={() => deleteNotification(notification.id)}
+                  onDelete={() => setNotificationToDelete(notification.id)}
                 />
               </Animated.View>
             ))}
@@ -115,7 +116,7 @@ export default function NotificationsScreen(): React.JSX.Element {
                 <NotificationCard 
                   notification={notification} 
                   colors={colors} 
-                  onDelete={() => deleteNotification(notification.id)}
+                  onDelete={() => setNotificationToDelete(notification.id)}
                 />
               </Animated.View>
             ))}
@@ -129,22 +130,49 @@ export default function NotificationsScreen(): React.JSX.Element {
           <Text style={[styles.footerText, { color: colors.primary }]}>Notification Settings</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Custom Confirmation Modal */}
+      {notificationToDelete && (
+        <Animated.View 
+          entering={FadeIn} 
+          exiting={FadeOut} 
+          style={StyleSheet.absoluteFillObject}
+        >
+          <TouchableOpacity 
+            style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.5)' }]} 
+            activeOpacity={1} 
+            onPress={() => setNotificationToDelete(null)} 
+          />
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: scale(20) }} pointerEvents="box-none">
+            <Animated.View entering={FadeIn.delay(100)} exiting={FadeOut} style={[styles.modalCard, { backgroundColor: colors.card }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Delete Notification</Text>
+              <Text style={[styles.modalText, { color: colors.textSecondary }]}>Are you sure you want to delete this notification?</Text>
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, { backgroundColor: colors.background }]} 
+                  onPress={() => setNotificationToDelete(null)}
+                >
+                  <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.modalButton, { backgroundColor: '#ff4444' }]} 
+                  onPress={() => {
+                    deleteNotification(notificationToDelete);
+                    setNotificationToDelete(null);
+                  }}
+                >
+                  <Text style={[styles.modalButtonText, { color: '#ffffff' }]}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            </Animated.View>
+          </View>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }
 
 function NotificationCard({ notification, colors, onDelete }: { notification: NotificationItem, colors: ThemeColors, onDelete: () => void }) {
-  const handleDelete = () => {
-    Alert.alert(
-      "Delete Notification",
-      "Are you sure you want to delete this notification?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: onDelete }
-      ]
-    );
-  };
-
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       {/* Left Icon */}
@@ -159,7 +187,7 @@ function NotificationCard({ notification, colors, onDelete }: { notification: No
           <View style={styles.timeContainer}>
             <Text style={[styles.timeText, { color: colors.textSecondary }]}>{notification.timeAgo}</Text>
             {notification.isUnread && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
-            <TouchableOpacity onPress={handleDelete} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+            <TouchableOpacity onPress={onDelete} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
               <Ionicons name="trash-outline" size={16} color={colors.textSecondary} style={{ marginLeft: scale(4) }} />
             </TouchableOpacity>
           </View>
@@ -294,5 +322,43 @@ const styles = ScaledSheet.create({
   footerText: {
     fontSize: FontSizes.md,
     fontFamily: Fonts.semiBold,
+  },
+  modalCard: {
+    width: "100%",
+    borderRadius: "20@s",
+    padding: "24@s",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: FontSizes.xl,
+    fontFamily: Fonts.bold,
+    marginBottom: "8@vs",
+  },
+  modalText: {
+    fontSize: FontSizes.md,
+    fontFamily: Fonts.regular,
+    textAlign: "center",
+    marginBottom: "24@vs",
+  },
+  modalButtons: {
+    flexDirection: "row",
+    width: "100%",
+    gap: "12@s",
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: "12@vs",
+    borderRadius: "12@s",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalButtonText: {
+    fontSize: FontSizes.md,
+    fontFamily: Fonts.bold,
   },
 });
