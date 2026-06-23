@@ -26,6 +26,7 @@ interface NotificationContextType {
   addNotification: (notification: NotificationItem) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  deleteNotification: (id: string) => void;
   getFilteredNotifications: (filter: NotificationFilter) => NotificationItem[];
 }
 
@@ -87,6 +88,10 @@ export function NotificationProvider({ children }: PropsWithChildren): React.JSX
     );
   }, []);
 
+  const deleteNotification = useCallback((id: string): void => {
+    setNotifications((prev) => prev.filter((notification) => notification.id !== id));
+  }, []);
+
   const getFilteredNotifications = useCallback(
     (filter: NotificationFilter): NotificationItem[] =>
       notifications.filter((notification) => {
@@ -106,6 +111,7 @@ export function NotificationProvider({ children }: PropsWithChildren): React.JSX
       addNotification,
       markAsRead,
       markAllAsRead,
+      deleteNotification,
       getFilteredNotifications,
     }),
     [
@@ -114,6 +120,7 @@ export function NotificationProvider({ children }: PropsWithChildren): React.JSX
       addNotification,
       markAsRead,
       markAllAsRead,
+      deleteNotification,
       getFilteredNotifications,
     ]
   );

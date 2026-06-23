@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -18,7 +18,7 @@ const FILTER_PILLS: NotificationFilter[] = ["All", "Unread", "Sound", "Items"];
 export default function NotificationsScreen(): React.JSX.Element {
   const router = useRouter();
   const { colors }: { colors: ThemeColors } = useTheme();
-  const { unreadCount, markAllAsRead, getFilteredNotifications } = useNotifications();
+  const { unreadCount, markAllAsRead, getFilteredNotifications, deleteNotification } = useNotifications();
   
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>("All");
 
@@ -96,7 +96,11 @@ export default function NotificationsScreen(): React.JSX.Element {
             <Animated.Text layout={Layout.springify()} style={[styles.sectionTitle, { color: colors.textSecondary }]}>TODAY</Animated.Text>
             {todayNotifications.map((notification) => (
               <Animated.View key={notification.id} entering={FadeIn} exiting={FadeOut} layout={Layout.springify()}>
-                <NotificationCard notification={notification} colors={colors} />
+                <NotificationCard 
+                  notification={notification} 
+                  colors={colors} 
+                  onDelete={() => deleteNotification(notification.id)}
+                />
               </Animated.View>
             ))}
           </Animated.View>
@@ -108,7 +112,11 @@ export default function NotificationsScreen(): React.JSX.Element {
             <Animated.Text layout={Layout.springify()} style={[styles.sectionTitle, { color: colors.textSecondary }]}>EARLIER</Animated.Text>
             {earlierNotifications.map((notification) => (
               <Animated.View key={notification.id} entering={FadeIn} exiting={FadeOut} layout={Layout.springify()}>
-                <NotificationCard notification={notification} colors={colors} />
+                <NotificationCard 
+                  notification={notification} 
+                  colors={colors} 
+                  onDelete={() => deleteNotification(notification.id)}
+                />
               </Animated.View>
             ))}
           </Animated.View>
@@ -125,7 +133,18 @@ export default function NotificationsScreen(): React.JSX.Element {
   );
 }
 
-function NotificationCard({ notification, colors }: { notification: NotificationItem, colors: ThemeColors }) {
+function NotificationCard({ notification, colors, onDelete }: { notification: NotificationItem, colors: ThemeColors, onDelete: () => void }) {
+  const handleDelete = () => {
+    Alert.alert(
+      "Delete Notification",
+      "Are you sure you want to delete this notification?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: onDelete }
+      ]
+    );
+  };
+
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       {/* Left Icon */}
@@ -140,6 +159,9 @@ function NotificationCard({ notification, colors }: { notification: Notification
           <View style={styles.timeContainer}>
             <Text style={[styles.timeText, { color: colors.textSecondary }]}>{notification.timeAgo}</Text>
             {notification.isUnread && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
+            <TouchableOpacity onPress={handleDelete} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <Ionicons name="trash-outline" size={16} color={colors.textSecondary} style={{ marginLeft: scale(4) }} />
+            </TouchableOpacity>
           </View>
         </View>
         <Text style={[styles.messageText, { color: colors.text }]} numberOfLines={3}>
