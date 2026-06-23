@@ -4,19 +4,17 @@
  * Supports light and dark themes.
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Animated,
-  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Fonts, FontSizes } from "../constants/theme";
-import { ScaledSheet, scale } from "react-native-size-matters";
+import { ScaledSheet } from "react-native-size-matters";
 import { useTheme } from "../hooks/useTheme";
 
 
@@ -48,23 +46,6 @@ export default function TabBar({
 }: BottomTabBarProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const [tabWidth, setTabWidth] = useState(0);
-  const slideAnim = useRef(new Animated.Value(state.index)).current;
-
-  const handleLayout = (event: any) => {
-    const { width } = event.nativeEvent.layout;
-    setTabWidth(width / state.routes.length);
-  };
-
-  useEffect(() => {
-    Animated.spring(slideAnim, {
-      toValue: state.index,
-      useNativeDriver: true,
-      tension: 60,
-      friction: 8,
-    }).start();
-  }, [state.index, slideAnim]);
-
   return (
     <SafeAreaView
       edges={['bottom']}
@@ -77,30 +58,6 @@ export default function TabBar({
         },
       ]}
     >
-      <View style={styles.tabWrapper} onLayout={handleLayout}>
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFillObject,
-            {
-              width: tabWidth,
-              backgroundColor: colors.navbarActiveBackground,
-              borderRadius: scale(30),
-              transform: [
-                {
-                  translateX: slideAnim.interpolate({
-                    inputRange: state.routes.map((_, i) => i),
-                    outputRange: state.routes.map((_, i) => i * tabWidth),
-                  }),
-                },
-              ],
-              shadowColor: colors.shadow,
-              elevation: 2,
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.15,
-              shadowRadius: 4,
-            },
-          ]}
-        />
       {state.routes.map((route, index: number) => {
         const { options } = descriptors[route.key];
         const isFocused: boolean = state.index === index;
@@ -146,7 +103,13 @@ export default function TabBar({
             onPress={onPress}
             onLongPress={onLongPress}
             activeOpacity={0.7}
-            style={[styles.tabButton]}
+            style={[
+              styles.tabButton,
+              isFocused && [
+                styles.tabButtonActive,
+                { backgroundColor: colors.navbarActiveBackground, shadowColor: colors.shadow },
+              ],
+            ]}
           >
             <Ionicons name={iconName} size={22} color={iconColor} />
             <Text
@@ -164,7 +127,6 @@ export default function TabBar({
           </TouchableOpacity>
         );
       })}
-      </View>
     </SafeAreaView>
   );
 }
@@ -179,19 +141,15 @@ const styles = ScaledSheet.create({
     paddingHorizontal: "16@s",
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  tabWrapper: {
-    flex: 1,
-    flexDirection: "row",
-    position: "relative",
-  },
   tabButton: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "column",
     gap: "4@vs",
     paddingVertical: "10@vs",
+    paddingHorizontal: "32@s",
     borderRadius: "30@s",
+    minWidth: "120@s",
   },
   tabButtonActive: {
     elevation: 2,
