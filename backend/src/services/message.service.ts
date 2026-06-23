@@ -1,4 +1,4 @@
-import { PrismaClient, MessageRole, Action } from "@prisma/client";
+import { PrismaClient, MessageRole } from "@prisma/client";
 import {
   CreateMessageInput,
   UpdateMessageInput,

@@ -87,9 +87,8 @@ export const NLPController = {
 
       try {
         parsed = JSON.parse(cleaned);
-      } catch (error) {
-        console.error("JSON Parse Error:", cleaned);
-
+      } catch  {
+        
         return res.status(400).json({
           success: false,
           message: "Invalid JSON returned from model",

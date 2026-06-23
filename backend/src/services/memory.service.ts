@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient,Prisma } from "@prisma/client";
 import {
   CreateMemoryInput,
   UpdateMemoryInput,
@@ -88,9 +88,8 @@ updateMemory: async (
   userId: string,
   data: UpdateMemoryInput
 ) => {
-  const updateData: any = {};
+  const updateData: Prisma.MemoryUpdateInput = {};
 
-  // ✅ Only update if value exists
   if (data.title !== undefined) {
     updateData.title = data.title;
   }
@@ -99,7 +98,6 @@ updateMemory: async (
     updateData.description = data.description;
   }
 
-  // ✅ Only update location if BOTH values exist
   if (data.latitude !== undefined && data.longitude !== undefined) {
     updateData.location = {
       upsert: {

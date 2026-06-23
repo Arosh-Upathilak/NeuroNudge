@@ -2,17 +2,17 @@
 import { MemoryService } from "./memory.service";
 import { HuggingFaceResponseService } from "./huggingfaceresponse.service";
 import {MessageService} from "./message.service";
-import { UpdateMemoryInput} from "../types/memory.types"
+import { UpdateMemoryInput} from "../types/memory.types";
 
 const huggingfaceresponse = new HuggingFaceResponseService();
 const messageService = new MessageService();
 
 export interface NLPResult {
-  intent:
-    | "CREATE_MEMORY"
-    | "RETRIEVE_MEMORY"
-    | "UPDATE_MEMORY"
-    | "DELETE_MEMORY"
+ intent:
+  | "CREATE_MEMORY"
+  | "RETRIEVE_MEMORY"
+  | "UPDATE_MEMORY"
+  | "DELETE_MEMORY";
 
   userId: string;
   title?: string;
@@ -27,193 +27,208 @@ export interface NLPResult {
 export class IntentRouterService {
   static async route(data: NLPResult, usertext: string) {
     switch (data.intent) {
-      case "CREATE_MEMORY":
-        console.log("CREATE_MEMORY service called");
+  case "CREATE_MEMORY": {
+    console.log("CREATE_MEMORY service called");
 
-         await MemoryService.createMemory({
-          userId: data.userId,
-          title: data.title!,
-          description: data.description,
-          imageUrl: data.imageUrl,
-          publicId: data.publicId,
-          latitude: data.latitude,
-          longitude: data.longitude,
-          memoryId: data.memoryId,
-        });
-        const message = `Got it — I’ve saved "${data.title}". You can ask me anytime using a short description, and I’ll recall it for you.`;
-        await messageService.createMessage({
-          userId: data.userId,
-          role: "assistant",
-          content: message,
-          aiContent: message,
-        });
+    await MemoryService.createMemory({
+      userId: data.userId,
+      title: data.title!,
+      description: data.description,
+      imageUrl: data.imageUrl,
+      publicId: data.publicId,
+      latitude: data.latitude,
+      longitude: data.longitude,
+      memoryId: data.memoryId,
+    });
 
-        return message;
+    const message = `Got it — I’ve saved "${data.title}". You can ask me anytime using a short description, and I’ll recall it for you.`;
 
-      case "RETRIEVE_MEMORY":
-        console.log("RETRIEVE_MEMORY service called"); // will be removed later, just for debugging
-         const available = await MemoryService.getMemoriesByUser(
-            data.userId
-          );
+    await messageService.createMessage({
+      userId: data.userId,
+      role: "assistant",
+      content: message,
+      aiContent: message,
+    });
 
-          const formattedMemories = available.map((memory) => ({
-            memoryId: memory.memoryId,
-            title: memory.title,
-            description: memory.description ?? undefined,
-            imageUrl: memory.image?.imageUrl ?? undefined,
-            publicId: memory.image?.publicId ?? undefined,
-            latitude: memory.location?.latitude ?? undefined,
-            longitude: memory.location?.longitude ?? undefined,
-          }));
+    return message;
+  }
 
-          console.log(
-            "Memories retrieved for update:",
-            formattedMemories
-          );
+  case "RETRIEVE_MEMORY": {
+    console.log("RETRIEVE_MEMORY service called");
 
-          const aiResponse =
-            await huggingfaceresponse.generateResponse(
-              "RETRIEVE_MEMORY",
-              usertext,
-              formattedMemories
-            );
+    const available = await MemoryService.getMemoriesByUser(
+      data.userId
+    );
 
-          console.log("AI Response:", aiResponse);
-          await messageService.createMessage({
-            userId: data.userId,
-            role: "assistant",
-            content: aiResponse.reply,
-            aiContent: JSON.stringify(aiResponse),
-          });
-          return aiResponse;        
+    const formattedMemories = available.map((memory) => ({
+      memoryId: memory.memoryId,
+      title: memory.title,
+      description: memory.description ?? undefined,
+      imageUrl: memory.image?.imageUrl ?? undefined,
+      publicId: memory.image?.publicId ?? undefined,
+      latitude: memory.location?.latitude ?? undefined,
+      longitude: memory.location?.longitude ?? undefined,
+    }));
 
-      case "UPDATE_MEMORY":
-        console.log("UPDATE_MEMORY service called");
+    console.log(
+      "Memories retrieved for update:",
+      formattedMemories
+    );
 
-        if (!data.memoryId) {
-          const available = await MemoryService.getMemoriesByUser(
-            data.userId
-          );
+    const aiResponse =
+      await huggingfaceresponse.generateResponse(
+        "RETRIEVE_MEMORY",
+        usertext,
+        formattedMemories
+      );
 
-          const formattedMemories = available.map((memory) => ({
-            memoryId: memory.memoryId,
-            title: memory.title,
-            description: memory.description ?? undefined,
-            imageUrl: memory.image?.imageUrl ?? undefined,
-            publicId: memory.image?.publicId ?? undefined,
-            latitude: memory.location?.latitude ?? undefined,
-            longitude: memory.location?.longitude ?? undefined,
-          }));
+    console.log("AI Response:", aiResponse);
 
-          console.log(
-            "Memories retrieved for update:",
-            formattedMemories
-          ); // will be removed later, just for debugging
+    await messageService.createMessage({
+      userId: data.userId,
+      role: "assistant",
+      content: aiResponse.reply,
+      aiContent: JSON.stringify(aiResponse),
+    });
 
-          const aiResponse =
-            await huggingfaceresponse.generateResponse(
-              "UPDATE_MEMORY",
-              usertext,
-              formattedMemories
-            );
+    return aiResponse;
+  }
 
-          console.log("AI Response:", aiResponse); // will be removed later, just for debugging
-          await messageService.createMessage({
-            userId: data.userId,
-            role: "assistant",
-            content: aiResponse.reply,
-            aiContent: JSON.stringify(aiResponse),
-          });
-          return aiResponse;
-        } else {
-          // TODO: Replace with updateMemory later
-           const updatePayload: UpdateMemoryInput = {
-             memoryId: data.memoryId!,
-             title: data.title,
-             description: data.description,
-             latitude: data.latitude,
-             longitude: data.longitude,
-            };
-          await MemoryService.updateMemory(
-            data.memoryId,
-            data.userId,
-            updatePayload
+  case "UPDATE_MEMORY": {
+    console.log("UPDATE_MEMORY service called");
 
-          )
+    if (!data.memoryId) {
+      const available = await MemoryService.getMemoriesByUser(
+        data.userId
+      );
 
-          console.log(
-            `Memory with ID ${data.title} processed successfully.`
-          );
+      const formattedMemories = available.map((memory) => ({
+        memoryId: memory.memoryId,
+        title: memory.title,
+        description: memory.description ?? undefined,
+        imageUrl: memory.image?.imageUrl ?? undefined,
+        publicId: memory.image?.publicId ?? undefined,
+        latitude: memory.location?.latitude ?? undefined,
+        longitude: memory.location?.longitude ?? undefined,
+      }));
 
-          return {
-            success: true,
-            memoryId: data.memoryId,
-          };
-        }
+      console.log(
+        "Memories retrieved for update:",
+        formattedMemories
+      );
 
-      case "DELETE_MEMORY":
-        console.log("DELETE_MEMORY service called");  // will be removed later, just for debugging
+      const aiResponse =
+        await huggingfaceresponse.generateResponse(
+          "UPDATE_MEMORY",
+          usertext,
+          formattedMemories
+        );
 
-        if (!data.memoryId) {
-          const available = await MemoryService.getMemoriesByUser(
-            data.userId
-          );
+      console.log("AI Response:", aiResponse);
 
-          const formattedMemories = available.map((memory) => ({
-            memoryId: memory.memoryId,
-            title: memory.title,
-            description: memory.description ?? undefined,
-            imageUrl: memory.image?.imageUrl ?? undefined,
-            publicId: memory.image?.publicId ?? undefined,
-            latitude: memory.location?.latitude ?? undefined,
-            longitude: memory.location?.longitude ?? undefined,
-          }));
+      await messageService.createMessage({
+        userId: data.userId,
+        role: "assistant",
+        content: aiResponse.reply,
+        aiContent: JSON.stringify(aiResponse),
+      });
 
-          console.log(
-            "Memories retrieved for deletion:",
-            formattedMemories
-          );  // will be removed later, just for debugging
-
-          const aiResponse =
-            await huggingfaceresponse.generateResponse(
-              "DELETE_MEMORY",
-              usertext,
-              formattedMemories
-            );
-          console.log(aiResponse)
-            await messageService.createMessage({
-            userId: data.userId,
-            role: "assistant",
-            content: aiResponse.reply,
-            aiContent: JSON.stringify(aiResponse),
-          });
-
-          return aiResponse;
-        } else {
-          await MemoryService.deleteMemory(
-            data.memoryId,
-            data.userId
-          );
-
-
-          console.log(
-            `Memory with ID ${data.memoryId} deleted successfully.`
-          ); // will be removed later, just for debugging
-           const message = `Memory with ID ${data.memoryId} has been deleted successfully.`;
-           messageService.createMessage({
-            userId: data.userId,
-            role: "assistant",
-            content: message,
-            aiContent: message,
-          });
-
-          return {
-            success: true,
-            memoryId: message,
-          };
-        }
-
-      
+      return aiResponse;
     }
+
+    const updatePayload: UpdateMemoryInput = {
+      memoryId: data.memoryId,
+      title: data.title,
+      description: data.description,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    };
+
+    await MemoryService.updateMemory(
+      data.memoryId,
+      data.userId,
+      updatePayload
+    );
+
+    console.log(
+      `Memory with ID ${data.title} processed successfully.`
+    );
+
+    return {
+      success: true,
+      memoryId: data.memoryId,
+    };
+  }
+
+  case "DELETE_MEMORY": {
+    console.log("DELETE_MEMORY service called");
+
+    if (!data.memoryId) {
+      const available = await MemoryService.getMemoriesByUser(
+        data.userId
+      );
+
+      const formattedMemories = available.map((memory) => ({
+        memoryId: memory.memoryId,
+        title: memory.title,
+        description: memory.description ?? undefined,
+        imageUrl: memory.image?.imageUrl ?? undefined,
+        publicId: memory.image?.publicId ?? undefined,
+        latitude: memory.location?.latitude ?? undefined,
+        longitude: memory.location?.longitude ?? undefined,
+      }));
+
+      console.log(
+        "Memories retrieved for deletion:",
+        formattedMemories
+      );
+
+      const aiResponse =
+        await huggingfaceresponse.generateResponse(
+          "DELETE_MEMORY",
+          usertext,
+          formattedMemories
+        );
+
+      console.log(aiResponse);
+
+      await messageService.createMessage({
+        userId: data.userId,
+        role: "assistant",
+        content: aiResponse.reply,
+        aiContent: JSON.stringify(aiResponse),
+      });
+
+      return aiResponse;
+    }
+
+    await MemoryService.deleteMemory(
+      data.memoryId,
+      data.userId
+    );
+
+    console.log(
+      `Memory with ID ${data.memoryId} deleted successfully.`
+    );
+
+    const message = `Memory with ID ${data.memoryId} has been deleted successfully.`;
+
+    await messageService.createMessage({
+      userId: data.userId,
+      role: "assistant",
+      content: message,
+      aiContent: message,
+    });
+
+    return {
+      success: true,
+      memoryId: message,
+    };
+  }
+
+  default: {
+    throw new Error(`Unsupported intent: ${data.intent}`);
+  }
+}
   }
 }

@@ -6,6 +6,11 @@ import { MessageRole } from "@prisma/client";
 
 const messageService = new MessageService();
 
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error
+    ? error.message
+    : "Internal Server Error";
+
 /* ================= PARAM HELPER ================= */
 const toString = (v: string | string[]) =>
   Array.isArray(v) ? v[0] : v;
@@ -13,7 +18,7 @@ const toString = (v: string | string[]) =>
 export const MessageController = {
   /* ================= CREATE MESSAGE ================= */
   createMessage: async (
-    req: AuthRequest<{}, {}, CreateMessageRequestBody>,
+    req: AuthRequest<object, object, CreateMessageRequestBody>,
     res: Response
   ) => {
     try {
@@ -21,7 +26,6 @@ export const MessageController = {
 
       const role = req.body.role;
 
-      // ✅ SAFE ENUM VALIDATION
       if (!Object.values(MessageRole).includes(role)) {
         return res.status(400).json({
           success: false,
@@ -34,17 +38,16 @@ export const MessageController = {
         role,
         content: req.body.content,
         aiContent: req.body.aiContent,
-       
       });
 
       return res.status(201).json({
         success: true,
         data: message,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: getErrorMessage(error),
       });
     }
   },
@@ -60,10 +63,10 @@ export const MessageController = {
         success: true,
         data: messages,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: getErrorMessage(error),
       });
     }
   },
@@ -79,10 +82,10 @@ export const MessageController = {
         success: true,
         data: messages,
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: getErrorMessage(error),
       });
     }
   },
@@ -98,10 +101,10 @@ export const MessageController = {
         success: true,
         message: "Message deleted successfully",
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       return res.status(500).json({
         success: false,
-        message: error.message,
+        message: getErrorMessage(error),
       });
     }
   },

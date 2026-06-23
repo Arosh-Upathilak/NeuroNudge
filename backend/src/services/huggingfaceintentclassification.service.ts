@@ -5,7 +5,7 @@ const client = new InferenceClient(
 );
 
 export class HuggingFaceService {
-  async extractEntities(data: any) {
+  async extractEntities(data: unknown) {
     const prompt = `
 You are an NLP intent classification and entity extraction engine.
 
