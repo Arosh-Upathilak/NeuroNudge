@@ -1,4 +1,4 @@
-import { MessageRole, Action } from "@prisma/client";
+import { MessageRole } from "@prisma/client";
 
 /* ================= CREATE MESSAGE ================= */
 export interface CreateMessageInput {
@@ -15,7 +15,7 @@ export interface UpdateMessageInput {
   content?: string;
   aiContent?: string;
   memoryId?: string | null;
-  action?: Action | null;
+  
 }
 
 /* ================= MESSAGE RESPONSE ================= */
@@ -26,7 +26,6 @@ export interface MessageResponse {
   content: string;
   aiContent?: string | null;
   memoryId?: string | null;
-  action?: Action | null;
   createdAt: Date;
 }
 
@@ -35,7 +34,6 @@ export interface CreateMessageRequestBody {
   content: string;
   aiContent?: string;
   memoryId?: string;
-  action?: Action;
   role: MessageRole;
 }
 

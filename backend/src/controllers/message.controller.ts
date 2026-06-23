@@ -71,24 +71,7 @@ export const MessageController = {
     }
   },
 
-  /* ================= GET MEMORY MESSAGES ================= */
-  getMemoryMessages: async (req: AuthRequest, res: Response) => {
-    try {
-      const memoryId = toString(req.params.memoryId);
-
-      const messages = await messageService.getMessagesByMemory(memoryId);
-
-      return res.status(200).json({
-        success: true,
-        data: messages,
-      });
-    } catch (error: unknown) {
-      return res.status(500).json({
-        success: false,
-        message: getErrorMessage(error),
-      });
-    }
-  },
+ 
 
   /* ================= DELETE MESSAGE ================= */
   deleteMessage: async (req: AuthRequest, res: Response) => {

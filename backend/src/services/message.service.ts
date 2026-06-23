@@ -28,7 +28,7 @@ export class MessageService {
         content: data.content,
         aiContent: data.aiContent ?? null,
         memoryId: data.memoryId ?? null,
-        action: data.action ?? null,
+        
       },
     });
   }
@@ -46,12 +46,7 @@ export class MessageService {
 }
 
   /* ================= GET MEMORY MESSAGES ================= */
-  async getMessagesByMemory(memoryId: string) {
-    return prisma.message.findMany({
-      where: { memoryId },
-      orderBy: { createdAt: "asc" },
-    });
-  }
+  
 
   /* ================= DELETE MESSAGE ================= */
   async deleteMessage(messageId: string) {

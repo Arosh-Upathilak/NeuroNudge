@@ -34,7 +34,7 @@ model Memory {
 
   createdAt   DateTime  @default(now())
 
-  messages    Message[]
+  
 
   location    Location?
   image       Image?
@@ -88,7 +88,7 @@ model Message {
   createdAt DateTime    @default(now())
 
   @@index([userId, createdAt])
-  @@index([memoryId])
+  
   @@map("message")
 }
 
