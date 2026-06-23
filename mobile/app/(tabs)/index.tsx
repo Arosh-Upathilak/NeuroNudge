@@ -4,28 +4,70 @@
  */
 
 import React from "react";
-import { View, Text } from "react-native";
+import { Text } from "react-native";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import FeatureCard from "../../components/dashboard/FeatureCard";
+import NoiseMonitoringCard from "../../components/dashboard/NoiseMonitoringCard";
 
-
-
-
-
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ScaledSheet } from "react-native-size-matters";
 
 export default function DashboardScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
+  const today = new Date();
+
+  const formattedDate = today.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  const hour = today.getHours();
+
+  const greeting =
+    hour < 12
+      ? "Good morning"
+      : hour < 18
+      ? "Good afternoon"
+      : "Good evening";
+
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[
+        styles.container,
+        { backgroundColor: colors.background },
+      ]}
+    >
       <Text style={[styles.greeting, { color: colors.text }]}>
-        Good morning, Alex
+        {greeting}, Alex
       </Text>
       <Text style={[styles.date, { color: colors.textSecondary }]}>
-        Friday, June 12
+        {formattedDate}
       </Text>
-    </View>
+
+      <FeatureCard
+      title="Sound Sanctuary"
+      description="Manage your acoustic environment and access calming audioscapes."
+      icon="volume-medium"
+      onPress={() =>
+        console.log("Sound Sanctuary")
+      }
+    />
+
+    <FeatureCard
+      title="Lost-to-Found"
+      description="Quickly locate essential items or log new misplaced objects."
+      icon="archive"
+      onPress={() =>
+        console.log("Lost To Found")
+      }
+    />
+
+    <NoiseMonitoringCard />
+
+    </SafeAreaView>
   );
 }
 
@@ -41,7 +83,8 @@ const styles = ScaledSheet.create({
     marginBottom: "2@vs",
   },
   date: {
-    fontSize: FontSizes.md,
-    fontFamily: Fonts.regular,
-  },
+  fontSize: FontSizes.md,
+  fontFamily: Fonts.regular,
+  marginBottom: "14@vs",
+}
 });
