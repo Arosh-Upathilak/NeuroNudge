@@ -1,9 +1,8 @@
+import { InferenceClient } from "@huggingface/inference";
 
-import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY as string,
-});
+const client = new InferenceClient(
+  process.env.HUGGINGFACE_API_KEY as string
+);
 
 export interface MemoryResponse {
   memoryId?: string;
@@ -21,7 +20,7 @@ export interface AIResponse {
   memories?: MemoryResponse[];
 }
 
-export class GeminiResponseService {
+export class HuggingFaceResponseService {
   async generateResponse(
     intent: string,
     question: string,
@@ -69,12 +68,25 @@ Return this exact schema:
 `;
 
     try {
-      const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
+      const response = await client.chatCompletion({
+        model: "Qwen/Qwen3-8B",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are a memory assistant that always returns valid JSON."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.1,
+        max_tokens: 3000
       });
 
-      const text = response.text?.trim() || "";
+      const text =
+        response.choices?.[0]?.message?.content?.trim() || "";
 
       const cleanedText = text
         .replace(/^```json\s*/i, "")
@@ -84,7 +96,7 @@ Return this exact schema:
 
       return JSON.parse(cleanedText) as AIResponse;
     } catch (error) {
-      console.error("Gemini Response Error:", error);
+      console.error("HuggingFace Response Error:", error);
 
       return {
         status: "NOT_FOUND",
@@ -94,4 +106,3 @@ Return this exact schema:
     }
   }
 }
-

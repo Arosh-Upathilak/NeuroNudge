@@ -11,7 +11,7 @@ export const mockAuth = (
   next: NextFunction
 ): void => {
   const mockUser: AuthPayload = {
-    uid: "87e5b740-23ce-49f1-a620-66cda4c7aa40",
+    uid: "93bd488e-5a27-43b8-9668-0f9c7485d988",
     email: "dev@test.com",
     name: "Dev User",
     providerId: "mock",

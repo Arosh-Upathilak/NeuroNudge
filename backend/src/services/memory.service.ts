@@ -83,42 +83,50 @@ export const MemoryService = {
   /**
    * UPDATE MEMORY
    */
-  updateMemory: async (
+updateMemory: async (
   memoryId: string,
   userId: string,
   data: UpdateMemoryInput
 ) => {
+  const updateData: any = {};
+
+  // ✅ Only update if value exists
+  if (data.title !== undefined) {
+    updateData.title = data.title;
+  }
+
+  if (data.description !== undefined) {
+    updateData.description = data.description;
+  }
+
+  // ✅ Only update location if BOTH values exist
+  if (data.latitude !== undefined && data.longitude !== undefined) {
+    updateData.location = {
+      upsert: {
+        create: {
+          latitude: Number(data.latitude),
+          longitude: Number(data.longitude),
+        },
+        update: {
+          latitude: Number(data.latitude),
+          longitude: Number(data.longitude),
+        },
+      },
+    };
+  }
+
   return await prisma.memory.update({
     where: {
       memoryId,
-      userId, 
+      userId,
     },
-    data: {
-      title: data.title,
-      description: data.description,
-
-      location: (data.latitude !== undefined && data.longitude !== undefined)
-        ? {
-            upsert: {
-              create: {
-                latitude: Number(data.latitude),
-                longitude: Number(data.longitude),
-              },
-              update: {
-                latitude: Number(data.latitude),
-                longitude: Number(data.longitude),
-              },
-            },
-          }
-        : undefined,
-    },
+    data: updateData,
     include: {
       location: true,
       image: true,
     },
   });
 },
-
   /**
    * DELETE MEMORY
    */

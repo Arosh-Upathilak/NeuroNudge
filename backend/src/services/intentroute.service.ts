@@ -1,8 +1,11 @@
 
 import { MemoryService } from "./memory.service";
-import { GeminiResponseService } from "./geminiresponse.service";
+import { HuggingFaceResponseService } from "./huggingfaceresponse.service";
+import {MessageService} from "./message.service";
+import { UpdateMemoryInput} from "../types/memory.types"
 
-const geminiResponseService = new GeminiResponseService();
+const huggingfaceresponse = new HuggingFaceResponseService();
+const messageService = new MessageService();
 
 export interface NLPResult {
   intent:
@@ -10,7 +13,6 @@ export interface NLPResult {
     | "RETRIEVE_MEMORY"
     | "UPDATE_MEMORY"
     | "DELETE_MEMORY"
-    | "CHAT";
 
   userId: string;
   title?: string;
@@ -28,7 +30,7 @@ export class IntentRouterService {
       case "CREATE_MEMORY":
         console.log("CREATE_MEMORY service called");
 
-        const result = await MemoryService.createMemory({
+         await MemoryService.createMemory({
           userId: data.userId,
           title: data.title!,
           description: data.description,
@@ -38,11 +40,18 @@ export class IntentRouterService {
           longitude: data.longitude,
           memoryId: data.memoryId,
         });
+        const message = `Got it — I’ve saved "${data.title}". You can ask me anytime using a short description, and I’ll recall it for you.`;
+        await messageService.createMessage({
+          userId: data.userId,
+          role: "assistant",
+          content: message,
+          aiContent: message,
+        });
 
-        console.log("Memory created:", result);
-        return result;
+        return message;
 
       case "RETRIEVE_MEMORY":
+        console.log("RETRIEVE_MEMORY service called"); // will be removed later, just for debugging
          const available = await MemoryService.getMemoriesByUser(
             data.userId
           );
@@ -63,14 +72,19 @@ export class IntentRouterService {
           );
 
           const aiResponse =
-            await geminiResponseService.generateResponse(
-              "UPDATE_MEMORY",
+            await huggingfaceresponse.generateResponse(
+              "RETRIEVE_MEMORY",
               usertext,
               formattedMemories
             );
 
           console.log("AI Response:", aiResponse);
-
+          await messageService.createMessage({
+            userId: data.userId,
+            role: "assistant",
+            content: aiResponse.reply,
+            aiContent: JSON.stringify(aiResponse),
+          });
           return aiResponse;        
 
       case "UPDATE_MEMORY":
@@ -94,27 +108,41 @@ export class IntentRouterService {
           console.log(
             "Memories retrieved for update:",
             formattedMemories
-          );
+          ); // will be removed later, just for debugging
 
           const aiResponse =
-            await geminiResponseService.generateResponse(
+            await huggingfaceresponse.generateResponse(
               "UPDATE_MEMORY",
               usertext,
               formattedMemories
             );
 
-          console.log("AI Response:", aiResponse);
-
+          console.log("AI Response:", aiResponse); // will be removed later, just for debugging
+          await messageService.createMessage({
+            userId: data.userId,
+            role: "assistant",
+            content: aiResponse.reply,
+            aiContent: JSON.stringify(aiResponse),
+          });
           return aiResponse;
         } else {
           // TODO: Replace with updateMemory later
-          await MemoryService.deleteMemory(
+           const updatePayload: UpdateMemoryInput = {
+             memoryId: data.memoryId!,
+             title: data.title,
+             description: data.description,
+             latitude: data.latitude,
+             longitude: data.longitude,
+            };
+          await MemoryService.updateMemory(
             data.memoryId,
-            data.userId
-          );
+            data.userId,
+            updatePayload
+
+          )
 
           console.log(
-            `Memory with ID ${data.memoryId} processed successfully.`
+            `Memory with ID ${data.title} processed successfully.`
           );
 
           return {
@@ -124,7 +152,7 @@ export class IntentRouterService {
         }
 
       case "DELETE_MEMORY":
-        console.log("DELETE_MEMORY service called");
+        console.log("DELETE_MEMORY service called");  // will be removed later, just for debugging
 
         if (!data.memoryId) {
           const available = await MemoryService.getMemoriesByUser(
@@ -144,16 +172,21 @@ export class IntentRouterService {
           console.log(
             "Memories retrieved for deletion:",
             formattedMemories
-          );
+          );  // will be removed later, just for debugging
 
           const aiResponse =
-            await geminiResponseService.generateResponse(
+            await huggingfaceresponse.generateResponse(
               "DELETE_MEMORY",
               usertext,
               formattedMemories
             );
-
-          console.log("AI Response:", aiResponse);
+          console.log(aiResponse)
+            await messageService.createMessage({
+            userId: data.userId,
+            role: "assistant",
+            content: aiResponse.reply,
+            aiContent: JSON.stringify(aiResponse),
+          });
 
           return aiResponse;
         } else {
@@ -162,28 +195,25 @@ export class IntentRouterService {
             data.userId
           );
 
+
           console.log(
             `Memory with ID ${data.memoryId} deleted successfully.`
-          );
+          ); // will be removed later, just for debugging
+           const message = `Memory with ID ${data.memoryId} has been deleted successfully.`;
+           messageService.createMessage({
+            userId: data.userId,
+            role: "assistant",
+            content: message,
+            aiContent: message,
+          });
 
           return {
             success: true,
-            memoryId: data.memoryId,
+            memoryId: message,
           };
         }
 
-      case "CHAT":
-        console.log("CHAT service called");
-        console.log(data);
-
-        return {
-          reply: "Chat response will be implemented later.",
-        };
-
-      default:
-        throw new Error(
-          `Unsupported intent: ${data.intent}`
-        );
+      
     }
   }
 }
