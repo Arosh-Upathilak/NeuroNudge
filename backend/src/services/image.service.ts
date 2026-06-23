@@ -1,6 +1,9 @@
 import cloudinary from "../config/cloudinary";
 
 
+/**
+ * Cloudinary service for uploading and managing remote image files.
+ */
 export class CloudinaryService {
   async uploadImage(filePath: string) {
     try {
