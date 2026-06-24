@@ -42,8 +42,8 @@ For CREATE_MEMORY, RETRIEVE_MEMORY, UPDATE_MEMORY, DELETE_MEMORY:
 {
   "intent": "CREATE_MEMORY",
   "entities": {
-    "title": "memory title",
-    "description": "memory description",
+    "title": "object name",
+    "description": "description of the location",
     "memoryId": "optional"
   }
 }
@@ -51,9 +51,9 @@ For CREATE_MEMORY, RETRIEVE_MEMORY, UPDATE_MEMORY, DELETE_MEMORY:
 For CHAT:
 
 {
-  "intent": "CHAT",
+  "status": "CHAT",
   "reply": "natural conversational response"
-}
+} "memories":[]
 `;
 
     const response = await client.chatCompletion({

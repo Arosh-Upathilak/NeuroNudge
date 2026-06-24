@@ -27,12 +27,17 @@ export interface NLPResult {
 export class IntentRouterService {
   static async route(data: NLPResult, usertext: string) {
     switch (data.intent) {
-  case "CREATE_MEMORY": {
+    case "CREATE_MEMORY": {
+
     console.log("CREATE_MEMORY service called");
+    
+    if (!data.title || !data.description) {
+       throw new Error("Missing required entities");
+     }
 
     await MemoryService.createMemory({
       userId: data.userId,
-      title: data.title!,
+      title: data.title,
       description: data.description,
       imageUrl: data.imageUrl,
       publicId: data.publicId,
@@ -41,8 +46,8 @@ export class IntentRouterService {
       memoryId: data.memoryId,
     });
 
-    const message = `Got it — I’ve saved "${data.title}". You can ask me anytime using a short description, and I’ll recall it for you.`;
-
+    const message = `Got it — I’ve saved ${data.title}. You can ask me anytime using a short description, and I’ll recall it for you.`;
+    
     await messageService.createMessage({
       userId: data.userId,
       role: "assistant",
@@ -50,7 +55,11 @@ export class IntentRouterService {
       aiContent: message,
     });
 
-    return message;
+    return {
+        status: "CREATED",
+        reply: message,
+        memories: [],
+    };
   }
 
   case "RETRIEVE_MEMORY": {
@@ -68,10 +77,11 @@ export class IntentRouterService {
       publicId: memory.image?.publicId ?? undefined,
       latitude: memory.location?.latitude ?? undefined,
       longitude: memory.location?.longitude ?? undefined,
+      createdat:memory.createdAt??undefined,
     }));
 
     console.log(
-      "Memories retrieved for update:",
+      "Memories retrieved ",
       formattedMemories
     );
 
@@ -154,8 +164,9 @@ export class IntentRouterService {
     
 
     return {
-      success: true,
-      reply:message ,
+      status: "UPDATED",
+      reply: message,
+      memories: [],
     };
   }
 
@@ -210,7 +221,7 @@ export class IntentRouterService {
       `Memory with ID ${data.memoryId} deleted successfully.`
     );
 
-    const message = `Memory with ID ${data.memoryId} has been deleted successfully.`;
+    const message = `${data.title} has been removed from my memory successfully.`;
 
     await messageService.createMessage({
       userId: data.userId,
@@ -220,8 +231,9 @@ export class IntentRouterService {
     });
 
     return {
-      success: true,
-      memoryId: message,
+      status: "CREATED",
+      reply: message,
+      memories: [],
     };
   }
 

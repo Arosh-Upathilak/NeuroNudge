@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { MessageController } from "../controllers/message.controller";
-import { mockAuth } from "../mockAuth/mockAuth.middleware";
+import { authMiddleware } from "../middleware/auth.middleware";
 
 
 const router = Router();
@@ -9,7 +9,7 @@ const router = Router();
 
 router.get(
   "/",
-  mockAuth,
+  authMiddleware ,
   MessageController.getUserMessages
 );
 

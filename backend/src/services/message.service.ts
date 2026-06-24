@@ -1,10 +1,11 @@
-import { PrismaClient, MessageRole } from "@prisma/client";
+import { MessageRole } from "@prisma/client";
+import prisma from "../config/prisma";
 import {
   CreateMessageInput,
   UpdateMessageInput,
 } from "../types/message.types";
 
-const prisma = new PrismaClient();
+
 
 export class MessageService {
   /* ================= CREATE MESSAGE ================= */
@@ -27,7 +28,7 @@ export class MessageService {
       data: {
         content: data.content,
         aiContent: data.aiContent ?? null,
-        memoryId: data.memoryId ?? null,
+        
         
       },
     });

@@ -105,12 +105,14 @@ export const NLPController = {
           aiContent: JSON.stringify(parsed),
         });
 
-        await assistantMessagePromise;
+          await Promise.all([
+          saveUserMessagePromise,
+          assistantMessagePromise,
+         ]);
 
         return res.status(200).json({
           success: true,
-          intent: "CHAT",
-          reply: parsed.reply,
+          data:parsed
         });
       }
 
