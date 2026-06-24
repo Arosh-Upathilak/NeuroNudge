@@ -32,7 +32,7 @@ export const NLPController = {
         userId,
         role: "user",
         content: userText,
-        aiContent: undefined,
+        aiContent: userText,
       });
 
       // STEP 3: fetch previous messages in parallel
@@ -61,7 +61,7 @@ export const NLPController = {
           publicId,
           latitude,
           longitude,
-          timestamp: new Date().toISOString(),
+          
         },
         previousMessages,
       };

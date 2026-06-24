@@ -28,10 +28,11 @@ Rules:
 4. Always return valid JSON.
 5. The input may contain the current user message and up to 5 previous conversation messages.
 6. Use previous messages only when they are relevant to understanding the current user message.
-7. If the current message is independent, ignore the previous messages completely.
+7. If the current message is independent, ignore the previous messages completely please consider this strictly.
 8. Never let previous messages override the user's current request.
 9.if most of the time remeber this object means it is create intent 
-10.if it is  what things that you have remembered means the intent is retrive
+10.if it is  what things that you have remembered means or useing word where  is retrive
+11.If the use says can you find this implies the the intent is retrive
 
 Input:
 ${JSON.stringify(data)}

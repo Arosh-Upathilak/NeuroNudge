@@ -1,16 +1,15 @@
 import { Router } from "express";
 import { MemoryController } from "../controllers/memory.controller";
-import { mockAuth } from "../mockAuth/mockAuth.middleware";
+import { authMiddleware } from "../middleware/auth.middleware";
 import { upload } from "../middleware/upload.middleware";
 
 const router = Router();
 
-const auth = mockAuth;
 
 
 router.post(
   "/",
-  auth,
+  authMiddleware,
   upload.single("image"),
   MemoryController.createMemory.bind(MemoryController)
 );
@@ -19,7 +18,7 @@ router.post(
  */
 router.get(
   "/",
-  auth,
+  authMiddleware,
   MemoryController.getMemories.bind(MemoryController)
 );
 
@@ -28,7 +27,7 @@ router.get(
  */
 router.get(
   "/:id",
-  auth,
+ authMiddleware,
   MemoryController.getMemoryById.bind(MemoryController)
 );
 
@@ -37,7 +36,7 @@ router.get(
  */
 router.put(
   "/:id",
-  auth,
+  authMiddleware,
   MemoryController.updateMemory.bind(MemoryController)
 );
 
@@ -46,7 +45,7 @@ router.put(
  */
 router.delete(
   "/:id",
-  auth,
+  authMiddleware,
   MemoryController.deleteMemory.bind(MemoryController)
 );
 
@@ -56,7 +55,7 @@ router.delete(
  */
 router.put(
   "/:id/image",
-  auth,
+ authMiddleware,
   upload.single("image"),
   MemoryController.upsertMemoryImage.bind(MemoryController)
 );
@@ -66,7 +65,7 @@ router.put(
  */
 router.delete(
   "/:id/image",
-  auth,
+  authMiddleware,
   MemoryController.deleteMemoryImage.bind(MemoryController)
 );
 

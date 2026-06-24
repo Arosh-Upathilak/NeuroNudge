@@ -150,13 +150,12 @@ export class IntentRouterService {
       updatePayload
     );
 
-    console.log(
-      `Memory with ID ${data.title} processed successfully.`
-    );
+    const message ="memory with ${data.title} and is updated ";
+    
 
     return {
       success: true,
-      memoryId: data.memoryId,
+      reply:message ,
     };
   }
 
