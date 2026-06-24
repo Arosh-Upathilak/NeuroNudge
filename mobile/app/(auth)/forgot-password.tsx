@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import { isValidEmail } from "../../utils/validation";
 
 import { ScaledSheet } from "react-native-size-matters";
 
@@ -29,10 +30,7 @@ export default function ForgotPasswordScreen(): React.JSX.Element {
     return;
   }
 
-  const emailRegex =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (!emailRegex.test(email)) {
+  if (!!isValidEmail(email)) {
     Alert.alert(
       "Validation Error",
       "Please enter a valid email address."
