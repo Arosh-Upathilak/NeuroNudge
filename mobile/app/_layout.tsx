@@ -21,6 +21,7 @@ import {
 import * as SplashScreen from "expo-splash-screen";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { DrawerProvider } from "../contexts/DrawerContext";
+import { NotificationProvider } from "../contexts/NotificationContext";
 import SideDrawer from "../components/SideDrawer";
 import { useTheme } from "../hooks/useTheme";
 
@@ -55,7 +56,9 @@ export default function RootLayout(): React.JSX.Element | null {
   return (
     <ThemeProvider>
       <DrawerProvider>
-        <ThemedApp />
+        <NotificationProvider>
+          <ThemedApp />
+        </NotificationProvider>
       </DrawerProvider>
     </ThemeProvider>
   );
@@ -73,6 +76,7 @@ function ThemedApp(): React.JSX.Element {
       <StatusBar style={isDark ? "light" : "dark"} />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="notifications" options={{ presentation: 'modal' }} />
       </Stack>
       <SideDrawer />
     </View>
