@@ -9,6 +9,7 @@ import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 import FeatureCard from "../../components/dashboard/FeatureCard";
 import NoiseMonitoringCard from "../../components/dashboard/NoiseMonitoringCard";
+import { router } from "expo-router";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScaledSheet } from "react-native-size-matters";
@@ -59,22 +60,18 @@ const greeting =
       </Text>
 
       <FeatureCard
-      title="Sound Sanctuary"
-      description="Manage your acoustic environment and access calming audioscapes."
-      icon="volume-medium"
-      onPress={() =>
-        console.log("Sound Sanctuary")
-      }
-    />
+  title="Sound Sanctuary"
+  description="Manage your acoustic environment and access calming audioscapes."
+  icon="volume-medium"
+  onPress={() => router.push("/(tabs)/sanctuary")}
+/>
 
-    <FeatureCard
-      title="Lost-to-Found"
-      description="Quickly locate essential items or log new misplaced objects."
-      icon="archive"
-      onPress={() =>
-        console.log("Lost To Found")
-      }
-    />
+<FeatureCard
+  title="Lost-to-Found"
+  description="Quickly locate essential items or log new misplaced objects."
+  icon="archive"
+  onPress={() => router.push("/(tabs)/lost-found")}
+/>
 
     <NoiseMonitoringCard />
 
