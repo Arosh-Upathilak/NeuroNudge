@@ -82,10 +82,10 @@ export default function EditProfileScreen(): React.JSX.Element {
             ]}
           >
             <Ionicons
-              name="person-outline"
-              size={50}
-              color="#FFFFFF"
-            />
+  name="person-outline"
+  size={50}
+  color={colors.surface}
+/>
           </View>
 
           <TouchableOpacity
@@ -98,10 +98,10 @@ export default function EditProfileScreen(): React.JSX.Element {
             ]}
           >
             <Ionicons
-              name="camera-outline"
-              size={18}
-              color="#FFFFFF"
-            />
+  name="camera-outline"
+  size={18}
+  color={colors.surface}
+/>
           </TouchableOpacity>
         </View>
 
@@ -231,9 +231,12 @@ const styles = ScaledSheet.create({
   },
 
   avatarContainer: {
-    alignItems: "center",
-    marginBottom: "30@vs",
-  },
+  width: "110@s",
+  height: "110@s",
+  alignSelf: "center",
+  position: "relative",
+  marginBottom: "30@vs",
+},
 
   avatar: {
     width: "110@s",
@@ -244,15 +247,15 @@ const styles = ScaledSheet.create({
   },
 
   editAvatarButton: {
-    position: "absolute",
-    bottom: 0,
-    right: "135@s",
-    width: "34@s",
-    height: "34@s",
-    borderRadius: "17@s",
-    justifyContent: "center",
-    alignItems: "center",
-  },
+  position: "absolute",
+  bottom: 0,
+  right: 0,
+  width: "34@s",
+  height: "34@s",
+  borderRadius: "17@s",
+  justifyContent: "center",
+  alignItems: "center",
+},
 
   card: {
     marginHorizontal: "20@s",
