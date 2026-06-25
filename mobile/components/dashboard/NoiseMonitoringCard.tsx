@@ -56,10 +56,11 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
       </View>
 
       <TouchableOpacity
+        accessibilityRole="switch"
+        accessibilityState={{ checked: enabled }}
+        accessibilityLabel="Ambient Noise Monitoring"
         activeOpacity={0.8}
-        onPress={() =>
-          setEnabled(!enabled)
-        }
+        onPress={() => setEnabled(!enabled)}
         style={[
           styles.toggleTrack,
           {
