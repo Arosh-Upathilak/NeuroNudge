@@ -19,12 +19,13 @@ import { ScaledSheet } from "react-native-size-matters";
 
 export default function LoginScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
-  const { signIn } = useAuth();
+  const { signIn, signInWithGoogle } = useAuth();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState<boolean>(false);
 
   const handleLogin = async (): Promise<void> => {
     if (!email.trim()) {
@@ -56,6 +57,18 @@ export default function LoginScreen(): React.JSX.Element {
       Alert.alert("Sign In Failed", (error as Error).message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async (): Promise<void> => {
+    setIsGoogleSubmitting(true);
+    try {
+      await signInWithGoogle();
+      // Navigation is handled by the route guard in _layout.tsx
+    } catch (error) {
+      Alert.alert("Google Sign In Failed", (error as Error).message);
+    } finally {
+      setIsGoogleSubmitting(false);
     }
   };
 
@@ -212,13 +225,13 @@ export default function LoginScreen(): React.JSX.Element {
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={isSubmitting ? 1 : 0.8}
-            disabled={isSubmitting}
+            activeOpacity={(isSubmitting || isGoogleSubmitting) ? 1 : 0.8}
+            disabled={isSubmitting || isGoogleSubmitting}
             style={[
               styles.signInButton,
               {
                 backgroundColor: colors.primary,
-                opacity: isSubmitting ? 0.8 : 1,
+                opacity: (isSubmitting || isGoogleSubmitting) ? 0.8 : 1,
               },
             ]}
             onPress={handleLogin}
@@ -242,6 +255,50 @@ export default function LoginScreen(): React.JSX.Element {
                   size={20}
                   color={colors.navbarActiveText}
                 />
+              </>
+            )}
+          </TouchableOpacity>
+
+          <View style={styles.dividerContainer}>
+            <View style={[styles.dividerLine, { backgroundColor: colors.divider }]} />
+            <Text style={[styles.dividerText, { color: colors.textSecondary }]}>
+              OR
+            </Text>
+            <View style={[styles.dividerLine, { backgroundColor: colors.divider }]} />
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={(isSubmitting || isGoogleSubmitting) ? 1 : 0.8}
+            disabled={isSubmitting || isGoogleSubmitting}
+            style={[
+              styles.googleButton,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.divider,
+                opacity: (isSubmitting || isGoogleSubmitting) ? 0.8 : 1,
+              },
+            ]}
+            onPress={handleGoogleLogin}
+          >
+            {isGoogleSubmitting ? (
+              <ActivityIndicator size="small" color={colors.text} />
+            ) : (
+              <>
+                <Ionicons
+                  name="logo-google"
+                  size={20}
+                  color={colors.text}
+                />
+                <Text
+                  style={[
+                    styles.googleText,
+                    {
+                      color: colors.text,
+                    },
+                  ]}
+                >
+                  Continue with Google
+                </Text>
               </>
             )}
           </TouchableOpacity>
@@ -353,6 +410,38 @@ const styles = ScaledSheet.create({
   signInText: {
     fontFamily: Fonts.semiBold,
     fontSize: FontSizes.lg,
+  },
+
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: "16@vs",
+  },
+
+  dividerLine: {
+    flex: 1,
+    height: 1,
+  },
+
+  dividerText: {
+    marginHorizontal: "10@s",
+    fontFamily: Fonts.medium,
+    fontSize: FontSizes.sm,
+  },
+
+  googleButton: {
+    height: "52@vs",
+    borderRadius: "26@s",
+    borderWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10@s",
+  },
+
+  googleText: {
+    fontFamily: Fonts.semiBold,
+    fontSize: FontSizes.md,
   },
 
   footer: {

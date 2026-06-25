@@ -197,8 +197,8 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     try {
       const userRecord = await auth.getUserByEmail(email);
       name = userRecord.displayName || "there";
-    } catch (err: any) {
-      if (err.code === "auth/user-not-found") {
+    } catch (err: unknown) {
+      if ((err as { code?: string }).code === "auth/user-not-found") {
         res.status(200).json({
           success: true,
           message: "If an account exists for that email, a password reset link has been sent.",

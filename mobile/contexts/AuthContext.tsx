@@ -29,6 +29,7 @@ import {
   firebaseSignOut,
 } from "../services/firebase";
 import { syncUser, sendVerificationEmail, requestPasswordReset } from "../services/api";
+import { signInWithGoogle as firebaseGoogleSignIn } from "../services/googleAuth";
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
@@ -195,6 +196,18 @@ export function AuthProvider({
     }
   }, []);
 
+  /**
+   * Signs in with Google and synchronizes with the backend database.
+   */
+  const signInWithGoogle = useCallback(async (): Promise<void> => {
+    try {
+      await firebaseGoogleSignIn();
+      await syncUser();
+    } catch (error) {
+      throw new Error(getAuthErrorMessage(error));
+    }
+  }, []);
+
   const value: AuthContextType = useMemo(
     () => ({
       user,
@@ -202,11 +215,12 @@ export function AuthProvider({
       signIn,
       signUp,
       signOut,
+      signInWithGoogle,
       reloadUser,
       resendVerificationEmail,
       resetPassword,
     }),
-    [user, isLoading, signIn, signUp, signOut, reloadUser, resendVerificationEmail, resetPassword]
+    [user, isLoading, signIn, signUp, signOut, signInWithGoogle, reloadUser, resendVerificationEmail, resetPassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

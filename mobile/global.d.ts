@@ -127,6 +127,8 @@ declare global {
     ) => Promise<void>;
     /** Signs the current user out of Firebase. */
     readonly signOut: () => Promise<void>;
+    /** Signs in with Google. */
+    readonly signInWithGoogle: () => Promise<void>;
     /** Reloads the Firebase user to check for email verification status. Registers backend user if verified. */
     readonly reloadUser: () => Promise<void>;
     /** Resends the verification email. */
