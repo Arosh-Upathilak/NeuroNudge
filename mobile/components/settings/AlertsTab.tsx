@@ -129,9 +129,7 @@ export default function AlertsTab(): React.JSX.Element {
 
           <CustomToggle
             value={dailySummary}
-            onToggle={() =>
-              setDailySummary(!dailySummary)
-            }
+            onToggle={() => setDailySummary((prev) => !prev)}
           />
         </View>
       </View>
