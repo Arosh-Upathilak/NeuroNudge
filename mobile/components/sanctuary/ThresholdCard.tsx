@@ -44,15 +44,15 @@ export default function ThresholdCard(): React.JSX.Element {
       {/* Slider */}
 
       <Slider
-        style={styles.slider}
-        minimumValue={0}
-        maximumValue={100}
-        value={threshold}
-        onValueChange={setThreshold}
-        minimumTrackTintColor={colors.primary}
-        maximumTrackTintColor="#D9D7D0"
-        thumbTintColor={colors.primary}
-      />
+  style={styles.slider}
+  minimumValue={0}
+  maximumValue={100}
+  value={threshold}
+  onValueChange={setThreshold}
+  minimumTrackTintColor={colors.primary}
+  maximumTrackTintColor={colors.divider}
+  thumbTintColor={colors.primary}
+/>
 
       {/* Labels */}
 
