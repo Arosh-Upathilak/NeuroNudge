@@ -34,6 +34,8 @@ export default function CustomToggle({
 
   return (
     <TouchableOpacity
+      accessibilityRole="switch"
+      accessibilityState={{ checked: value }}
       activeOpacity={0.8}
       onPress={onToggle}
       style={[
