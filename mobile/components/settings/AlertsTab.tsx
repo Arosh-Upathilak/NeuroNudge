@@ -170,11 +170,7 @@ export default function AlertsTab(): React.JSX.Element {
 
           <CustomToggle
             value={pushNotifications}
-            onToggle={() =>
-              setPushNotifications(
-                !pushNotifications
-              )
-            }
+            onToggle={() => setPushNotifications((prev) => !prev)}
           />
         </View>
 
