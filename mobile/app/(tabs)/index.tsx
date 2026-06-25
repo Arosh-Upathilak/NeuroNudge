@@ -13,9 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Fonts, FontSizes } from "../constants/theme";
+import { Fonts, FontSizes } from "../../constants/theme";
 import { ScaledSheet } from "react-native-size-matters";
-import { useTheme } from "../hooks/useTheme";
+import { useTheme } from "../../hooks/useTheme";
 
 
 
