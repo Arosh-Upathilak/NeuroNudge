@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import React, {
+  useCallback,
+  useState,
+} from "react";
 import {
   View,
   Text,
@@ -6,34 +9,113 @@ import {
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { ScaledSheet } from "react-native-size-matters";
-import CustomToggle from "./CustomToggle";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 
-export default function PrivacyTab(): React.JSX.Element {
+import {
+  getProfile,
+  UserProfile,
+} from "../../utils/profileStorage";
+
+export default function ProfileTab(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const [locationAccess, setLocationAccess] =
-    useState(true);
+  const [profile, setProfile] =
+  useState<UserProfile | null>(null);
 
-  const [microphoneAccess, setMicrophoneAccess] =
-    useState(true);
+useFocusEffect(
+  useCallback(() => {
+    const loadProfile = async (): Promise<void> => {
+      const data = await getProfile();
 
-  const [cameraAccess, setCameraAccess] =
-    useState(false);
+      if (data) {
+        setProfile(data);
+      }
+    };
 
-  const [shareUsageData, setShareUsageData] =
-    useState(false);
-
-  const [personalizedInsights, setPersonalizedInsights] =
-    useState(true);
+    loadProfile();
+  }, [])
+);
 
   return (
     <>
-      {/* Device Permissions */}
+      {/* Profile Card */}
+      <TouchableOpacity
+      style={[
+        styles.profileCard,
+        { backgroundColor: colors.card },
+      ]}
+      activeOpacity={0.9}
+      onPress={() =>
+        router.push(
+          "/settings/edit-profile" as any
+        )
+        }
+      >
+        <View>
+          <View
+            style={[
+              styles.avatar,
+              { backgroundColor: colors.primary },
+            ]}
+          >
+            <Ionicons
+              name="person-outline"
+              size={34}
+              color="#FFFFFF"
+            />
+          </View>
 
+          <TouchableOpacity
+  style={[
+    styles.editAvatarButton,
+    {
+      backgroundColor: colors.primary,
+    },
+  ]}
+  activeOpacity={0.8}
+  onPress={() =>
+    router.push(
+      "/settings/edit-profile" as any
+    )
+  }
+>
+  <Ionicons
+    name="create-outline"
+    size={14}
+    color="#FFFFFF"
+  />
+</TouchableOpacity>
+        </View>
+
+        <View style={styles.profileInfo}>
+          <Text
+            style={[
+              styles.userName,
+              { color: colors.text },
+            ]}
+          >
+            {profile?.fullName || "No Name"}
+          </Text>
+
+          <Text
+            style={[
+              styles.userEmail,
+              {
+                color: colors.textSecondary,
+              },
+            ]}
+          >
+            {profile?.email || "No Email"}
+          </Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Personal Information */}
       <View
         style={[
           styles.card,
@@ -46,39 +128,30 @@ export default function PrivacyTab(): React.JSX.Element {
             { color: colors.text },
           ]}
         >
-          Device Permissions
+          Personal Information
         </Text>
 
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text
-              style={[
-                styles.itemTitle,
-                { color: colors.text },
-              ]}
-            >
-              Location Access
-            </Text>
+        <View style={styles.infoBlock}>
+          <Text
+            style={[
+              styles.label,
+              {
+                color:
+                  colors.textSecondary,
+              },
+            ]}
+          >
+            FULL NAME
+          </Text>
 
-            <Text
-              style={[
-                styles.itemSubtitle,
-                {
-                  color:
-                    colors.textSecondary,
-                },
-              ]}
-            >
-              Required for item tracking
-            </Text>
-          </View>
-
-          <CustomToggle
-  value={locationAccess}
-  onToggle={() =>
-    setLocationAccess(!locationAccess)
-  }
-/>
+          <Text
+            style={[
+              styles.value,
+              { color: colors.text },
+            ]}
+          >
+            {profile?.fullName || "No Name"}
+          </Text>
         </View>
 
         <View
@@ -91,38 +164,27 @@ export default function PrivacyTab(): React.JSX.Element {
           ]}
         />
 
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text
-              style={[
-                styles.itemTitle,
-                { color: colors.text },
-              ]}
-            >
-              Microphone Access
-            </Text>
+        <View style={styles.infoBlock}>
+          <Text
+            style={[
+              styles.label,
+              {
+                color:
+                  colors.textSecondary,
+              },
+            ]}
+          >
+            EMAIL
+          </Text>
 
-            <Text
-              style={[
-                styles.itemSubtitle,
-                {
-                  color:
-                    colors.textSecondary,
-                },
-              ]}
-            >
-              Used for ambient noise monitoring
-            </Text>
-          </View>
-
-          <CustomToggle
-  value={microphoneAccess}
-  onToggle={() =>
-    setMicrophoneAccess(
-      !microphoneAccess
-    )
-  }
-/>
+          <Text
+            style={[
+              styles.value,
+              { color: colors.text },
+            ]}
+          >
+            {profile?.email || "No Email"}
+          </Text>
         </View>
 
         <View
@@ -135,187 +197,92 @@ export default function PrivacyTab(): React.JSX.Element {
           ]}
         />
 
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text
-              style={[
-                styles.itemTitle,
-                { color: colors.text },
-              ]}
-            >
-              Camera Access
-            </Text>
+        <View style={styles.infoBlock}>
+          <Text
+            style={[
+              styles.label,
+              {
+                color:
+                  colors.textSecondary,
+              },
+            ]}
+          >
+            USERNAME
+          </Text>
 
-            <Text
-              style={[
-                styles.itemSubtitle,
-                {
-                  color:
-                    colors.textSecondary,
-                },
-              ]}
-            >
-              Scan items for memory logging
-            </Text>
-          </View>
-
-          <CustomToggle
-  value={cameraAccess}
-  onToggle={() =>
-    setCameraAccess(!cameraAccess)
-  }
-/>
+          <Text
+            style={[
+              styles.value,
+              { color: colors.text },
+            ]}
+          >
+            {profile?.username || "No Username"}
+          </Text>
         </View>
-      </View>
 
-      {/* Data & Analytics */}
-
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.card },
-        ]}
-      >
-        <Text
+        <TouchableOpacity
           style={[
-            styles.sectionTitle,
-            { color: colors.text },
+            styles.editButton,
+            {
+              backgroundColor:
+                colors.primary,
+            },
           ]}
+          activeOpacity={0.8}
+          onPress={() =>
+            router.push(
+              "/settings/edit-profile" as any
+            )
+          }
         >
-          Data & Analytics
-        </Text>
+          <Ionicons
+            name="create-outline"
+            size={18}
+            color="#FFFFFF"
+          />
 
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text
-              style={[
-                styles.itemTitle,
-                { color: colors.text },
-              ]}
-            >
-              Share Usage Data
-            </Text>
-
-            <Text
-              style={[
-                styles.itemSubtitle,
-                {
-                  color:
-                    colors.textSecondary,
-                },
-              ]}
-            >
-              Help improve NeuroNudge anonymously
-            </Text>
-          </View>
-
-          <CustomToggle
-  value={shareUsageData}
-  onToggle={() =>
-    setShareUsageData(
-      !shareUsageData
-    )
-  }
-/>
-        </View>
-
-        <View
-          style={[
-            styles.divider,
-            {
-              backgroundColor:
-                colors.divider,
-            },
-          ]}
-        />
-
-        <View style={styles.settingRow}>
-          <View style={styles.textContainer}>
-            <Text
-              style={[
-                styles.itemTitle,
-                { color: colors.text },
-              ]}
-            >
-              Personalized Insights
-            </Text>
-
-            <Text
-              style={[
-                styles.itemSubtitle,
-                {
-                  color:
-                    colors.textSecondary,
-                },
-              ]}
-            >
-              Allow AI to learn your patterns
-            </Text>
-          </View>
-
-          <CustomToggle
-  value={personalizedInsights}
-  onToggle={() =>
-    setPersonalizedInsights(
-      !personalizedInsights
-    )
-  }
-/>
-        </View>
+          <Text style={styles.editButtonText}>
+            Edit Profile
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      {/* Data Management */}
-
+      {/* Security */}
       <View
-        style={[
-          styles.card,
-          {
+      style={[
+        styles.card,
+        {
             backgroundColor: colors.card,
             marginBottom: 120,
-          },
+        },
         ]}
-      >
+    >
+        
         <Text
           style={[
             styles.sectionTitle,
             { color: colors.text },
           ]}
         >
-          Data Management
+          Security
         </Text>
 
         <TouchableOpacity
-          style={styles.actionRow}
-          activeOpacity={0.7}
+          style={styles.securityItem}
         >
-          <View style={styles.textContainer}>
-            <Text
-              style={[
-                styles.itemTitle,
-                { color: colors.text },
-              ]}
-            >
-              Download Data
-            </Text>
-
-            <Text
-              style={[
-                styles.itemSubtitle,
-                {
-                  color:
-                    colors.textSecondary,
-                },
-              ]}
-            >
-              Export your memories and account
-              information
-            </Text>
-          </View>
+          <Text
+            style={[
+              styles.securityText,
+              { color: colors.text },
+            ]}
+          >
+            Change Password
+          </Text>
 
           <Ionicons
-            name="download-outline"
-            size={22}
-            color={colors.primary}
+            name="chevron-forward"
+            size={20}
+            color={colors.textSecondary}
           />
         </TouchableOpacity>
 
@@ -330,37 +297,50 @@ export default function PrivacyTab(): React.JSX.Element {
         />
 
         <TouchableOpacity
-          style={styles.actionRow}
-          activeOpacity={0.7}
+          style={styles.securityItem}
         >
-          <View style={styles.textContainer}>
-            <Text
-              style={[
-                styles.itemTitle,
-                { color: "#D9534F" },
-              ]}
-            >
-              Clear Data
-            </Text>
-
-            <Text
-              style={[
-                styles.itemSubtitle,
-                {
-                  color:
-                    colors.textSecondary,
-                },
-              ]}
-            >
-              Remove all stored memories and
-              history
-            </Text>
-          </View>
+          <Text
+            style={[
+              styles.securityText,
+              { color: colors.text },
+            ]}
+          >
+            Notifications
+          </Text>
 
           <Ionicons
-            name="trash-outline"
-            size={22}
-            color="#D9534F"
+            name="chevron-forward"
+            size={20}
+            color={colors.textSecondary}
+          />
+        </TouchableOpacity>
+
+        <View
+          style={[
+            styles.divider,
+            {
+              backgroundColor:
+                colors.divider,
+            },
+          ]}
+        />
+
+        <TouchableOpacity
+          style={styles.securityItem}
+        >
+          <Text
+            style={[
+              styles.securityText,
+              { color: colors.error },
+            ]}
+          >
+            Sign Out
+          </Text>
+
+          <Ionicons
+            name="log-out-outline"
+            size={20}
+            color={colors.error}
           />
         </TouchableOpacity>
       </View>
@@ -369,11 +349,54 @@ export default function PrivacyTab(): React.JSX.Element {
 }
 
 const styles = ScaledSheet.create({
+  profileCard: {
+    borderRadius: "24@s",
+    padding: "24@s",
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: "18@vs",
+  },
+
+  avatar: {
+    width: "72@s",
+    height: "72@s",
+    borderRadius: "36@s",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  editAvatarButton: {
+    position: "absolute",
+    right: "-2@s",
+    bottom: "-2@vs",
+    width: "28@s",
+    height: "28@s",
+    borderRadius: "14@s",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+
+  profileInfo: {
+    marginLeft: "16@s",
+  },
+
+  userName: {
+    fontSize: FontSizes.xl,
+    fontFamily: Fonts.semiBold,
+  },
+
+  userEmail: {
+    marginTop: "4@vs",
+    fontSize: FontSizes.sm,
+    fontFamily: Fonts.regular,
+  },
+
   card: {
     borderRadius: "24@s",
-    paddingHorizontal: "24@s",
-    paddingVertical: "22@vs",
-    marginBottom: "16@vs",
+    padding: "24@s",
+    marginBottom: "18@vs",
   },
 
   sectionTitle: {
@@ -382,37 +405,52 @@ const styles = ScaledSheet.create({
     marginBottom: "20@vs",
   },
 
-  settingRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+  infoBlock: {
+    marginBottom: "10@vs",
   },
 
-  actionRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-
-  textContainer: {
-    flex: 1,
-    paddingRight: "12@s",
-  },
-
-  itemTitle: {
-    fontSize: FontSizes.md,
-    fontFamily: Fonts.medium,
-    marginBottom: "4@vs",
-  },
-
-  itemSubtitle: {
+  label: {
     fontSize: FontSizes.sm,
+    fontFamily: Fonts.medium,
+    letterSpacing: 0.5,
+  },
+
+  value: {
+    marginTop: "6@vs",
+    fontSize: FontSizes.md,
     fontFamily: Fonts.regular,
-    lineHeight: "18@vs",
   },
 
   divider: {
     height: 1,
-    marginVertical: "18@vs",
+    marginVertical: "14@vs",
+  },
+
+  editButton: {
+    marginTop: "20@vs",
+    height: "54@vs",
+    borderRadius: "28@s",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  editButtonText: {
+    color: "#FFFFFF",
+    marginLeft: "8@s",
+    fontSize: FontSizes.md,
+    fontFamily: Fonts.semiBold,
+  },
+
+  securityItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: "10@vs",
+  },
+
+  securityText: {
+    fontSize: FontSizes.md,
+    fontFamily: Fonts.medium,
   },
 });
