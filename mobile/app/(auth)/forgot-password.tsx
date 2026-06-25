@@ -5,43 +5,47 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-} from "react-native";
+ ActivityIndicator } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import { useAuth } from "../../contexts/AuthContext";
 
 import { ScaledSheet } from "react-native-size-matters";
 
 export default function ForgotPasswordScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { resetPassword } = useAuth();
 
   const [email, setEmail] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const handleResetPassword = (): void => {
-  if (!email.trim()) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter your email address."
-    );
-    return;
-  }
+  const handleResetPassword = async (): Promise<void> => {
+    if (!email.trim()) {
+      Alert.alert("Validation Error", "Please enter your email address.");
+      return;
+    }
 
-  const emailRegex =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!emailRegex.test(email)) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter a valid email address."
-    );
-    return;
-  }
+    if (!emailRegex.test(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address.");
+      return;
+    }
 
-  router.push("/(auth)/check-email");
-};
+    setIsLoading(true);
+    try {
+      await resetPassword(email);
+      router.push("/(auth)/check-email");
+    } catch (error) {
+      Alert.alert("Reset Failed", (error as Error).message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -120,15 +124,21 @@ export default function ForgotPasswordScreen(): React.JSX.Element {
               { backgroundColor: colors.primary },
             ]}
             onPress={handleResetPassword}
+            disabled={isLoading}
+            activeOpacity={0.8}
           >
-            <Text
-              style={[
-                styles.buttonText,
-                { color: colors.navbarActiveText },
-              ]}
-            >
-              Send Reset Link
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator size="small" color={colors.navbarActiveText} />
+            ) : (
+              <Text
+                style={[
+                  styles.buttonText,
+                  { color: colors.navbarActiveText },
+                ]}
+              >
+                Send Reset Link
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
 

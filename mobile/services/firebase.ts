@@ -17,10 +17,11 @@ import {
   updateProfile,
   UserCredential,
   sendEmailVerification,
+  sendPasswordResetEmail,
   initializeAuth,
+  // @ts-ignore
+  getReactNativePersistence,
 } from "firebase/auth";
-// @ts-ignore - The React Native specific export is not visible to the node TS resolver
-import { getReactNativePersistence } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -90,6 +91,13 @@ export const firebaseSendEmailVerification = async (): Promise<void> => {
     throw new Error("No authenticated user found to send verification email.");
   }
   return sendEmailVerification(user);
+};
+
+/**
+ * Sends a password reset email.
+ */
+export const firebaseSendPasswordResetEmail = async (email: string): Promise<void> => {
+  return sendPasswordResetEmail(auth, email);
 };
 
 /**

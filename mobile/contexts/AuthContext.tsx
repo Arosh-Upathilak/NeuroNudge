@@ -28,6 +28,7 @@ import {
   firebaseSignUp,
   firebaseSignOut,
   firebaseSendEmailVerification,
+  firebaseSendPasswordResetEmail,
 } from "../services/firebase";
 import { syncUser } from "../services/api";
 
@@ -175,6 +176,23 @@ export function AuthProvider({
   }, []);
 
   /**
+   * Sends a password reset email.
+   * Silently catches auth/user-not-found to prevent email enumeration.
+   */
+  const resetPassword = useCallback(async (email: string): Promise<void> => {
+    try {
+      await firebaseSendPasswordResetEmail(email);
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      if (code === "auth/user-not-found") {
+        // Prevent email enumeration
+        return;
+      }
+      throw new Error(getAuthErrorMessage(error));
+    }
+  }, []);
+
+  /**
    * Signs the current user out of Firebase.
    * The `onAuthStateChanged` listener will set `user` to null automatically.
    */
@@ -195,8 +213,9 @@ export function AuthProvider({
       signOut,
       reloadUser,
       resendVerificationEmail,
+      resetPassword,
     }),
-    [user, isLoading, signIn, signUp, signOut, reloadUser, resendVerificationEmail]
+    [user, isLoading, signIn, signUp, signOut, reloadUser, resendVerificationEmail, resetPassword]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

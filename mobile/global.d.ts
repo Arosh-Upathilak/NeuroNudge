@@ -131,5 +131,7 @@ declare global {
     readonly reloadUser: () => Promise<void>;
     /** Resends the verification email. */
     readonly resendVerificationEmail: () => Promise<void>;
+    /** Sends a password reset email to the user. */
+    readonly resetPassword: (email: string) => Promise<void>;
   }
 }
