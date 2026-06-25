@@ -27,10 +27,8 @@ import {
   firebaseSignIn,
   firebaseSignUp,
   firebaseSignOut,
-  firebaseSendEmailVerification,
-  firebaseSendPasswordResetEmail,
 } from "../services/firebase";
-import { syncUser } from "../services/api";
+import { syncUser, sendVerificationEmail, requestPasswordReset } from "../services/api";
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
@@ -123,6 +121,8 @@ export function AuthProvider({
         firebaseCreated = true;
         // Immediately synchronize in backend with isVerified: false
         await syncUser();
+        // Trigger backend verification email via SMTP
+        await sendVerificationEmail();
       } catch (error) {
         // Rollback: delete Firebase user if backend synchronization failed.
         if (firebaseCreated && auth.currentUser) {
@@ -164,31 +164,22 @@ export function AuthProvider({
     }
   }, []);
 
-  /**
-   * Resends the verification email.
-   */
   const resendVerificationEmail = useCallback(async (): Promise<void> => {
     try {
-      await firebaseSendEmailVerification();
+      await sendVerificationEmail();
     } catch (error) {
-      throw new Error(getAuthErrorMessage(error));
+      throw new Error(error instanceof Error ? error.message : "Failed to resend verification email.");
     }
   }, []);
 
   /**
-   * Sends a password reset email.
-   * Silently catches auth/user-not-found to prevent email enumeration.
+   * Sends a password reset email via the backend service.
    */
   const resetPassword = useCallback(async (email: string): Promise<void> => {
     try {
-      await firebaseSendPasswordResetEmail(email);
+      await requestPasswordReset(email);
     } catch (error) {
-      const code = (error as { code?: string })?.code;
-      if (code === "auth/user-not-found") {
-        // Prevent email enumeration
-        return;
-      }
-      throw new Error(getAuthErrorMessage(error));
+      throw new Error(error instanceof Error ? error.message : "Failed to request password reset.");
     }
   }, []);
 

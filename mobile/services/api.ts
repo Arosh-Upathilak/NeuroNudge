@@ -73,3 +73,38 @@ export const syncUser = async (): Promise<ApiUser> => {
 
   return (data as ApiSuccessResponse).user;
 };
+
+/**
+ * Triggers the backend to generate and send a verification email via SMTP.
+ */
+export const sendVerificationEmail = async (): Promise<void> => {
+  const headers = await buildAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/api/user/send-verification`, {
+    method: "POST",
+    headers,
+  });
+
+  if (!response.ok) {
+    const data: ApiErrorResponse = await response.json();
+    throw new Error(data.error?.message ?? "Failed to send verification email.");
+  }
+};
+
+/**
+ * Triggers the backend to generate and send a password reset link via SMTP.
+ */
+export const requestPasswordReset = async (email: string): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/api/user/forgot-password`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    const data: ApiErrorResponse = await response.json();
+    throw new Error(data.error?.message ?? "Failed to request password reset.");
+  }
+};

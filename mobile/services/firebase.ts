@@ -16,8 +16,6 @@ import {
   signOut,
   updateProfile,
   UserCredential,
-  sendEmailVerification,
-  sendPasswordResetEmail,
   initializeAuth,
   // @ts-ignore
   getReactNativePersistence,
@@ -78,26 +76,7 @@ export const firebaseSignUp = async (
     password
   );
   await updateProfile(credential.user, { displayName: name });
-  await sendEmailVerification(credential.user);
   return credential;
-};
-
-/**
- * Resends the verification email to the currently signed-in user.
- */
-export const firebaseSendEmailVerification = async (): Promise<void> => {
-  const user = auth.currentUser;
-  if (!user) {
-    throw new Error("No authenticated user found to send verification email.");
-  }
-  return sendEmailVerification(user);
-};
-
-/**
- * Sends a password reset email.
- */
-export const firebaseSendPasswordResetEmail = async (email: string): Promise<void> => {
-  return sendPasswordResetEmail(auth, email);
 };
 
 /**
