@@ -23,10 +23,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { DrawerProvider } from "../contexts/DrawerContext";
 import { NotificationProvider } from "../contexts/NotificationContext";
-import { AuthProvider } from "../contexts/AuthContext";
+import { AuthProvider, useAuth } from "../contexts/AuthContext";
 import SideDrawer from "../components/SideDrawer";
 import { useTheme } from "../hooks/useTheme";
-import { useAuth } from "../contexts/AuthContext";
 
 import { ScaledSheet } from "react-native-size-matters";
 
