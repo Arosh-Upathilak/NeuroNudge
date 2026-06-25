@@ -12,3 +12,9 @@ src/logs
 
 # migrations files
 prisma/migrations
+
+#tests
+createDevUser.ts
+getAllUsers.ts
+
+test/
