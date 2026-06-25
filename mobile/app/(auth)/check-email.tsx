@@ -1,12 +1,6 @@
 import React from "react";
-import {
-  SafeAreaView,
-  View,
-  Text,
-  TouchableOpacity,
-  Linking,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, Linking, Alert } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ScaledSheet } from "react-native-size-matters";
