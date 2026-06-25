@@ -1,101 +1,164 @@
 /**
- * Dashboard screen – the main landing page of the app.
- * Shows a personalised greeting and the current date.
+ * Custom bottom tab bar (Footer / Navbar) for the NeuroNudge app.
+ * Active tab renders as a pill-shaped button with the primary brand color.
+ * Supports light and dark themes.
  */
 
-import React, { useEffect, useState } from "react";
-import { Text } from "react-native";
-import { Fonts, FontSizes } from "../../constants/theme";
-import { useTheme } from "../../hooks/useTheme";
-import FeatureCard from "../../components/dashboard/FeatureCard";
-import NoiseMonitoringCard from "../../components/dashboard/NoiseMonitoringCard";
-
+import React from "react";
+import {
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { Fonts, FontSizes } from "../constants/theme";
 import { ScaledSheet } from "react-native-size-matters";
+import { useTheme } from "../hooks/useTheme";
 
-export default function DashboardScreen(): React.JSX.Element {
+
+
+
+const TAB_CONFIG: Readonly<Record<string, TabConfig>> = {
+  index: {
+    label: "Dashboard",
+    activeIcon: "grid",
+    inactiveIcon: "grid-outline",
+  },
+  sanctuary: {
+    label: "Sanctuary",
+    activeIcon: "options",
+    inactiveIcon: "options-outline",
+  },
+  "lost-found": {
+    label: "Lost-Found",
+    activeIcon: "archive",
+    inactiveIcon: "archive-outline",
+  },
+} as const;
+
+
+export default function TabBar({
+  state,
+  descriptors,
+  navigation,
+}: BottomTabBarProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
-
-  const [currentTime, setCurrentTime] = useState<Date>(
-  new Date()
-);
-
-useEffect(() => {
-  const interval = setInterval(() => {
-    setCurrentTime(new Date());
-  }, 60000);
-
-  return () => clearInterval(interval);
-}, []);
-
-const formattedDate =
-  currentTime.toLocaleDateString("en-US", {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-
-const hour = currentTime.getHours();
-
-const greeting =
-  hour < 12
-    ? "Good morning"
-    : hour < 18
-    ? "Good afternoon"
-    : "Good evening";
 
   return (
     <SafeAreaView
+      edges={['bottom']}
       style={[
         styles.container,
-        { backgroundColor: colors.background },
+        {
+          backgroundColor: colors.navbarBackground,
+          borderTopColor: colors.navbarBorder,
+          paddingBottom: 10,
+        },
       ]}
     >
-      <Text style={[styles.greeting, { color: colors.text }]}>
-        {greeting}, Alex
-      </Text>
-      <Text style={[styles.date, { color: colors.textSecondary }]}>
-        {formattedDate}
-      </Text>
+      {state.routes.map((route, index: number) => {
+        const { options } = descriptors[route.key];
+        const isFocused: boolean = state.index === index;
+        const config: TabConfig | undefined = TAB_CONFIG[route.name];
 
-      <FeatureCard
-      title="Sound Sanctuary"
-      description="Manage your acoustic environment and access calming audioscapes."
-      icon="volume-medium"
-      onPress={() =>
-        console.log("Sound Sanctuary")
-      }
-    />
+        if (!config) return null;
 
-    <FeatureCard
-      title="Lost-to-Found"
-      description="Quickly locate essential items or log new misplaced objects."
-      icon="archive"
-      onPress={() =>
-        console.log("Lost To Found")
-      }
-    />
+        const onPress = (): void => {
+          const event = navigation.emit({
+            type: "tabPress",
+            target: route.key,
+            canPreventDefault: true,
+          });
 
-    <NoiseMonitoringCard />
+          if (!isFocused && !event.defaultPrevented) {
+            navigation.navigate(route.name, route.params);
+          }
+        };
 
+        const onLongPress = (): void => {
+          navigation.emit({
+            type: "tabLongPress",
+            target: route.key,
+          });
+        };
+
+        const iconName: TabIconName = isFocused
+          ? config.activeIcon
+          : config.inactiveIcon;
+        const iconColor: string = isFocused
+          ? colors.navbarActiveText
+          : colors.navbarInactiveText;
+        const textColor: string = isFocused
+          ? colors.navbarActiveText
+          : colors.navbarInactiveText;
+
+        return (
+          <TouchableOpacity
+            key={route.key}
+            accessibilityRole="button"
+            accessibilityState={isFocused ? { selected: true } : {}}
+            accessibilityLabel={options.tabBarAccessibilityLabel}
+            onPress={onPress}
+            onLongPress={onLongPress}
+            activeOpacity={0.7}
+            style={[
+              styles.tabButton,
+              isFocused && [
+                styles.tabButtonActive,
+                { backgroundColor: colors.navbarActiveBackground, shadowColor: colors.shadow },
+              ],
+            ]}
+          >
+            <Ionicons name={iconName} size={22} color={iconColor} />
+            <Text
+              style={[
+                styles.tabLabel,
+                {
+                  color: textColor,
+                  fontFamily: isFocused ? Fonts.semiBold : Fonts.medium,
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {config.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </SafeAreaView>
   );
 }
 
+
 const styles = ScaledSheet.create({
   container: {
-    flex: 1,
-    paddingHorizontal: "20@s",
-    paddingTop: "8@vs",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+    paddingTop: "12@vs",
+    paddingHorizontal: "16@s",
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  greeting: {
-    fontSize: FontSizes.xxl,
-    fontFamily: Fonts.bold,
-    marginBottom: "2@vs",
+  tabButton: {
+  flex: 1,
+  alignItems: "center",
+  justifyContent: "center",
+  flexDirection: "column",
+  gap: "4@vs",
+  paddingVertical: "10@vs",
+  marginHorizontal: "4@s",
+  borderRadius: "30@s",
+},
+  tabButtonActive: {
+    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
-  date: {
-  fontSize: FontSizes.md,
-  fontFamily: Fonts.regular,
-  marginBottom: "14@vs",
-}
+  tabLabel: {
+    fontSize: FontSizes.xs,
+    letterSpacing: 0.2,
+  },
 });
