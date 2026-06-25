@@ -76,9 +76,7 @@ export default function AlertsTab(): React.JSX.Element {
 
           <CustomToggle
             value={thresholdAlerts}
-            onToggle={() =>
-              setThresholdAlerts(!thresholdAlerts)
-            }
+            onToggle={() => setThresholdAlerts((prev) => !prev)}
           />
         </View>
       </View>
