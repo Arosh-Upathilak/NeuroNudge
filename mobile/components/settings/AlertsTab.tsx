@@ -198,9 +198,7 @@ export default function AlertsTab(): React.JSX.Element {
 
           <CustomToggle
             value={inAppSounds}
-            onToggle={() =>
-              setInAppSounds(!inAppSounds)
-            }
+            onToggle={() => setInAppSounds((prev) => !prev)}
           />
         </View>
       </View>
