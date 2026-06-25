@@ -3,7 +3,7 @@
  * Shows a personalised greeting and the current date.
  */
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Text } from "react-native";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
@@ -16,22 +16,33 @@ import { ScaledSheet } from "react-native-size-matters";
 export default function DashboardScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const today = new Date();
+  const [currentTime, setCurrentTime] = useState<Date>(
+  new Date()
+);
 
-  const formattedDate = today.toLocaleDateString("en-US", {
+useEffect(() => {
+  const interval = setInterval(() => {
+    setCurrentTime(new Date());
+  }, 60000);
+
+  return () => clearInterval(interval);
+}, []);
+
+const formattedDate =
+  currentTime.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   });
 
-  const hour = today.getHours();
+const hour = currentTime.getHours();
 
-  const greeting =
-    hour < 12
-      ? "Good morning"
-      : hour < 18
-      ? "Good afternoon"
-      : "Good evening";
+const greeting =
+  hour < 12
+    ? "Good morning"
+    : hour < 18
+    ? "Good afternoon"
+    : "Good evening";
 
   return (
     <SafeAreaView
