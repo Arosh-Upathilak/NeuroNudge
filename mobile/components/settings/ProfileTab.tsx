@@ -195,11 +195,7 @@ export default function ProfileTab(): React.JSX.Element {
             },
           ]}
           activeOpacity={0.8}
-          onPress={() =>
-            router.push(
-              "/settings/edit-profile" as any
-            )
-          }
+          onPress={() => router.push("/settings/edit-profile")}
         >
           <Ionicons
             name="create-outline"
