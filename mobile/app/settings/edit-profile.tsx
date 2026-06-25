@@ -1,4 +1,12 @@
-import React, { useState } from "react";
+import React, {
+  useState,
+  useEffect,
+} from "react";
+
+import {
+  getProfile,
+  saveProfile,
+} from "../../utils/profileStorage";
 import {
   View,
   Text,
@@ -19,17 +27,37 @@ export default function EditProfileScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
   const [fullName, setFullName] =
-    useState("Alex Doe");
+  useState("");
 
-  const [email, setEmail] =
-    useState("alex@example.com");
+const [email, setEmail] =
+  useState("");
 
-  const [username, setUsername] =
-    useState("@alexdoe");
+const [username, setUsername] =
+  useState("");
 
-  const handleSave = (): void => {
-    router.back();
+  const handleSave = async (): Promise<void> => {
+  await saveProfile({
+    fullName,
+    email,
+    username,
+  });
+
+  router.back();
+};
+
+  useEffect(() => {
+  const loadProfile = async (): Promise<void> => {
+    const profile = await getProfile();
+
+    if (profile) {
+      setFullName(profile.fullName);
+      setEmail(profile.email);
+      setUsername(profile.username);
+    }
   };
+
+  loadProfile();
+}, []);
 
   return (
     <SafeAreaView
@@ -200,10 +228,13 @@ export default function EditProfileScreen(): React.JSX.Element {
             onPress={handleSave}
           >
             <Text
-              style={styles.saveButtonText}
-            >
-              Save Changes
-            </Text>
+  style={[
+    styles.saveButtonText,
+    { color: colors.surface },
+  ]}
+>
+  Save Changes
+</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -289,7 +320,6 @@ const styles = ScaledSheet.create({
   },
 
   saveButtonText: {
-    color: "#FFFFFF",
     fontSize: FontSizes.lg,
     fontFamily: Fonts.semiBold,
   },
