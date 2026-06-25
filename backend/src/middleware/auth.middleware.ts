@@ -24,31 +24,43 @@ export const authMiddleware = async (
     return;
   }
 
-  const token = authHeader.split(" ")[1];
+  const token = authHeader.slice(7).trim();
+
+  if (!token) {
+    res.status(401).json({
+      success: false,
+      error: {
+        code: "UNAUTHORIZED",
+        message: "Authentication failed: Token is empty",
+      },
+    });
+    return;
+  }
 
   try {
     const decodedToken = await auth.verifyIdToken(token);
-    const userScopes = decodedToken.scopes || [];
+    const userScopes = (decodedToken.scopes as string[]) || [];
 
     const userPayload: AuthPayload = {
       uid: decodedToken.uid,
       email: decodedToken.email,
+      email_verified: decodedToken.email_verified || false,
       name: decodedToken.name,
       scopes: userScopes,
       providerId: decodedToken.firebase.sign_in_provider,
     };
 
     req.user = userPayload;
-    next();
+    return next();
   } catch (error: unknown) {
-    const err = error as { code?: string; message?: string };
-    console.warn(`[Auth Warning] Verification failed: ${err?.code || "unknown"} - ${err?.message || error}`);
+    const errMsg = error instanceof Error ? error.message : String(error);
+    console.warn(`[Auth Warning] Verification failed: ${errMsg}`);
 
     res.status(401).json({
       success: false,
       error: {
         code: "UNAUTHORIZED",
-        message: "Authentication failed",
+        message: "Authentication failed: Invalid or expired token",
       },
     });
   }

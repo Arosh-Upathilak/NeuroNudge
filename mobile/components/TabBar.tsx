@@ -142,14 +142,13 @@ const styles = ScaledSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   tabButton: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "column",
     gap: "4@vs",
     paddingVertical: "10@vs",
-    paddingHorizontal: "32@s",
     borderRadius: "30@s",
-    minWidth: "120@s",
   },
   tabButtonActive: {
     elevation: 2,

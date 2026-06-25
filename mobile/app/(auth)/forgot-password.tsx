@@ -105,6 +105,8 @@ export default function ForgotPasswordScreen(): React.JSX.Element {
               placeholderTextColor={colors.textMuted}
               value={email}
               onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
               style={[
                 styles.input,
                 { color: colors.text },

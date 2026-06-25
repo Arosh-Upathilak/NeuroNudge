@@ -7,15 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 model User {
-  id            String          @id         
+  id            String          @id
   email         String          @unique
   name          String?
+  isVerified    Boolean         @default(false)
   createdAt     DateTime        @default(now())
-  provider      String?
-  providerId    String?
   messages      Message[]
   memories      Memory[]
   noiseSettings NoiseSetting[]
@@ -24,75 +21,61 @@ model User {
 }
 
 model Memory {
-  memoryId    String    @id @default(uuid())
+  memoryId String @id @default(uuid())
 
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   title       String
   description String?
 
-  createdAt   DateTime  @default(now())
+  createdAt DateTime @default(now())
 
-  
-
-  location    Location?
-  image       Image?
+  location Location?
+  image    Image?
 
   @@index([userId, createdAt(sort: Desc)])
   @@map("memory")
 }
-
-
 
 model Location {
   id        String @id @default(uuid())
   latitude  Float
   longitude Float
 
-  memoryId  String @unique
-  memory    Memory @relation(fields: [memoryId], references: [memoryId], onDelete: Cascade)
+  memoryId String @unique
+  memory   Memory @relation(fields: [memoryId], references: [memoryId], onDelete: Cascade)
 
   @@map("location")
 }
-
-
 
 model Image {
   id       String  @id @default(uuid())
   imageUrl String
   publicId String?
 
-  memoryId String  @unique
-  memory   Memory  @relation(fields: [memoryId], references: [memoryId], onDelete: Cascade)
+  memoryId String @unique
+  memory   Memory @relation(fields: [memoryId], references: [memoryId], onDelete: Cascade)
 
   @@map("image")
 }
 
-
-
 model Message {
-  messageId String      @id @default(uuid())
+  messageId String @id @default(uuid())
 
-  userId    String
-  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  role      MessageRole
+  role MessageRole
 
-  content   String      @db.Text
-  aiContent String?     @db.Text
+  content   String  @db.Text
+  aiContent String? @db.Text
 
-  
-  
-
-  createdAt DateTime    @default(now())
+  createdAt DateTime @default(now())
 
   @@index([userId, createdAt])
-  
   @@map("message")
 }
-
-
 
 enum MessageRole {
   user
@@ -104,30 +87,26 @@ enum Action {
   retrieved
 }
 
-
-
 model Notification {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  title     String
-  body      String
-  read      Boolean  @default(false)
+  title String
+  body  String
+  read  Boolean @default(false)
 
   createdAt DateTime @default(now())
 
   @@index([userId])
 }
 
-
-
 model NoiseSetting {
-  id          String  @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId      String
-  user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   isActive    Boolean @default(true)
   threshold   Float   @default(65.0)
@@ -137,13 +116,11 @@ model NoiseSetting {
   @@index([userId])
 }
 
-
-
 model SearchHistory {
-  id        String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   query     String
   createdAt DateTime @default(now())

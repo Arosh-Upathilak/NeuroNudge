@@ -18,3 +18,5 @@ createDevUser.ts
 getAllUsers.ts
 
 test/
+.vercel
+.env*

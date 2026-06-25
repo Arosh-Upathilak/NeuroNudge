@@ -5,61 +5,59 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
-import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import { useAuth } from "../../contexts/AuthContext";
 
 import { ScaledSheet } from "react-native-size-matters";
 
 export default function LoginScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { signIn } = useAuth();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleLogin = (): void => {
-  if (!email.trim()) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter your email address."
-    );
-    return;
-  }
+  const handleLogin = async (): Promise<void> => {
+    if (!email.trim()) {
+      Alert.alert("Validation Error", "Please enter your email address.");
+      return;
+    }
 
-  const emailRegex =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address.");
+      return;
+    }
 
-  if (!emailRegex.test(email)) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter a valid email address."
-    );
-    return;
-  }
+    if (!password.trim()) {
+      Alert.alert("Validation Error", "Please enter your password.");
+      return;
+    }
 
-  if (!password.trim()) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter your password."
-    );
-    return;
-  }
+    if (password.length < 6) {
+      Alert.alert("Validation Error", "Password must be at least 6 characters.");
+      return;
+    }
 
-  if (password.length < 6) {
-    Alert.alert(
-      "Validation Error",
-      "Password must be at least 6 characters."
-    );
-    return;
-  }
-
-  router.replace("/(tabs)");
-};
+    setIsSubmitting(true);
+    try {
+      await signIn(email.trim(), password);
+      // Navigation is handled by the route guard in _layout.tsx
+    } catch (error) {
+      Alert.alert("Sign In Failed", (error as Error).message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -199,7 +197,7 @@ export default function LoginScreen(): React.JSX.Element {
 
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => router.push("/(auth)/forgot-password")}
+            onPress={() => router.push("/forgot-password")}
           >
             <Text
               style={[
@@ -214,31 +212,38 @@ export default function LoginScreen(): React.JSX.Element {
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={isSubmitting ? 1 : 0.8}
+            disabled={isSubmitting}
             style={[
               styles.signInButton,
               {
                 backgroundColor: colors.primary,
+                opacity: isSubmitting ? 0.8 : 1,
               },
             ]}
             onPress={handleLogin}
           >
-          <Text
-            style={[
-              styles.signInText,
-              {
-                color: colors.navbarActiveText,
-              },
-            ]}
-          >
-            Sign In
-          </Text>
-
-            <Ionicons
-            name="arrow-forward-outline"
-            size={20}
-            color={colors.navbarActiveText}
-            />
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color={colors.navbarActiveText} />
+            ) : (
+              <>
+                <Text
+                  style={[
+                    styles.signInText,
+                    {
+                      color: colors.navbarActiveText,
+                    },
+                  ]}
+                >
+                  Sign In
+                </Text>
+                <Ionicons
+                  name="arrow-forward-outline"
+                  size={20}
+                  color={colors.navbarActiveText}
+                />
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -255,7 +260,7 @@ export default function LoginScreen(): React.JSX.Element {
           </Text>
 
           <TouchableOpacity
-            onPress={() => router.push("/(auth)/signup")}
+            onPress={() => router.push("/signup")}
           >
             <Text
               style={[
