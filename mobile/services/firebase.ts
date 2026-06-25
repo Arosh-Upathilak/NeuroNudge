@@ -20,6 +20,7 @@ import {
   // @ts-ignore
   getReactNativePersistence,
 } from "firebase/auth";
+import { getFirestore, Firestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─── Config ──────────────────────────────────────────────────────────────────
@@ -57,7 +58,12 @@ try {
   auth = getAuth(app);
 }
 
-export { auth };
+/**
+ * Firestore database instance.
+ */
+const db: Firestore = getFirestore(app);
+
+export { auth, db };
 
 // ─── Auth Helpers ─────────────────────────────────────────────────────────────
 
