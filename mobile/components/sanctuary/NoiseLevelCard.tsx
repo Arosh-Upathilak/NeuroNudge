@@ -23,7 +23,6 @@ export default function NoiseLevelCard(): React.JSX.Element {
       ]}
     >
       {/* Safe Zone Badge */}
-
       <View style={styles.badgeContainer}>
         <View
           style={[
@@ -53,13 +52,14 @@ export default function NoiseLevelCard(): React.JSX.Element {
       </View>
 
       {/* Sound Visualizer */}
-
       <View style={styles.visualizer}>
         <View
           style={[
             styles.bar,
             styles.bar1,
-            { backgroundColor: "#536B7E" },
+            {
+              backgroundColor: colors.textSecondary,
+            },
           ]}
         />
 
@@ -67,7 +67,9 @@ export default function NoiseLevelCard(): React.JSX.Element {
           style={[
             styles.bar,
             styles.bar2,
-            { backgroundColor: colors.primary },
+            {
+              backgroundColor: colors.primary,
+            },
           ]}
         />
 
@@ -75,7 +77,9 @@ export default function NoiseLevelCard(): React.JSX.Element {
           style={[
             styles.bar,
             styles.bar3,
-            { backgroundColor: "#536B7E" },
+            {
+              backgroundColor: colors.textSecondary,
+            },
           ]}
         />
 
@@ -83,7 +87,9 @@ export default function NoiseLevelCard(): React.JSX.Element {
           style={[
             styles.bar,
             styles.bar4,
-            { backgroundColor: colors.primary },
+            {
+              backgroundColor: colors.primary,
+            },
           ]}
         />
 
@@ -91,13 +97,14 @@ export default function NoiseLevelCard(): React.JSX.Element {
           style={[
             styles.bar,
             styles.bar5,
-            { backgroundColor: "#536B7E" },
+            {
+              backgroundColor: colors.textSecondary,
+            },
           ]}
         />
       </View>
 
       {/* Current Level */}
-
       <Text
         style={[
           styles.dbText,
