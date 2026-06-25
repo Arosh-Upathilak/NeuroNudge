@@ -24,11 +24,7 @@ export default function ProfileTab(): React.JSX.Element {
         { backgroundColor: colors.card },
       ]}
       activeOpacity={0.9}
-      onPress={() =>
-        router.push(
-          "/settings/edit-profile" as any
-        )
-        }
+      onPress={() => router.push("/settings/edit-profile") }
       >
         <View>
           <View
