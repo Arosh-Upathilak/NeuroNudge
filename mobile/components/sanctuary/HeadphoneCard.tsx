@@ -8,24 +8,55 @@ import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
 
 import { Fonts, FontSizes } from "../../constants/theme";
+import { useTheme } from "../../hooks/useTheme";
 
 export default function HeadphoneCard(): React.JSX.Element {
+  const { colors }: { colors: ThemeColors } = useTheme();
+
   return (
-    <View style={styles.card}>
-      <View style={styles.iconContainer}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.card,
+        },
+      ]}
+    >
+      <View
+        style={[
+          styles.iconContainer,
+          {
+            backgroundColor: colors.surface,
+          },
+        ]}
+      >
         <Ionicons
           name="headset"
           size={22}
-          color="#4C6F61"
+          color={colors.primary}
         />
       </View>
 
       <View style={styles.textContainer}>
-        <Text style={styles.title}>
+        <Text
+          style={[
+            styles.title,
+            {
+              color: colors.text,
+            },
+          ]}
+        >
           Optimize your experience
         </Text>
 
-        <Text style={styles.description}>
+        <Text
+          style={[
+            styles.description,
+            {
+              color: colors.textSecondary,
+            },
+          ]}
+        >
           Connect headphones for active noise
           cancellation suggestions.
         </Text>
@@ -36,7 +67,6 @@ export default function HeadphoneCard(): React.JSX.Element {
 
 const styles = ScaledSheet.create({
   card: {
-    backgroundColor: "#CFE5F7",
     borderRadius: "24@s",
     padding: "18@s",
     flexDirection: "row",
@@ -48,7 +78,6 @@ const styles = ScaledSheet.create({
     width: "38@s",
     height: "38@s",
     borderRadius: "19@s",
-    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
     marginRight: "12@s",
@@ -61,14 +90,12 @@ const styles = ScaledSheet.create({
   title: {
     fontSize: FontSizes.md,
     fontFamily: Fonts.semiBold,
-    color: "#556270",
     marginBottom: "4@vs",
   },
 
   description: {
     fontSize: FontSizes.sm,
     fontFamily: Fonts.regular,
-    color: "#556270",
     lineHeight: "20@vs",
   },
 });
