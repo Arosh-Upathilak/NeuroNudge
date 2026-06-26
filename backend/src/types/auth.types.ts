@@ -25,6 +25,7 @@ export interface UserClaims {
 export interface AuthPayload {
   uid: string;
   email?: string;
+  email_verified?: boolean;
   name?: string;
   scopes: string[];
   providerId: string;

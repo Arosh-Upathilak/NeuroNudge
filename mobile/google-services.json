@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "350883980043",
+    "project_id": "neuronudge-34bce",
+    "storage_bucket": "neuronudge-34bce.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:350883980043:android:71091dff95de99b274b80e",
+        "android_client_info": {
+          "package_name": "com.avidz.NeuroNudge"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "350883980043-6p6vrrua836opd360ce5fs3khj7iieds.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCO-S5hHMDSgmvuFO8rTDe7HR4PzL9mEhY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "350883980043-6p6vrrua836opd360ce5fs3khj7iieds.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
