@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import fs from "fs";
 import { CloudinaryService } from "../services/image.service";
 
 const cloudinaryService = new CloudinaryService();
@@ -29,6 +30,14 @@ export class UploadController {
         success: false,
         message: "Upload failed",
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   }
 
@@ -57,6 +66,14 @@ export class UploadController {
         success: false,
         message: "Failed to update image",
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   }
 

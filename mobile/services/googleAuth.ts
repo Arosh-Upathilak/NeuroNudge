@@ -20,6 +20,13 @@ export const signInWithGoogle = async (): Promise<UserCredential> => {
     // Check if play services are available (mostly for Android)
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
 
+    // Clear any previous sign-in session to avoid native client cache conflicts
+    try {
+      await GoogleSignin.signOut();
+    } catch {
+      // Ignore if not signed in or fails
+    }
+
     // Initiate sign in
     const signInResult = await GoogleSignin.signIn();
 

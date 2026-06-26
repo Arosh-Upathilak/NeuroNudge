@@ -30,6 +30,7 @@ import {
 } from "../services/firebase";
 import { syncUser, sendVerificationEmail, requestPasswordReset } from "../services/api";
 import { signInWithGoogle as firebaseGoogleSignIn } from "../services/googleAuth";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
 // ─── Context ──────────────────────────────────────────────────────────────────
 
@@ -191,6 +192,11 @@ export function AuthProvider({
   const signOut = useCallback(async (): Promise<void> => {
     try {
       await firebaseSignOut();
+      try {
+        await GoogleSignin.signOut();
+      } catch (googleError) {
+        console.warn("[AuthContext] Google Sign-Out failed or was already signed out natively:", googleError);
+      }
     } catch (error) {
       throw new Error(getAuthErrorMessage(error));
     }
@@ -204,6 +210,17 @@ export function AuthProvider({
       await firebaseGoogleSignIn();
       await syncUser();
     } catch (error) {
+      // Rollback: clear Firebase and native Google sessions if database synchronization fails
+      try {
+        await firebaseSignOut();
+      } catch (fbSignOutErr) {
+        console.error("[AuthContext] Firebase signOut rollback failed:", fbSignOutErr);
+      }
+      try {
+        await GoogleSignin.signOut();
+      } catch (googleSignOutErr) {
+        console.error("[AuthContext] Google Signin signOut rollback failed:", googleSignOutErr);
+      }
       throw new Error(getAuthErrorMessage(error));
     }
   }, []);

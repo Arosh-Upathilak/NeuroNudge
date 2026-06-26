@@ -1,4 +1,5 @@
 import { Response } from "express";
+import fs from "fs";
 import { CloudinaryService } from "../services/image.service";
 import { HuggingFaceService } from "../services/huggingfaceintentclassification.service";
 import { AuthRequest } from "../types/auth.types";
@@ -153,6 +154,14 @@ export const NLPController = {
             ? error.message
             : "Internal Server Error",
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   },
 };

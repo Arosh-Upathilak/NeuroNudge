@@ -15,8 +15,8 @@ export class CloudinaryService {
         publicId: result.public_id,
         imageUrl: result.secure_url,
       };
-    } catch {
-      throw new Error("Failed to upload image to Cloudinary");
+    } catch (error) {
+      throw new Error("Failed to upload image to Cloudinary", { cause: error });
     }
   }
 
@@ -33,8 +33,8 @@ export class CloudinaryService {
         success: true,
         message: "Image deleted successfully",
       };
-    } catch {
-      throw new Error("Failed to delete image from Cloudinary");
+    } catch (error) {
+      throw new Error("Failed to delete image from Cloudinary", { cause: error });
     }
   }
 
@@ -50,8 +50,8 @@ export class CloudinaryService {
         publicId: result.publicId,
         imageUrl: result.imageUrl,
       };
-    } catch {
-      throw new Error("Failed to update image");
+    } catch (error) {
+      throw new Error("Failed to update image", { cause: error });
     }
   }
 
@@ -67,8 +67,8 @@ export class CloudinaryService {
         publicId: result.public_id,
         imageUrl: result.secure_url,
       };
-    } catch {
-      throw new Error("Failed to replace image");
+    } catch (error) {
+      throw new Error("Failed to replace image", { cause: error });
     }
   }
 }

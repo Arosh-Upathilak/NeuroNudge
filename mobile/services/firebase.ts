@@ -8,6 +8,7 @@
  */
 
 import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
+// @ts-ignore
 import {
   getAuth,
   Auth,
@@ -17,7 +18,6 @@ import {
   updateProfile,
   UserCredential,
   initializeAuth,
-  // @ts-ignore
   getReactNativePersistence,
 } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
@@ -53,8 +53,9 @@ try {
   auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
   });
-} catch {
+} catch (error: any) {
   // If initializeAuth fails (e.g. during Fast Refresh), fallback to getAuth
+  console.warn("[Firebase] initializeAuth failed, falling back to getAuth:", error);
   auth = getAuth(app);
 }
 

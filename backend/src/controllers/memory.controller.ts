@@ -1,4 +1,5 @@
 import { Response } from "express";
+import fs from "fs";
 import { MemoryService } from "../services/memory.service";
 import { CloudinaryService } from "../services/image.service";
 import { AuthRequest } from "../types/auth.types";
@@ -50,6 +51,14 @@ export const MemoryController = {
         success: false,
         message: (error as Error).message,
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   },
 
@@ -191,6 +200,14 @@ export const MemoryController = {
         success: false,
         message: (error as Error).message,
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   },
 
