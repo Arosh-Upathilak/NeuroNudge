@@ -24,6 +24,7 @@ import { Fonts, FontSizes } from "../constants/theme";
 import { ScaledSheet } from "react-native-size-matters";
 import { useTheme } from "../hooks/useTheme";
 import { useDrawer } from "../contexts/DrawerContext";
+import { useAuth } from "../contexts/AuthContext";
 
 
 const SCREEN_WIDTH: number = Dimensions.get("window").width;
@@ -54,6 +55,7 @@ function MenuItem({ icon, label, onPress, colors }: MenuItemProps): React.JSX.El
 export default function SideDrawer(): React.JSX.Element | null {
   const { isOpen, closeDrawer } = useDrawer();
   const { colors, isDark, toggleTheme } = useTheme();
+  const { signOut } = useAuth();
   const insets: EdgeInsets = useSafeAreaInsets();
 
 
@@ -144,7 +146,18 @@ export default function SideDrawer(): React.JSX.Element | null {
             <Text style={[styles.profileName, { color: colors.text, fontFamily: Fonts.semiBold }]}>
               Alex Doe
             </Text>
-            <TouchableOpacity activeOpacity={0.7} accessibilityLabel="Sign Out">
+            <TouchableOpacity 
+              activeOpacity={0.7} 
+              accessibilityLabel="Sign Out"
+              onPress={async () => {
+                try {
+                  await signOut();
+                  closeDrawer();
+                } catch (e) {
+                  console.error(e);
+                }
+              }}
+            >
               <Text style={[styles.signOutText, { color: colors.error, fontFamily: Fonts.medium }]}>
                 Sign Out
               </Text>

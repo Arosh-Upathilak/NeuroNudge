@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,77 +13,63 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import { useAuth } from "../../contexts/AuthContext";
 
 import { ScaledSheet } from "react-native-size-matters";
 
 export default function SignupScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { signUp } = useAuth();
 
   const [fullName, setFullName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  const handleSignup = (): void => {
-  if (!fullName.trim()) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter your full name."
-    );
-    return;
-  }
+  const handleSignup = async (): Promise<void> => {
+    if (!fullName.trim()) {
+      Alert.alert("Validation Error", "Please enter your full name.");
+      return;
+    }
 
-  if (!email.trim()) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter your email address."
-    );
-    return;
-  }
+    if (!email.trim()) {
+      Alert.alert("Validation Error", "Please enter your email address.");
+      return;
+    }
 
-  const emailRegex =
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Validation Error", "Please enter a valid email address.");
+      return;
+    }
 
-  if (!emailRegex.test(email)) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter a valid email address."
-    );
-    return;
-  }
+    if (!password.trim()) {
+      Alert.alert("Validation Error", "Please enter your password.");
+      return;
+    }
 
-  if (!password.trim()) {
-    Alert.alert(
-      "Validation Error",
-      "Please enter your password."
-    );
-    return;
-  }
+    if (password.length < 6) {
+      Alert.alert("Validation Error", "Password must be at least 6 characters.");
+      return;
+    }
 
-  if (password.length < 6) {
-    Alert.alert(
-      "Validation Error",
-      "Password must be at least 6 characters."
-    );
-    return;
-  }
+    if (!acceptedTerms) {
+      Alert.alert("Validation Error", "Please accept the Terms and Conditions.");
+      return;
+    }
 
-  if (!acceptedTerms) {
-    Alert.alert(
-      "Validation Error",
-      "Please accept the Terms and Conditions."
-    );
-    return;
-  }
-
-  Alert.alert(
-    "Success",
-    "Account created successfully."
-  );
-
-  router.replace("/(auth)/login");
-};
+    setIsSubmitting(true);
+    try {
+      await signUp(email.trim(), password, fullName.trim());
+      // Navigation is handled by the route guard in _layout.tsx
+    } catch (error) {
+      Alert.alert("Sign Up Failed", (error as Error).message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView
@@ -316,32 +303,38 @@ export default function SignupScreen(): React.JSX.Element {
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={isSubmitting ? 1 : 0.8}
+            disabled={isSubmitting}
             style={[
               styles.signUpButton,
               {
                 backgroundColor: colors.primary,
+                opacity: isSubmitting ? 0.8 : 1,
               },
             ]}
             onPress={handleSignup}
           >
-          
-          <Text
-            style={[
-              styles.signUpText,
-              {
-                color: colors.navbarActiveText,
-              },
-            ]}
-          >
-            Sign Up
-          </Text>
-
-            <Ionicons
-            name="arrow-forward-outline"
-            size={20}
-            color={colors.navbarActiveText}
-            />
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color={colors.navbarActiveText} />
+            ) : (
+              <>
+                <Text
+                  style={[
+                    styles.signUpText,
+                    {
+                      color: colors.navbarActiveText,
+                    },
+                  ]}
+                >
+                  Sign Up
+                </Text>
+                <Ionicons
+                  name="arrow-forward-outline"
+                  size={20}
+                  color={colors.navbarActiveText}
+                />
+              </>
+            )}
           </TouchableOpacity>
         </View>
 
@@ -358,7 +351,7 @@ export default function SignupScreen(): React.JSX.Element {
           </Text>
 
           <TouchableOpacity
-            onPress={() => router.push("/(auth)/login")}
+            onPress={() => router.push("/login" as any)}
           >
             <Text
               style={[
