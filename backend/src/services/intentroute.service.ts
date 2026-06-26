@@ -35,7 +35,7 @@ export class IntentRouterService {
        throw new Error("Missing required entities");
      }
 
-    await MemoryService.createMemory({
+    const newMemory = await MemoryService.createMemory({
       userId: data.userId,
       title: data.title,
       description: data.description,
@@ -58,7 +58,7 @@ export class IntentRouterService {
     return {
         status: "CREATED",
         reply: message,
-        memories: [],
+        memories: [newMemory],
     };
   }
 

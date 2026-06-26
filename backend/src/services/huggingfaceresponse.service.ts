@@ -1,8 +1,7 @@
 import { InferenceClient } from "@huggingface/inference";
 
-const client = new InferenceClient(
-  process.env.HUGGINGFACE_API_KEY as string
-);
+const hfKey = process.env.HUGGINGFACE_API_KEY;
+const client = new InferenceClient(hfKey || undefined);
 
 export interface MemoryResponse {
   memoryId?: string;
@@ -68,8 +67,17 @@ Return this exact schema:
 `;
 
     try {
+      if (!hfKey || !hfKey.startsWith("hf_")) {
+        console.warn("HuggingFaceResponseService: Missing or invalid HUGGINGFACE_API_KEY, returning mock response.");
+        return {
+          status: memories.length > 0 ? "FOUND" : "NOT_FOUND",
+          reply: memories.length > 0 ? "I found a match in your memories based on your request." : "Sorry, I couldn't find a matching memory.",
+          memories: memories.length > 0 ? [memories[0]] : []
+        };
+      }
+
       const response = await client.chatCompletion({
-        model: "Qwen/Qwen3-8B",
+        model: "Qwen/Qwen2.5-72B-Instruct",
         messages: [
           {
             role: "system",

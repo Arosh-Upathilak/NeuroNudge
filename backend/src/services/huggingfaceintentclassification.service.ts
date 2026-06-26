@@ -1,8 +1,7 @@
 import { InferenceClient } from "@huggingface/inference";
 
-const client = new InferenceClient(
-  process.env.HUGGINGFACE_API_KEY as string
-);
+const hfKey = process.env.HUGGINGFACE_API_KEY;
+const client = new InferenceClient(hfKey || undefined);
 
 export class HuggingFaceService {
   async extractEntities(data: unknown) {
@@ -56,8 +55,16 @@ For CHAT:
 } "memories":[]
 `;
 
+    if (!hfKey || !hfKey.startsWith("hf_")) {
+      console.warn("HuggingFaceService: Missing or invalid HUGGINGFACE_API_KEY, returning default CHAT intent.");
+      return JSON.stringify({
+        intent: "CHAT",
+        reply: "Hello! This is a mock response because the Hugging Face API key is missing."
+      });
+    }
+
     const response = await client.chatCompletion({
-      model: "Qwen/Qwen3-8B",
+      model: "Qwen/Qwen2.5-72B-Instruct",
       messages: [
         {
           role: "user",

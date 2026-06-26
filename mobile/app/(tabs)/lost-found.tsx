@@ -13,44 +13,32 @@ import { ScaledSheet, scale } from "react-native-size-matters";
 import MemoryCard from "../../components/MemoryCard";
 import ChatMessage, { type ChatMessageData } from "../../components/ChatMessage";
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
+import { getCurrentIdToken } from "../../services/firebase";
+import { sendChatMessage } from "../../services/api";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
 
-const MOCK_MEMORIES = [
-  {
-    id: "1",
-    title: "Car Keys",
-    location: "Entryway Bowl",
-    dateStr: "Today, 8:00 AM",
-    highlightDate: true,
-    iconName: "key-outline" as keyof typeof Ionicons.glyphMap,
-  },
-  {
-    id: "2",
-    title: "Wallet",
-    location: "Living Room Coffee Table",
-    dateStr: "Yesterday",
-    highlightDate: false,
-    iconName: "wallet-outline" as keyof typeof Ionicons.glyphMap,
-  },
-  {
-    id: "3",
-    title: "Reading Glasses",
-    location: "Nightstand",
-    dateStr: "Oct 24",
-    highlightDate: false,
-    iconName: "glasses-outline" as keyof typeof Ionicons.glyphMap,
-  },
-  {
-    id: "4",
-    title: "Noise-Canceling Pods",
-    location: "Work Backpack",
-    dateStr: "Oct 20",
-    highlightDate: false,
-    iconName: "headset-outline" as keyof typeof Ionicons.glyphMap,
-  },
-];
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const now = new Date();
+  const isToday = date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  if (isToday) {
+    return `Today, ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
+const getIconForTitle = (title: string): keyof typeof Ionicons.glyphMap => {
+  const t = title.toLowerCase();
+  if (t.includes('key')) return 'key-outline';
+  if (t.includes('wallet')) return 'wallet-outline';
+  if (t.includes('glass')) return 'glasses-outline';
+  if (t.includes('phone') || t.includes('mobile')) return 'phone-portrait-outline';
+  if (t.includes('headset') || t.includes('pod') || t.includes('ear')) return 'headset-outline';
+  if (t.includes('book')) return 'book-outline';
+  return 'cube-outline';
+};
 
 const MOCK_CHAT: ChatMessageData[] = [
   { id: "1", type: "user", text: "Where did I put my wallet?" },
@@ -72,6 +60,7 @@ export default function LostFoundScreen(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<"Memories" | "Chat">("Chat");
   const [isListening, setIsListening] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([...MOCK_CHAT].reverse());
+  const [memories, setMemories] = useState<any[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [inputBarHeight, setInputBarHeight] = useState(80);
   const chatListRef = useRef<FlatList>(null);
@@ -174,34 +163,63 @@ export default function LostFoundScreen(): React.JSX.Element {
           "Your memory is being saved without GPS coordinates because location access was denied."
         );
       }
+      // 5. Call real backend API
+      try {
+        const response = await sendChatMessage({
+          userText: currentText,
+          latitude: locationPayload?.latitude,
+          longitude: locationPayload?.longitude,
+          imageUri: currentPhoto ?? undefined,
+        });
 
-      // 4. Build payload
-      const messagePayload = {
-        text: currentText,
-        photoUri: currentPhoto,
-        location: locationPayload,
-        timestamp: new Date().toISOString(),
-      };
-      
-      console.log("SENDING PAYLOAD:", JSON.stringify(messagePayload, null, 2));
+        setIsProcessing(false);
 
-      // 5. Mock AI response (GPS wait acts as natural delay, add 1s buffer)
-      setTimeout(() => {
+        const aiReply = response.data.reply;
+        const memories = response.data.memories;
+
+        if (memories && memories.length > 0) {
+          const widgetMessages: ChatMessageData[] = memories.map((m: any, i: number) => ({
+            id: (Date.now() + i + 1).toString(),
+            type: "widget" as const,
+            title: m.title,
+            location: m.description,
+            imageUri: m.imageUrl || m.image?.imageUrl || undefined,
+          }));
+
+          const systemMsg: ChatMessageData = {
+            id: (Date.now() + memories.length + 1).toString(),
+            type: "system",
+            text: aiReply,
+          };
+
+          setChatMessages((prev) => [...widgetMessages, systemMsg, ...prev]);
+        } else {
+          setChatMessages((prev) => [
+            { id: (Date.now() + 1).toString(), type: "system", text: aiReply },
+            ...prev,
+          ]);
+        }
+
+        if (isAtBottomRef.current) {
+          setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 100);
+        }
+        
+        // Refetch memories to ensure the Memories tab is up to date
+        loadMemories();
+      } catch (error: any) {
         setIsProcessing(false);
         setChatMessages((prev) => [
           {
             id: (Date.now() + 1).toString(),
             type: "system",
-            text: "Memory logged successfully! I've securely stored your GPS coordinates and photo."
+            text: `Something went wrong: ${error.message ?? "Network error"}`,
           },
-          ...prev
+          ...prev,
         ]);
-        
-        // Smart scroll: Only scroll if user was at the visual bottom (offset 0)
         if (isAtBottomRef.current) {
           setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 100);
         }
-      }, 1000);
+      }
 
       return;
     }
@@ -233,6 +251,59 @@ export default function LostFoundScreen(): React.JSX.Element {
       setCapturedPhotoUri(result.assets[0].uri);
     }
   };
+
+  const loadMemories = async () => {
+    try {
+      const token = await getCurrentIdToken();
+      const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+      const response = await fetch(`${BASE_URL}/api/memories`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (data.success && data.data?.length > 0) {
+        const mapped = data.data.map((m: any) => ({
+          id: m.memoryId,
+          title: m.title,
+          location: m.description || "Unknown Location",
+          dateStr: formatDate(m.createdAt),
+          highlightDate: false,
+          iconName: getIconForTitle(m.title),
+          imageSource: m.image?.imageUrl ? { uri: m.image.imageUrl } : undefined,
+        }));
+        setMemories(mapped);
+      }
+    } catch (err) {
+      console.log("Failed to load memories:", err);
+    }
+  };
+
+  // --- INIT DATA ---
+  useEffect(() => {
+    const loadChatHistory = async () => {
+      try {
+        const token = await getCurrentIdToken();
+        const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+        const response = await fetch(`${BASE_URL}/api/messages`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await response.json();
+        if (data.success && data.data?.length > 0) {
+          const mapped: ChatMessageData[] = data.data.map((msg: any) => ({
+            id: msg.messageId,
+            type: msg.role === "user" ? "user" : "system",
+            text: msg.content,
+          }));
+          setChatMessages(mapped);
+        }
+      } catch (err) {
+        console.log("Failed to load chat history:", err);
+      }
+    };
+    
+    // Only load if it's currently empty, or always on mount
+    loadChatHistory();
+    loadMemories();
+  }, []);
 
   // Calculate the exact initial width of a single toggle tab to prevent visual pop-in on first render
   const initialTabWidth = useMemo(() => {
@@ -307,14 +378,14 @@ export default function LostFoundScreen(): React.JSX.Element {
   }, [keyboardOffset, kbSpacerAnim]);
 
   const filteredMemories = useMemo(() => {
-    if (!searchQuery.trim()) return MOCK_MEMORIES;
+    if (!searchQuery.trim()) return memories;
     const lowerQuery = searchQuery.toLowerCase();
-    return MOCK_MEMORIES.filter(
+    return memories.filter(
       (m) =>
         m.title.toLowerCase().includes(lowerQuery) ||
         m.location.toLowerCase().includes(lowerQuery)
     );
-  }, [searchQuery]);
+  }, [searchQuery, memories]);
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -385,6 +456,7 @@ export default function LostFoundScreen(): React.JSX.Element {
               dateStr={item.dateStr}
               highlightDate={item.highlightDate}
               iconName={item.iconName}
+              imageSource={item.imageSource}
             />
           )}
         />

@@ -4,6 +4,7 @@
 import express, { Request, Response } from "express";
 import "dotenv/config";
 import http from "http";
+import cors from "cors";
 import imageRoutes from "./routes/object.routes";
 import memoryRoutes from "./routes/memory.routes";
 import nlpRoutes from "./routes/nlp.routes";
@@ -14,6 +15,7 @@ const server = express();
 const httpServer = http.createServer(server);
 const port = process.env.PORT || 5000;
 
+server.use(cors());
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 
@@ -37,4 +39,5 @@ const startServer = async () => {
 };
 
 startServer();
+
 

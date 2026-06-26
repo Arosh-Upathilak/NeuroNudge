@@ -1,17 +1,7 @@
-/**
- * HTTP client for the NeuroNudge backend API.
- *
- * Every request that requires authentication must include a Firebase
- * ID token obtained via `getCurrentIdToken()` from firebase.ts.
- * Tokens are fetched fresh before each call (force-refreshed) to
- * ensure expired tokens are never sent.
- */
-
+import { Platform } from "react-native";
 import { getCurrentIdToken } from "./firebase";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ApiUser {
   id: string;
@@ -35,11 +25,6 @@ export interface ApiErrorResponse {
   };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Builds the Authorization header with a fresh Firebase ID token.
- */
 const buildAuthHeaders = async (): Promise<HeadersInit> => {
   const token = await getCurrentIdToken();
   return {
@@ -48,14 +33,6 @@ const buildAuthHeaders = async (): Promise<HeadersInit> => {
   };
 };
 
-// ─── Endpoints ────────────────────────────────────────────────────────────────
-
-/**
- * Synchronizes the authenticated Firebase user's record with the backend database.
- * Creates the database record if it doesn't exist, and updates verification status.
- *
- * Returns the synchronized user record on success, throws on failure.
- */
 export const syncUser = async (): Promise<ApiUser> => {
   const headers = await buildAuthHeaders();
 
@@ -74,9 +51,6 @@ export const syncUser = async (): Promise<ApiUser> => {
   return (data as ApiSuccessResponse).user;
 };
 
-/**
- * Triggers the backend to generate and send a verification email via SMTP.
- */
 export const sendVerificationEmail = async (): Promise<void> => {
   const headers = await buildAuthHeaders();
 
@@ -91,9 +65,6 @@ export const sendVerificationEmail = async (): Promise<void> => {
   }
 };
 
-/**
- * Triggers the backend to generate and send a password reset link via SMTP.
- */
 export const requestPasswordReset = async (email: string): Promise<void> => {
   const response = await fetch(`${BASE_URL}/api/user/forgot-password`, {
     method: "POST",
@@ -107,4 +78,75 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
     const data: ApiErrorResponse = await response.json();
     throw new Error(data.error?.message ?? "Failed to request password reset.");
   }
+};
+
+export interface NlpChatResponse {
+  success: boolean;
+  data: {
+    intent?: string;
+    status?: string;
+    reply: string;
+    memories?: Array<{
+      memoryId: string;
+      title: string;
+      description?: string;
+      imageUrl?: string;
+      latitude?: number;
+      longitude?: number;
+    }>;
+  };
+}
+
+export const sendChatMessage = async (payload: {
+  userText: string;
+  latitude?: number;
+  longitude?: number;
+  imageUri?: string;
+}): Promise<NlpChatResponse> => {
+  const token = await getCurrentIdToken();
+  const formData = new FormData();
+
+  formData.append("userText", payload.userText);
+
+  if (payload.latitude !== undefined) {
+    formData.append("latitude", String(payload.latitude));
+  }
+  if (payload.longitude !== undefined) {
+    formData.append("longitude", String(payload.longitude));
+  }
+  
+  if (payload.imageUri) {
+    const filename = payload.imageUri.split("/").pop() || "photo.jpg";
+    const ext = filename.split(".").pop()?.toLowerCase() || "jpg";
+    const mimeType = ext === "png" ? "image/png" : "image/jpeg";
+
+    if (Platform.OS === "web") {
+      const resp = await fetch(payload.imageUri);
+      const blob = await resp.blob();
+      const file = new File([blob], filename, { type: mimeType });
+      formData.append("image", file);
+    } else {
+      formData.append("image", {
+        uri: payload.imageUri,
+        name: filename,
+        type: mimeType,
+      } as any);
+    }
+  }
+
+  const response = await fetch(`${BASE_URL}/api/nlp/chat`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.success) {
+    throw new Error(data.message ?? "Chat request failed.");
+  }
+
+  return data;
 };

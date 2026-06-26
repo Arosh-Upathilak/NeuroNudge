@@ -22,6 +22,9 @@ export const NLPController = {
       let imageUrl: string | null = null;
       let publicId: string | null = null;
 
+      console.log("req.file:", req.file);
+      console.log("req.body:", req.body);
+
       // STEP 1: upload image (only if exists)
       const imageUploadPromise = req.file?.path
         ? cloudinaryService.uploadImage(req.file.path)
@@ -43,6 +46,7 @@ export const NLPController = {
       const [uploadResult, previousMessages] = await Promise.all([
         imageUploadPromise,
         previousMessagesPromise,
+        saveUserMessagePromise,
       ]);
 
       // assign image results
@@ -105,10 +109,7 @@ export const NLPController = {
           aiContent: JSON.stringify(parsed),
         });
 
-          await Promise.all([
-          saveUserMessagePromise,
-          assistantMessagePromise,
-         ]);
+          await assistantMessagePromise;
 
         return res.status(200).json({
           success: true,
@@ -137,7 +138,7 @@ export const NLPController = {
       );
 
       // optional: wait user message save if not completed
-      await saveUserMessagePromise;
+      // already awaited early
 
       return res.status(200).json({
         success: true,

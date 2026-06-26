@@ -1,11 +1,10 @@
-import { PrismaClient,Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import prisma from "../config/prisma";
 import {
   CreateMemoryInput,
   UpdateMemoryInput,
   UpsertMemoryImageInput,
 } from "../types/memory.types";
-
-const prisma = new PrismaClient();
 
 /**
  * MEMORY SERVICE
