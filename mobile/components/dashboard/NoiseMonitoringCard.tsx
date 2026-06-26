@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +9,7 @@ import { ScaledSheet } from "react-native-size-matters";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import CustomToggle from "../settings/CustomToggle";
 
 export default function NoiseMonitoringCard(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
@@ -55,30 +55,10 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
         </Text>
       </View>
 
-      <TouchableOpacity
-        accessibilityRole="switch"
-        accessibilityState={{ checked: enabled }}
-        accessibilityLabel="Toggle ambient noise monitoring"
-        activeOpacity={0.8}
-        onPress={() => setEnabled((prev) => !prev)}
-        style={[
-          styles.toggleTrack,
-          {
-            backgroundColor: enabled ? colors.primary : "#C9CECA",
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.toggleThumb,
-            {
-              alignSelf: enabled
-                ? "flex-end"
-                : "flex-start",
-            },
-          ]}
-        />
-      </TouchableOpacity>
+      <CustomToggle
+        value={enabled}
+        onToggle={() => setEnabled((prev) => !prev)}
+      />
     </View>
   );
 }
@@ -112,20 +92,5 @@ const styles = ScaledSheet.create({
     fontSize: FontSizes.md,
     fontFamily: Fonts.medium,
     flexShrink: 1,
-  },
-
-  toggleTrack: {
-    width: "52@s",
-    height: "32@vs",
-    borderRadius: "16@s",
-    justifyContent: "center",
-    paddingHorizontal: "3@s",
-  },
-
-  toggleThumb: {
-    width: "26@s",
-    height: "26@s",
-    borderRadius: "13@s",
-    backgroundColor: "#FFFFFF",
   },
 });

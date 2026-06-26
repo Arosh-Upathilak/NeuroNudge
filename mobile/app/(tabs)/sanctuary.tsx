@@ -21,6 +21,7 @@ export default function SanctuaryScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView
+      edges={["bottom", "left", "right"]}
       style={[
         styles.container,
         { backgroundColor: colors.background },

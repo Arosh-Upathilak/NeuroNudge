@@ -10,12 +10,14 @@ import { useTheme } from "../../hooks/useTheme";
 import FeatureCard from "../../components/dashboard/FeatureCard";
 import NoiseMonitoringCard from "../../components/dashboard/NoiseMonitoringCard";
 import { router } from "expo-router";
+import { useAuth } from "../../contexts/AuthContext";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ScaledSheet } from "react-native-size-matters";
 
 export default function DashboardScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { user } = useAuth();
 
   const [currentTime, setCurrentTime] = useState<Date>(
   new Date()
@@ -47,6 +49,7 @@ const greeting =
 
   return (
     <SafeAreaView
+      edges={["bottom", "left", "right"]}
       style={[
         styles.container,
         { backgroundColor: colors.background },
@@ -57,7 +60,7 @@ const greeting =
         contentContainerStyle={styles.scrollContent}
       >
         <Text style={[styles.greeting, { color: colors.text }]}>
-          {greeting}, Alex
+          {greeting}, {user?.displayName ? user.displayName.split(" ")[0] : (user?.email?.split("@")[0] || "User")}
         </Text>
         <Text style={[styles.date, { color: colors.textSecondary }]}>
           {formattedDate}

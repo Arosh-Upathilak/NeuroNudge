@@ -4,7 +4,7 @@ import {
   Animated,
 } from "react-native";
 
-import { ScaledSheet } from "react-native-size-matters";
+import { ScaledSheet, scale } from "react-native-size-matters";
 import { useTheme } from "../../hooks/useTheme";
 
 interface CustomToggleProps {
@@ -21,12 +21,12 @@ export default function CustomToggle({
 
   const translateX =
     useRef(
-      new Animated.Value(value ? 20 : 0)
+      new Animated.Value(value ? scale(20) : 0)
     ).current;
 
   useEffect(() => {
     Animated.timing(translateX, {
-      toValue: value ? 20 : 0,
+      toValue: value ? scale(20) : 0,
       duration: 180,
       useNativeDriver: true,
     }).start();

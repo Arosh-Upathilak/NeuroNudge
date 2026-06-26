@@ -14,18 +14,24 @@ import { ScaledSheet } from "react-native-size-matters";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function EditProfileScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { user } = useAuth();
 
   const [fullName, setFullName] =
-    useState("Alex Doe");
+    useState(user?.displayName || "User");
 
   const [email, setEmail] =
-    useState("alex@example.com");
+    useState(user?.email || "");
 
   const [username, setUsername] =
-    useState("@alexdoe");
+    useState(
+      user?.displayName
+        ? "@" + user.displayName.toLowerCase().replace(/\s+/g, "")
+        : (user?.email ? "@" + user.email.split("@")[0] : "@user")
+    );
 
   const handleSave = (): void => {
     router.back();
@@ -72,37 +78,39 @@ export default function EditProfileScreen(): React.JSX.Element {
         {/* Avatar */}
 
         <View style={styles.avatarContainer}>
-          <View
-            style={[
-              styles.avatar,
-              {
-                backgroundColor:
-                  colors.primary,
-              },
-            ]}
-          >
-            <Ionicons
-              name="person-outline"
-              size={50}
-              color="#FFFFFF"
-            />
-          </View>
+          <View style={styles.avatarWrapper}>
+            <View
+              style={[
+                styles.avatar,
+                {
+                  backgroundColor:
+                    colors.primary,
+                },
+              ]}
+            >
+              <Ionicons
+                name="person-outline"
+                size={50}
+                color="#FFFFFF"
+              />
+            </View>
 
-          <TouchableOpacity
-            style={[
-              styles.editAvatarButton,
-              {
-                backgroundColor:
-                  colors.primary,
-              },
-            ]}
-          >
-            <Ionicons
-              name="camera-outline"
-              size={18}
-              color="#FFFFFF"
-            />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.editAvatarButton,
+                {
+                  backgroundColor:
+                    colors.primary,
+                },
+              ]}
+            >
+              <Ionicons
+                name="camera-outline"
+                size={18}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Form Card */}
@@ -235,6 +243,12 @@ const styles = ScaledSheet.create({
     marginBottom: "30@vs",
   },
 
+  avatarWrapper: {
+    width: "110@s",
+    height: "110@s",
+    position: "relative",
+  },
+
   avatar: {
     width: "110@s",
     height: "110@s",
@@ -246,7 +260,7 @@ const styles = ScaledSheet.create({
   editAvatarButton: {
     position: "absolute",
     bottom: 0,
-    right: "135@s",
+    right: 0,
     width: "34@s",
     height: "34@s",
     borderRadius: "17@s",

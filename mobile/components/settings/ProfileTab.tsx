@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -11,9 +12,41 @@ import { ScaledSheet } from "react-native-size-matters";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function ProfileTab(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { user, resetPassword, signOut } = useAuth();
+
+  const displayName = user?.displayName || "User";
+  const email = user?.email || "No email";
+  const username = user?.displayName
+    ? "@" + user.displayName.toLowerCase().replace(/\s+/g, "")
+    : (user?.email ? "@" + user.email.split("@")[0] : "@user");
+
+  const handlePasswordReset = async () => {
+    if (!user?.email) {
+      Alert.alert("Error", "No email address found for this user.");
+      return;
+    }
+    try {
+      await resetPassword(user.email);
+      Alert.alert(
+        "Password Reset Sent",
+        `A password reset email has been sent to ${user.email}. Please follow the link in the email to set a new password.`
+      );
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Failed to send password reset email.");
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      Alert.alert("Error", error instanceof Error ? error.message : "Failed to sign out.");
+    }
+  };
 
   return (
     <>
@@ -73,7 +106,7 @@ export default function ProfileTab(): React.JSX.Element {
               { color: colors.text },
             ]}
           >
-            Alex Doe
+            {displayName}
           </Text>
 
           <Text
@@ -84,7 +117,7 @@ export default function ProfileTab(): React.JSX.Element {
               },
             ]}
           >
-            alex@example.com
+            {email}
           </Text>
         </View>
       </TouchableOpacity>
@@ -124,7 +157,7 @@ export default function ProfileTab(): React.JSX.Element {
               { color: colors.text },
             ]}
           >
-            Alex Doe
+            {displayName}
           </Text>
         </View>
 
@@ -157,7 +190,7 @@ export default function ProfileTab(): React.JSX.Element {
               { color: colors.text },
             ]}
           >
-            alex@example.com
+            {email}
           </Text>
         </View>
 
@@ -190,7 +223,7 @@ export default function ProfileTab(): React.JSX.Element {
               { color: colors.text },
             ]}
           >
-            @alexdoe
+            {username}
           </Text>
         </View>
 
@@ -243,6 +276,8 @@ export default function ProfileTab(): React.JSX.Element {
 
         <TouchableOpacity
           style={styles.securityItem}
+          activeOpacity={0.7}
+          onPress={handlePasswordReset}
         >
           <Text
             style={[
@@ -301,6 +336,8 @@ export default function ProfileTab(): React.JSX.Element {
 
         <TouchableOpacity
           style={styles.securityItem}
+          activeOpacity={0.7}
+          onPress={handleSignOut}
         >
           <Text
             style={[

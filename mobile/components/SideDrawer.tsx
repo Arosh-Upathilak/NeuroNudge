@@ -56,7 +56,7 @@ function MenuItem({ icon, label, onPress, colors }: MenuItemProps): React.JSX.El
 export default function SideDrawer(): React.JSX.Element | null {
   const { isOpen, closeDrawer } = useDrawer();
   const { colors, isDark, toggleTheme } = useTheme();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const insets: EdgeInsets = useSafeAreaInsets();
 
 
@@ -145,7 +145,7 @@ export default function SideDrawer(): React.JSX.Element | null {
 
           <View style={styles.profileInfo}>
             <Text style={[styles.profileName, { color: colors.text, fontFamily: Fonts.semiBold }]}>
-              Alex Doe
+              {user?.displayName || user?.email?.split("@")[0] || "User"}
             </Text>
             <TouchableOpacity 
               activeOpacity={0.7} 

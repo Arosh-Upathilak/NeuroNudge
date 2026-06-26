@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import {
-  SafeAreaView,
   View,
   Text,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ScaledSheet } from "react-native-size-matters";
 
@@ -48,6 +48,7 @@ export default function SettingsScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView
+      edges={["bottom", "left", "right"]}
       style={[
         styles.container,
         {
