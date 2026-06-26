@@ -103,10 +103,7 @@ function ThemedApp(): React.JSX.Element {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="notifications"
-          options={{ presentation: "modal" }}
-        />
+        <Stack.Screen name="notifications" options={{ presentation: "modal" }} />
       </Stack>
       <SideDrawer />
     </View>

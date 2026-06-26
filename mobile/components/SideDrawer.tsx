@@ -25,6 +25,7 @@ import { ScaledSheet } from "react-native-size-matters";
 import { useTheme } from "../hooks/useTheme";
 import { useDrawer } from "../contexts/DrawerContext";
 import { useAuth } from "../contexts/AuthContext";
+import { router } from "expo-router";
 
 
 const SCREEN_WIDTH: number = Dimensions.get("window").width;
@@ -181,9 +182,13 @@ export default function SideDrawer(): React.JSX.Element | null {
 
         <View style={styles.menuSection}>
           <MenuItem
-            icon="settings-outline"
-            label="Settings"
-            colors={colors}
+          icon="settings-outline"
+          label="Settings"
+          colors={colors}
+          onPress={() => {
+            closeDrawer();
+            router.push("/settings");
+            }}
           />
           <MenuItem
             icon="help-circle-outline"
