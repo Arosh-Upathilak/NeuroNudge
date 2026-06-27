@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -11,11 +11,17 @@ import { ScaledSheet } from "react-native-size-matters";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 
-export default function ThresholdCard(): React.JSX.Element {
+interface ThresholdCardProps {
+  threshold: number;
+  onValueChange: (value: number) => void;
+}
+
+export default function ThresholdCard({
+  threshold,
+  onValueChange,
+}: ThresholdCardProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const [threshold, setThreshold] =
-    useState(65);
 
   return (
     <View style={styles.container}>
@@ -48,7 +54,7 @@ export default function ThresholdCard(): React.JSX.Element {
   minimumValue={0}
   maximumValue={100}
   value={threshold}
-  onValueChange={setThreshold}
+  onValueChange={onValueChange}
   minimumTrackTintColor={colors.primary}
   maximumTrackTintColor={colors.divider}
   thumbTintColor={colors.primary}

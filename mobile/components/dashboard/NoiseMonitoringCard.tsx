@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,37 @@ import { ScaledSheet } from "react-native-size-matters";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 import CustomToggle from "../settings/CustomToggle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NoiseMonitoringCard(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const [enabled, setEnabled] =
-    useState(true);
+  const [enabled, setEnabled] = useState(true);
+
+  // Load toggle status from AsyncStorage on mount
+  useEffect(() => {
+    const loadStatus = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("ambient_noise_enabled");
+        if (stored !== null) {
+          setEnabled(stored === "true");
+        }
+      } catch (err) {
+        console.log("Error loading ambient noise toggle state:", err);
+      }
+    };
+    loadStatus();
+  }, []);
+
+  const handleToggle = async () => {
+    const nextVal = !enabled;
+    setEnabled(nextVal);
+    try {
+      await AsyncStorage.setItem("ambient_noise_enabled", nextVal.toString());
+    } catch (err) {
+      console.log("Error saving ambient noise toggle state:", err);
+    }
+  };
 
   return (
     <View
@@ -57,7 +82,7 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
 
       <CustomToggle
         value={enabled}
-        onToggle={() => setEnabled((prev) => !prev)}
+        onToggle={handleToggle}
       />
     </View>
   );
