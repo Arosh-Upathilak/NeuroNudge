@@ -58,11 +58,6 @@ export const NLPController = {
       const llmInput = {
         currentMessage: {
           text: userText,
-          imageUrl,
-          publicId,
-          latitude,
-          longitude,
-          
         },
         previousMessages,
       };

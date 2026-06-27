@@ -34,7 +34,7 @@ const getMemoryIcon = (title: string): keyof typeof Ionicons.glyphMap => {
 const formatMemoryDate = (dateString: string) => {
   const date = new Date(dateString);
   const now = new Date();
-  
+
   const isToday = date.toDateString() === now.toDateString();
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
@@ -60,6 +60,31 @@ const formatTimeAgo = (dateString?: string) => {
   const diffHours = Math.floor(diffMins / 60);
   if (diffHours < 24) return `Added ${diffHours} hr ago`;
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+};
+
+const formatLocationText = (
+  description: string | null,
+  location: { latitude: number; longitude: number } | null
+) => {
+  if (!description && !location) return "No description provided";
+  
+  // Clean description of any LLM-concatenated Image/Location strings
+  let cleanDesc = description ? description : "";
+  cleanDesc = cleanDesc.replace(/Image:\s*https?:\/\/\S+/gi, "");
+  cleanDesc = cleanDesc.replace(/\(Public ID:[^)]+\)/gi, "");
+  cleanDesc = cleanDesc.replace(/,? Location:\s*Latitude\s*[-+]?[0-9]*\.?[0-9]+,\s*Longitude\s*[-+]?[0-9]*\.?[0-9]+/gi, "");
+  cleanDesc = cleanDesc.replace(/Latitude\s*[-+]?[0-9]*\.?[0-9]+,\s*Longitude\s*[-+]?[0-9]*\.?[0-9]+/gi, "");
+  cleanDesc = cleanDesc.trim().replace(/^,|,$/g, "").trim();
+
+  if (cleanDesc) {
+    return cleanDesc;
+  }
+
+  if (location) {
+    return `Lat: ${location.latitude.toFixed(4)}, Long: ${location.longitude.toFixed(4)}`;
+  }
+
+  return "No description provided";
 };
 
 export default function LostFoundScreen(): React.JSX.Element {
@@ -151,7 +176,7 @@ export default function LostFoundScreen(): React.JSX.Element {
     try {
       const data = await getMessages();
       const formatted: ChatMessageData[] = [];
-      
+
       for (const msg of data) {
         if (msg.role === "user") {
           formatted.push({
@@ -175,9 +200,14 @@ export default function LostFoundScreen(): React.JSX.Element {
                 id: `${msg.messageId}_widget_${mem.memoryId || Math.random().toString()}`,
                 type: "widget",
                 title: mem.title,
-                location: mem.description || undefined,
+                location: formatLocationText(
+                  mem.description || null,
+                  mem.latitude && mem.longitude ? { latitude: mem.latitude, longitude: mem.longitude } : null
+                ),
                 imageUri: mem.imageUrl || undefined,
                 timeAgo: formatTimeAgo(mem.createdat || mem.createdAt || msg.createdAt),
+                latitude: mem.latitude,
+                longitude: mem.longitude,
               });
             }
             formatted.push({
@@ -225,7 +255,7 @@ export default function LostFoundScreen(): React.JSX.Element {
       setChatInput("");
       setCapturedPhotoUri(null);
       setIsProcessing(true);
-      
+
       // Force scroll to visual bottom (offset 0) when USER sends a message
       setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 100);
 
@@ -233,7 +263,7 @@ export default function LostFoundScreen(): React.JSX.Element {
       const { status } = await Location.requestForegroundPermissionsAsync();
       let latitude: number | undefined = undefined;
       let longitude: number | undefined = undefined;
-      
+
       if (status === "granted") {
         const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
         latitude = location.coords.latitude;
@@ -248,7 +278,7 @@ export default function LostFoundScreen(): React.JSX.Element {
       // 4. Send request to backend
       try {
         const aiResponse = await sendNlpChat(currentText, latitude, longitude, currentPhoto || undefined);
-        
+
         const newSystemMsg: ChatMessageData = {
           id: `${Date.now()}_system`,
           type: "system",
@@ -262,9 +292,14 @@ export default function LostFoundScreen(): React.JSX.Element {
               id: `${Date.now()}_widget_${mem.memoryId || Math.random().toString()}`,
               type: "widget",
               title: mem.title,
-              location: mem.description || undefined,
+              location: formatLocationText(
+                mem.description || null,
+                mem.latitude && mem.longitude ? { latitude: mem.latitude, longitude: mem.longitude } : null
+              ),
               imageUri: mem.imageUrl || undefined,
               timeAgo: formatTimeAgo(mem.createdat || mem.createdAt || new Date().toISOString()),
+              latitude: mem.latitude,
+              longitude: mem.longitude,
             });
           }
         }
@@ -354,7 +389,7 @@ export default function LostFoundScreen(): React.JSX.Element {
     const showSub = Keyboard.addListener(showEvent, (e) => {
       const offset = Platform.OS === "ios" ? e.endCoordinates.height - 130 : e.endCoordinates.height - 110;
       const finalOffset = offset > 0 ? offset : 0;
-      
+
       Animated.parallel([
         Animated.timing(keyboardOffset, {
           toValue: -finalOffset,
@@ -367,7 +402,7 @@ export default function LostFoundScreen(): React.JSX.Element {
           useNativeDriver: false,
         })
       ]).start();
-      
+
       // Smart scroll: Only scroll if user is at the visual bottom
       if (isAtBottomRef.current) {
         setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 50);
@@ -411,25 +446,25 @@ export default function LostFoundScreen(): React.JSX.Element {
       <View style={styles.toggleRow}>
         <View style={[styles.toggleContainer, { backgroundColor: colors.card }]}>
           {tabWidth > 0 && (
-            <Animated.View 
+            <Animated.View
               style={[
-                styles.sliderPill, 
-                { 
-                  backgroundColor: colors.primary, 
-                  width: tabWidth, 
-                  transform: [{ translateX }] 
+                styles.sliderPill,
+                {
+                  backgroundColor: colors.primary,
+                  width: tabWidth,
+                  transform: [{ translateX }]
                 }
-              ]} 
+              ]}
             />
           )}
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.toggleButton}
             onLayout={(e) => setTabWidth(e.nativeEvent.layout.width)}
             onPress={() => setActiveTab("Memories")}
           >
             <Text style={[styles.toggleText, { color: activeTab === "Memories" ? colors.surface : colors.textSecondary }]}>Memories</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.toggleButton}
             onPress={() => setActiveTab("Chat")}
           >
@@ -437,7 +472,7 @@ export default function LostFoundScreen(): React.JSX.Element {
           </TouchableOpacity>
         </View>
         {activeTab === "Memories" && (
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[styles.addButton, { backgroundColor: colors.primary }]}
             onPress={() => setActiveTab("Chat")}
           >
@@ -455,46 +490,46 @@ export default function LostFoundScreen(): React.JSX.Element {
       {/* Content Area */}
       <View style={{ flex: 1, position: 'relative', justifyContent: 'flex-end' }}>
         {/* Memories View (Absolute behind floating inputs) */}
-        <View 
-          style={{ 
-            ...StyleSheet.absoluteFillObject, 
-            opacity: activeTab === "Memories" ? 1 : 0 
-          }} 
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            opacity: activeTab === "Memories" ? 1 : 0
+          }}
           pointerEvents={activeTab === "Memories" ? "auto" : "none"}
         >
-        {isLoadingMemories && memories.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-            <ActivityIndicator size="large" color={colors.primary} />
-          </View>
-        ) : (
-          <FlatList
-            data={filteredMemories}
-            keyExtractor={(item) => item.memoryId}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-            renderItem={({ item }) => (
-              <MemoryCard
-                title={item.title}
-                location={item.description || "No description provided"}
-                dateStr={formatMemoryDate(item.createdAt)}
-                highlightDate={false}
-                imageSource={item.image?.imageUrl ? { uri: item.image.imageUrl } : undefined}
-                iconName={item.image?.imageUrl ? undefined : getMemoryIcon(item.title)}
-              />
-            )}
-          />
-        )}
+          {isLoadingMemories && memories.length === 0 ? (
+            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : (
+            <FlatList
+              data={filteredMemories}
+              keyExtractor={(item) => item.memoryId}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.listContent}
+              renderItem={({ item }) => (
+                <MemoryCard
+                  title={item.title}
+                  location={formatLocationText(item.description, item.location)}
+                  dateStr={formatMemoryDate(item.createdAt)}
+                  highlightDate={false}
+                  imageSource={item.image?.imageUrl ? { uri: item.image.imageUrl } : undefined}
+                  iconName={item.image?.imageUrl ? undefined : getMemoryIcon(item.title)}
+                />
+              )}
+            />
+          )}
         </View>
 
         {/* Chat View */}
-        <View 
-          style={{ 
-            ...StyleSheet.absoluteFillObject, 
-            opacity: activeTab === "Chat" ? 1 : 0 
-          }} 
+        <View
+          style={{
+            ...StyleSheet.absoluteFillObject,
+            opacity: activeTab === "Chat" ? 1 : 0
+          }}
           pointerEvents={activeTab === "Chat" ? "box-none" : "none"}
         >
-        <FlatList
+          <FlatList
             ref={chatListRef}
             data={chatMessages}
             keyExtractor={(item) => item.id}
@@ -527,7 +562,7 @@ export default function LostFoundScreen(): React.JSX.Element {
         {/* Floating Inputs (Standard flex layout at the bottom of the screen) */}
         {activeTab === "Memories" ? (
           <View style={styles.staticWrapper} pointerEvents="box-none">
-            <Animated.View 
+            <Animated.View
               style={[styles.animatedContainer, { transform: [{ translateY: keyboardOffset }] }]}
             >
               <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
@@ -544,47 +579,47 @@ export default function LostFoundScreen(): React.JSX.Element {
           </View>
         ) : (
           <View style={styles.staticWrapper} pointerEvents="box-none">
-            <Animated.View 
+            <Animated.View
               style={[styles.animatedContainer, { transform: [{ translateY: keyboardOffset }] }]}
               pointerEvents="box-none"
               onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
             >
-            {capturedPhotoUri && (
-              <View style={styles.photoPreviewContainer}>
-                <Image source={{ uri: capturedPhotoUri }} style={styles.photoPreviewImage} contentFit="cover" />
-                <TouchableOpacity style={styles.photoCancelButton} onPress={() => setCapturedPhotoUri(null)}>
-                  <Ionicons name="close" size={16} color="#fff" />
-                </TouchableOpacity>
-              </View>
-            )}
-            <View style={styles.chatInputRow}>
-              <View style={[styles.chatInputContainer, { backgroundColor: colors.card }]}>
-                <TouchableOpacity onPress={handleCameraPress}>
-                  <Ionicons name="camera-outline" size={24} color={colors.textSecondary} style={styles.chatCameraIcon} />
-                </TouchableOpacity>
-                <TextInput
-                  style={[styles.searchInput, { color: colors.text }]}
-                  placeholder={isListening ? "Listening..." : "What are you looking for?"}
-                  placeholderTextColor={colors.textSecondary}
-                  value={chatInput}
-                  onChangeText={setChatInput}
-                  multiline={false}
-                />
-              </View>
-              <TouchableOpacity 
-                style={[styles.chatMicButton, { backgroundColor: isListening ? "#ff4444" : colors.primary }]}
-                onPress={handleMicPress}
-              >
-                <Animated.View style={{ transform: [{ scale: micScaleAnim }] }}>
-                  <Ionicons 
-                    name={chatInput.trim().length > 0 && !isListening ? "send" : "mic-outline"} 
-                    size={chatInput.trim().length > 0 && !isListening ? 20 : 24} 
-                    color={colors.surface} 
-                    style={chatInput.trim().length > 0 && !isListening ? { marginLeft: 4 } : undefined}
+              {capturedPhotoUri && (
+                <View style={styles.photoPreviewContainer}>
+                  <Image source={{ uri: capturedPhotoUri }} style={styles.photoPreviewImage} contentFit="cover" />
+                  <TouchableOpacity style={styles.photoCancelButton} onPress={() => setCapturedPhotoUri(null)}>
+                    <Ionicons name="close" size={16} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+              )}
+              <View style={styles.chatInputRow}>
+                <View style={[styles.chatInputContainer, { backgroundColor: colors.card }]}>
+                  <TouchableOpacity onPress={handleCameraPress}>
+                    <Ionicons name="camera-outline" size={24} color={colors.textSecondary} style={styles.chatCameraIcon} />
+                  </TouchableOpacity>
+                  <TextInput
+                    style={[styles.searchInput, { color: colors.text }]}
+                    placeholder={isListening ? "Listening..." : "What are you looking for?"}
+                    placeholderTextColor={colors.textSecondary}
+                    value={chatInput}
+                    onChangeText={setChatInput}
+                    multiline={false}
                   />
-                </Animated.View>
-              </TouchableOpacity>
-            </View>
+                </View>
+                <TouchableOpacity
+                  style={[styles.chatMicButton, { backgroundColor: isListening ? "#ff4444" : colors.primary }]}
+                  onPress={handleMicPress}
+                >
+                  <Animated.View style={{ transform: [{ scale: micScaleAnim }] }}>
+                    <Ionicons
+                      name={chatInput.trim().length > 0 && !isListening ? "send" : "mic-outline"}
+                      size={chatInput.trim().length > 0 && !isListening ? 20 : 24}
+                      color={colors.surface}
+                      style={chatInput.trim().length > 0 && !isListening ? { marginLeft: 4 } : undefined}
+                    />
+                  </Animated.View>
+                </TouchableOpacity>
+              </View>
             </Animated.View>
           </View>
         )}
@@ -658,7 +693,7 @@ const styles = ScaledSheet.create({
     marginBottom: "4@vs",
   },
   listContent: {
-    paddingBottom: "80@vs", 
+    paddingBottom: "80@vs",
   },
   staticWrapper: {
     width: "100%",

@@ -33,6 +33,7 @@ Rules:
 9.if most of the time remeber this object means it is create intent 
 10.if it is  what things that you have remembered means or useing word where  is retrive
 11.If the use says can you find this implies the the intent is retrive
+12. For CREATE_MEMORY, the description should strictly be the physical or textual description of where the item was placed, as described in the user's message (e.g., "in the drawer", "on the table"). Never include image URLs, Cloudinary public IDs, latitude, or longitude coordinates in the description. If no textual description is provided in the message, leave the description empty.
 
 Input:
 ${JSON.stringify(data)}
