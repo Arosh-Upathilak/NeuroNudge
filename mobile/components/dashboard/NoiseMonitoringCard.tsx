@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-} from "react-native";
+import { View, Text } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
@@ -17,7 +14,6 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
 
   const [enabled, setEnabled] = useState(true);
 
-  // Load toggle status from AsyncStorage on mount
   useEffect(() => {
     const loadStatus = async () => {
       try {
@@ -25,9 +21,7 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
         if (stored !== null) {
           setEnabled(stored === "true");
         }
-      } catch (err) {
-        console.log("Error loading ambient noise toggle state:", err);
-      }
+      } catch {}
     };
     loadStatus();
   }, []);
@@ -37,9 +31,7 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
     setEnabled(nextVal);
     try {
       await AsyncStorage.setItem("ambient_noise_enabled", nextVal.toString());
-    } catch (err) {
-      console.log("Error saving ambient noise toggle state:", err);
-    }
+    } catch {}
   };
 
   return (
@@ -56,16 +48,11 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
           style={[
             styles.iconContainer,
             {
-              backgroundColor:
-                colors.background,
+              backgroundColor: colors.background,
             },
           ]}
         >
-          <Ionicons
-            name="mic"
-            size={18}
-            color={colors.primary}
-          />
+          <Ionicons name="mic" size={18} color={colors.primary} />
         </View>
 
         <Text
@@ -80,10 +67,7 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
         </Text>
       </View>
 
-      <CustomToggle
-        value={enabled}
-        onToggle={handleToggle}
-      />
+      <CustomToggle value={enabled} onToggle={handleToggle} />
     </View>
   );
 }

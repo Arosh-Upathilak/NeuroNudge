@@ -10,6 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "1",
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "Allow NeuroNudge to use speech recognition to convert your voice to text.",
         "NSMicrophoneUsageDescription": "Allow NeuroNudge to access your microphone for voice dictation."
@@ -17,6 +18,7 @@
       "bundleIdentifier": "com.neuronudge.app"
     },
     "android": {
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -88,6 +90,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9884a29d-7a10-4bab-8c4d-59254e628d20"
+      }
+    },
+    "owner": "sirix12"
   }
 }

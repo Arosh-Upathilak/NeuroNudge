@@ -4,10 +4,9 @@ import os from "os";
 const storage = multer.diskStorage({
   destination: os.tmpdir(),
   filename: (req, file, cb) => {
-    // Preserve the file extension
     const ext = file.originalname.split(".").pop() || "jpg";
     cb(null, `${file.fieldname}-${Date.now()}.${ext}`);
-  }
+  },
 });
 
 /**

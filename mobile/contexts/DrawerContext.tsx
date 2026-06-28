@@ -3,15 +3,19 @@
  * so that the Header and SideDrawer can communicate.
  */
 
-import React, { createContext, useContext, useState, useCallback, type PropsWithChildren } from "react";
-
-
-
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  type PropsWithChildren,
+} from "react";
 
 const DrawerContext = createContext<DrawerContextType | undefined>(undefined);
 
-
-export function DrawerProvider({ children }: PropsWithChildren): React.JSX.Element {
+export function DrawerProvider({
+  children,
+}: PropsWithChildren): React.JSX.Element {
   const [isOpen, setIsOpen] = useState<boolean>(false);
 
   const openDrawer = useCallback((): void => {
@@ -34,12 +38,9 @@ export function DrawerProvider({ children }: PropsWithChildren): React.JSX.Eleme
   };
 
   return (
-    <DrawerContext.Provider value={value}>
-      {children}
-    </DrawerContext.Provider>
+    <DrawerContext.Provider value={value}>{children}</DrawerContext.Provider>
   );
 }
-
 
 export function useDrawer(): DrawerContextType {
   const context: DrawerContextType | undefined = useContext(DrawerContext);

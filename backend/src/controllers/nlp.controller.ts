@@ -14,7 +14,7 @@ const messageService = new MessageService();
 export const NLPController = {
   processMessage: async (
     req: AuthRequest<{ id: string }, unknown, ProcessMessageInput>,
-    res: Response
+    res: Response,
   ) => {
     try {
       const { userText, latitude, longitude } = req.body;
@@ -23,12 +23,10 @@ export const NLPController = {
       let imageUrl: string | null = null;
       let publicId: string | null = null;
 
-      // STEP 1: upload image (only if exists)
       const imageUploadPromise = req.file?.path
         ? cloudinaryService.uploadImage(req.file.path)
         : Promise.resolve(null);
 
-      // STEP 2: save user message (non-blocking but tracked)
       const saveUserMessagePromise = messageService.createMessage({
         userId,
         role: "user",
@@ -36,25 +34,18 @@ export const NLPController = {
         aiContent: userText,
       });
 
-      // STEP 3: fetch previous messages in parallel
-      const previousMessagesPromise =
-        messageService.getMessagesByUser(userId);
+      const previousMessagesPromise = messageService.getMessagesByUser(userId);
 
-      // WAIT ONLY FOR WHAT WE NEED FOR LLM
       const [uploadResult, previousMessages] = await Promise.all([
         imageUploadPromise,
         previousMessagesPromise,
       ]);
 
-      // assign image results
       if (uploadResult) {
         imageUrl = uploadResult.imageUrl;
         publicId = uploadResult.publicId;
       }
 
-      console.log(previousMessages);
-
-      // STEP 4: build LLM input (NOW READY)
       const llmInput = {
         currentMessage: {
           text: userText,
@@ -62,7 +53,6 @@ export const NLPController = {
         previousMessages,
       };
 
-      // STEP 5: call LLM
       const aiResponse = await huggingface.extractEntities(llmInput);
 
       if (!aiResponse) {
@@ -71,8 +61,6 @@ export const NLPController = {
           message: "returned an empty response",
         });
       }
-
-      console.log("Raw model Response:", aiResponse);
 
       const cleaned = aiResponse
         .replace(/```json/g, "")
@@ -83,8 +71,7 @@ export const NLPController = {
 
       try {
         parsed = JSON.parse(cleaned);
-      } catch  {
-        
+      } catch {
         return res.status(400).json({
           success: false,
           message: "Invalid JSON returned from model",
@@ -92,7 +79,6 @@ export const NLPController = {
         });
       }
 
-      // STEP 6: CHAT path (fast response)
       if (parsed.intent === "CHAT") {
         const assistantMessagePromise = messageService.createMessage({
           userId,
@@ -101,18 +87,14 @@ export const NLPController = {
           aiContent: JSON.stringify(parsed),
         });
 
-          await Promise.all([
-          saveUserMessagePromise,
-          assistantMessagePromise,
-         ]);
+        await Promise.all([saveUserMessagePromise, assistantMessagePromise]);
 
         return res.status(200).json({
           success: true,
-          data:parsed
+          data: parsed,
         });
       }
 
-      // STEP 7: memory routing
       const memoryData = {
         intent: parsed.intent,
         userId,
@@ -125,14 +107,8 @@ export const NLPController = {
         memoryId: parsed.entities?.memoryId,
       };
 
-      console.log("Parsed model Response:", memoryData);
+      const result = await IntentRouterService.route(memoryData, userText);
 
-      const result = await IntentRouterService.route(
-        memoryData,
-        userText
-      );
-
-      // optional: wait user message save if not completed
       await saveUserMessagePromise;
 
       return res.status(200).json({
@@ -140,14 +116,10 @@ export const NLPController = {
         data: result,
       });
     } catch (error: unknown) {
-      console.error(error);
-
       return res.status(500).json({
         success: false,
         message:
-          error instanceof Error
-            ? error.message
-            : "Internal Server Error",
+          error instanceof Error ? error.message : "Internal Server Error",
       });
     } finally {
       if (req.file?.path) {

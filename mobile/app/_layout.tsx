@@ -72,7 +72,6 @@ function ThemedApp(): React.JSX.Element {
   const { user, isLoading } = useAuth();
   const segments = useSegments();
 
-  // Guard: redirect based on auth state once Firebase has resolved.
   useEffect(() => {
     if (isLoading) return;
 
@@ -81,30 +80,31 @@ function ThemedApp(): React.JSX.Element {
 
     if (user) {
       if (user.emailVerified) {
-        // Logged in and verified: Redirect away from auth screens and index
         if (inAuthGroup || !safeSegments[0]) {
           router.replace("/(tabs)" as any);
         }
       } else {
-        // Logged in but not verified: Must be on verify-email or check-email
-        if (safeSegments[1] !== "verify-email" && safeSegments[1] !== "check-email") {
+        if (
+          safeSegments[1] !== "verify-email" &&
+          safeSegments[1] !== "check-email"
+        ) {
           router.replace("/verify-email" as any);
         }
       }
     } else {
-      // Not logged in: Must be in the auth group (e.g. login, signup)
-      // but not on verify-email which requires a user object
       if (!inAuthGroup || safeSegments[1] === "verify-email") {
         router.replace("/login" as any);
       }
     }
   }, [user, isLoading, segments]);
 
-  // Show a neutral loading screen while Firebase resolves the persisted session.
   if (isLoading) {
     return (
       <View
-        style={[styles.loadingContainer, { backgroundColor: colors.background }]}
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: colors.background },
+        ]}
       >
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
@@ -117,7 +117,10 @@ function ThemedApp(): React.JSX.Element {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="notifications" options={{ presentation: "modal" }} />
+        <Stack.Screen
+          name="notifications"
+          options={{ presentation: "modal" }}
+        />
       </Stack>
       <SideDrawer />
     </View>

@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -20,9 +15,6 @@ export default function ProfileTab(): React.JSX.Element {
 
   const displayName = user?.displayName || "User";
   const email = user?.email || "No email";
-  const username = user?.displayName
-    ? "@" + user.displayName.toLowerCase().replace(/\s+/g, "")
-    : (user?.email ? "@" + user.email.split("@")[0] : "@user");
 
   const handlePasswordReset = async () => {
     if (!user?.email) {
@@ -33,10 +25,15 @@ export default function ProfileTab(): React.JSX.Element {
       await resetPassword(user.email);
       Alert.alert(
         "Password Reset Sent",
-        `A password reset email has been sent to ${user.email}. Please follow the link in the email to set a new password.`
+        `A password reset email has been sent to ${user.email}. Please follow the link in the email to set a new password.`,
       );
     } catch (error) {
-      Alert.alert("Error", error instanceof Error ? error.message : "Failed to send password reset email.");
+      Alert.alert(
+        "Error",
+        error instanceof Error
+          ? error.message
+          : "Failed to send password reset email.",
+      );
     }
   };
 
@@ -44,7 +41,10 @@ export default function ProfileTab(): React.JSX.Element {
     try {
       await signOut();
     } catch (error) {
-      Alert.alert("Error", error instanceof Error ? error.message : "Failed to sign out.");
+      Alert.alert(
+        "Error",
+        error instanceof Error ? error.message : "Failed to sign out.",
+      );
     }
   };
 
@@ -52,60 +52,31 @@ export default function ProfileTab(): React.JSX.Element {
     <>
       {/* Profile Card */}
       <TouchableOpacity
-      style={[
-        styles.profileCard,
-        { backgroundColor: colors.card },
-      ]}
-      activeOpacity={0.9}
-      onPress={() =>
-        router.push(
-          "/settings/edit-profile" as any
-        )
-        }
+        style={[styles.profileCard, { backgroundColor: colors.card }]}
+        activeOpacity={0.9}
+        onPress={() => router.push("/settings/edit-profile" as any)}
       >
         <View>
-          <View
-            style={[
-              styles.avatar,
-              { backgroundColor: colors.primary },
-            ]}
-          >
-            <Ionicons
-              name="person-outline"
-              size={34}
-              color="#FFFFFF"
-            />
+          <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
+            <Ionicons name="person-outline" size={34} color="#FFFFFF" />
           </View>
 
           <TouchableOpacity
-  style={[
-    styles.editAvatarButton,
-    {
-      backgroundColor: colors.primary,
-    },
-  ]}
-  activeOpacity={0.8}
-  onPress={() =>
-    router.push(
-      "/settings/edit-profile" as any
-    )
-  }
->
-  <Ionicons
-    name="create-outline"
-    size={14}
-    color="#FFFFFF"
-  />
-</TouchableOpacity>
+            style={[
+              styles.editAvatarButton,
+              {
+                backgroundColor: colors.primary,
+              },
+            ]}
+            activeOpacity={0.8}
+            onPress={() => router.push("/settings/edit-profile" as any)}
+          >
+            <Ionicons name="create-outline" size={14} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
 
         <View style={styles.profileInfo}>
-          <Text
-            style={[
-              styles.userName,
-              { color: colors.text },
-            ]}
-          >
+          <Text style={[styles.userName, { color: colors.text }]}>
             {displayName}
           </Text>
 
@@ -123,18 +94,8 @@ export default function ProfileTab(): React.JSX.Element {
       </TouchableOpacity>
 
       {/* Personal Information */}
-      <View
-        style={[
-          styles.card,
-          { backgroundColor: colors.card },
-        ]}
-      >
-        <Text
-          style={[
-            styles.sectionTitle,
-            { color: colors.text },
-          ]}
-        >
+      <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Personal Information
         </Text>
 
@@ -143,20 +104,14 @@ export default function ProfileTab(): React.JSX.Element {
             style={[
               styles.label,
               {
-                color:
-                  colors.textSecondary,
+                color: colors.textSecondary,
               },
             ]}
           >
             FULL NAME
           </Text>
 
-          <Text
-            style={[
-              styles.value,
-              { color: colors.text },
-            ]}
-          >
+          <Text style={[styles.value, { color: colors.text }]}>
             {displayName}
           </Text>
         </View>
@@ -165,8 +120,7 @@ export default function ProfileTab(): React.JSX.Element {
           style={[
             styles.divider,
             {
-              backgroundColor:
-                colors.divider,
+              backgroundColor: colors.divider,
             },
           ]}
         />
@@ -176,101 +130,43 @@ export default function ProfileTab(): React.JSX.Element {
             style={[
               styles.label,
               {
-                color:
-                  colors.textSecondary,
+                color: colors.textSecondary,
               },
             ]}
           >
             EMAIL
           </Text>
 
-          <Text
-            style={[
-              styles.value,
-              { color: colors.text },
-            ]}
-          >
-            {email}
-          </Text>
-        </View>
-
-        <View
-          style={[
-            styles.divider,
-            {
-              backgroundColor:
-                colors.divider,
-            },
-          ]}
-        />
-
-        <View style={styles.infoBlock}>
-          <Text
-            style={[
-              styles.label,
-              {
-                color:
-                  colors.textSecondary,
-              },
-            ]}
-          >
-            USERNAME
-          </Text>
-
-          <Text
-            style={[
-              styles.value,
-              { color: colors.text },
-            ]}
-          >
-            {username}
-          </Text>
+          <Text style={[styles.value, { color: colors.text }]}>{email}</Text>
         </View>
 
         <TouchableOpacity
           style={[
             styles.editButton,
             {
-              backgroundColor:
-                colors.primary,
+              backgroundColor: colors.primary,
             },
           ]}
           activeOpacity={0.8}
-          onPress={() =>
-            router.push(
-              "/settings/edit-profile" as any
-            )
-          }
+          onPress={() => router.push("/settings/edit-profile" as any)}
         >
-          <Ionicons
-            name="create-outline"
-            size={18}
-            color="#FFFFFF"
-          />
+          <Ionicons name="create-outline" size={18} color="#FFFFFF" />
 
-          <Text style={styles.editButtonText}>
-            Edit Profile
-          </Text>
+          <Text style={styles.editButtonText}>Edit Profile</Text>
         </TouchableOpacity>
       </View>
 
       {/* Security */}
       <View
-      style={[
-        styles.card,
-        {
+        style={[
+          styles.card,
+          {
             backgroundColor: colors.card,
             marginBottom: 120,
-        },
+          },
         ]}
-    >
-        
-        <Text
-          style={[
-            styles.sectionTitle,
-            { color: colors.text },
-          ]}
-        >
+      >
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
           Security
         </Text>
 
@@ -279,12 +175,7 @@ export default function ProfileTab(): React.JSX.Element {
           activeOpacity={0.7}
           onPress={handlePasswordReset}
         >
-          <Text
-            style={[
-              styles.securityText,
-              { color: colors.text },
-            ]}
-          >
+          <Text style={[styles.securityText, { color: colors.text }]}>
             Change Password
           </Text>
 
@@ -299,21 +190,17 @@ export default function ProfileTab(): React.JSX.Element {
           style={[
             styles.divider,
             {
-              backgroundColor:
-                colors.divider,
+              backgroundColor: colors.divider,
             },
           ]}
         />
 
         <TouchableOpacity
           style={styles.securityItem}
+          activeOpacity={0.7}
+          onPress={() => router.push("/notifications" as any)}
         >
-          <Text
-            style={[
-              styles.securityText,
-              { color: colors.text },
-            ]}
-          >
+          <Text style={[styles.securityText, { color: colors.text }]}>
             Notifications
           </Text>
 
@@ -328,8 +215,7 @@ export default function ProfileTab(): React.JSX.Element {
           style={[
             styles.divider,
             {
-              backgroundColor:
-                colors.divider,
+              backgroundColor: colors.divider,
             },
           ]}
         />
@@ -339,20 +225,11 @@ export default function ProfileTab(): React.JSX.Element {
           activeOpacity={0.7}
           onPress={handleSignOut}
         >
-          <Text
-            style={[
-              styles.securityText,
-              { color: colors.error },
-            ]}
-          >
+          <Text style={[styles.securityText, { color: colors.error }]}>
             Sign Out
           </Text>
 
-          <Ionicons
-            name="log-out-outline"
-            size={20}
-            color={colors.error}
-          />
+          <Ionicons name="log-out-outline" size={20} color={colors.error} />
         </TouchableOpacity>
       </View>
     </>

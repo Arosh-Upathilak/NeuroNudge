@@ -1,8 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-} from "react-native";
+import { View, Text } from "react-native";
 
 import Slider from "@react-native-community/slider";
 
@@ -22,27 +19,16 @@ export default function ThresholdCard({
 }: ThresholdCardProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-
   return (
     <View style={styles.container}>
       {/* Header */}
 
       <View style={styles.header}>
-        <Text
-          style={[
-            styles.title,
-            { color: colors.text },
-          ]}
-        >
+        <Text style={[styles.title, { color: colors.text }]}>
           Personal Threshold
         </Text>
 
-        <Text
-          style={[
-            styles.dbValue,
-            { color: colors.text },
-          ]}
-        >
+        <Text style={[styles.dbValue, { color: colors.text }]}>
           {Math.round(threshold)} dB
         </Text>
       </View>
@@ -50,34 +36,24 @@ export default function ThresholdCard({
       {/* Slider */}
 
       <Slider
-  style={styles.slider}
-  minimumValue={0}
-  maximumValue={100}
-  value={threshold}
-  onValueChange={onValueChange}
-  minimumTrackTintColor={colors.primary}
-  maximumTrackTintColor={colors.divider}
-  thumbTintColor={colors.primary}
-/>
+        style={styles.slider}
+        minimumValue={0}
+        maximumValue={100}
+        value={threshold}
+        onValueChange={onValueChange}
+        minimumTrackTintColor={colors.primary}
+        maximumTrackTintColor={colors.divider}
+        thumbTintColor={colors.primary}
+      />
 
       {/* Labels */}
 
       <View style={styles.labels}>
-        <Text
-          style={[
-            styles.label,
-            { color: colors.textSecondary },
-          ]}
-        >
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
           Quiet
         </Text>
 
-        <Text
-          style={[
-            styles.label,
-            { color: colors.textSecondary },
-          ]}
-        >
+        <Text style={[styles.label, { color: colors.textSecondary }]}>
           Loud
         </Text>
       </View>

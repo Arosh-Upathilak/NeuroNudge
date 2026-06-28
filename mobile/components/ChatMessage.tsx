@@ -1,5 +1,12 @@
 import React from "react";
-import { View, Text, Image, TouchableOpacity, Linking, Platform } from "react-native";
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Linking,
+  Platform,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
 import { Fonts, FontSizes } from "../constants/theme";
@@ -21,20 +28,26 @@ interface ChatMessageProps {
   message: ChatMessageData;
 }
 
-export default function ChatMessage({ message }: ChatMessageProps): React.JSX.Element | null {
+export default function ChatMessage({
+  message,
+}: ChatMessageProps): React.JSX.Element | null {
   const { colors }: { colors: ThemeColors } = useTheme();
 
   const handleOpenMap = () => {
     if (message.latitude !== undefined && message.longitude !== undefined) {
-      const scheme = Platform.select({ ios: "maps:0,0?q=", android: "geo:0,0?q=" });
+      const scheme = Platform.select({
+        ios: "maps:0,0?q=",
+        android: "geo:0,0?q=",
+      });
       const latLng = `${message.latitude},${message.longitude}`;
       const label = message.title || "Location";
-      const url = Platform.select({
-        ios: `${scheme}${label}@${latLng}`,
-        android: `${scheme}${latLng}(${label})`,
-      }) || "";
+      const url =
+        Platform.select({
+          ios: `${scheme}${label}@${latLng}`,
+          android: `${scheme}${latLng}(${label})`,
+        }) || "";
 
-      Linking.openURL(url).catch((err) => console.error("Error opening map", err));
+      Linking.openURL(url).catch(() => {});
     }
   };
 
@@ -44,12 +57,20 @@ export default function ChatMessage({ message }: ChatMessageProps): React.JSX.El
       <View style={styles.userContainer}>
         {message.imageUri && (
           <View style={styles.userImageWrapper}>
-            <Image source={{ uri: message.imageUri }} style={styles.image} resizeMode="cover" />
+            <Image
+              source={{ uri: message.imageUri }}
+              style={styles.image}
+              resizeMode="cover"
+            />
           </View>
         )}
         {!!message.text && (
-          <View style={[styles.userBubble, { backgroundColor: colors.primary }]}>
-            <Text style={[styles.userText, { color: colors.surface }]}>{message.text}</Text>
+          <View
+            style={[styles.userBubble, { backgroundColor: colors.primary }]}
+          >
+            <Text style={[styles.userText, { color: colors.surface }]}>
+              {message.text}
+            </Text>
           </View>
         )}
       </View>
@@ -61,8 +82,15 @@ export default function ChatMessage({ message }: ChatMessageProps): React.JSX.El
     return (
       <View style={styles.systemContainer}>
         <View style={[styles.systemBubble, { backgroundColor: colors.card }]}>
-          <Ionicons name="hardware-chip-outline" size={18} color={colors.primary} style={styles.systemIcon} />
-          <Text style={[styles.systemText, { color: colors.text }]}>{message.text}</Text>
+          <Ionicons
+            name="hardware-chip-outline"
+            size={18}
+            color={colors.primary}
+            style={styles.systemIcon}
+          />
+          <Text style={[styles.systemText, { color: colors.text }]}>
+            {message.text}
+          </Text>
         </View>
       </View>
     );
@@ -71,42 +99,79 @@ export default function ChatMessage({ message }: ChatMessageProps): React.JSX.El
   if (message.type === "widget") {
     return (
       <View style={styles.systemContainer}>
-        <View style={[styles.widgetContainer, { backgroundColor: colors.card }]}>
+        <View
+          style={[styles.widgetContainer, { backgroundColor: colors.card }]}
+        >
           {!!message.title && (
-            <Text style={[styles.widgetTitle, { color: colors.text }]}>{message.title}</Text>
+            <Text style={[styles.widgetTitle, { color: colors.text }]}>
+              {message.title}
+            </Text>
           )}
 
           {!!message.location && (
             <View style={styles.locationRow}>
-              <Ionicons name="location-outline" size={16} color={colors.textSecondary} />
-              <Text style={[styles.locationText, { color: colors.textSecondary }]}>{message.location}</Text>
+              <Ionicons
+                name="location-outline"
+                size={16}
+                color={colors.textSecondary}
+              />
+              <Text
+                style={[styles.locationText, { color: colors.textSecondary }]}
+              >
+                {message.location}
+              </Text>
             </View>
           )}
 
           <View style={styles.imageWrapper}>
             {message.imageUri ? (
-              <Image source={{ uri: message.imageUri }} style={styles.image} resizeMode="cover" />
+              <Image
+                source={{ uri: message.imageUri }}
+                style={styles.image}
+                resizeMode="cover"
+              />
             ) : (
-              <View style={[styles.imagePlaceholder, { backgroundColor: colors.background }]} />
+              <View
+                style={[
+                  styles.imagePlaceholder,
+                  { backgroundColor: colors.background },
+                ]}
+              />
             )}
 
             {!!message.timeAgo && (
-              <View style={[styles.badgeContainer, { backgroundColor: colors.surface }]}>
-                <Ionicons name="time-outline" size={12} color={colors.textSecondary} />
-                <Text style={[styles.badgeText, { color: colors.textSecondary }]}>{message.timeAgo}</Text>
+              <View
+                style={[
+                  styles.badgeContainer,
+                  { backgroundColor: colors.surface },
+                ]}
+              >
+                <Ionicons
+                  name="time-outline"
+                  size={12}
+                  color={colors.textSecondary}
+                />
+                <Text
+                  style={[styles.badgeText, { color: colors.textSecondary }]}
+                >
+                  {message.timeAgo}
+                </Text>
               </View>
             )}
           </View>
 
-          {message.latitude !== undefined && message.longitude !== undefined && (
-            <TouchableOpacity
-              style={[styles.mapButton, { backgroundColor: colors.primary }]}
-              onPress={handleOpenMap}
-            >
-              <Ionicons name="map-outline" size={18} color={colors.surface} />
-              <Text style={[styles.mapButtonText, { color: colors.surface }]}>Open with Google Maps</Text>
-            </TouchableOpacity>
-          )}
+          {message.latitude !== undefined &&
+            message.longitude !== undefined && (
+              <TouchableOpacity
+                style={[styles.mapButton, { backgroundColor: colors.primary }]}
+                onPress={handleOpenMap}
+              >
+                <Ionicons name="map-outline" size={18} color={colors.surface} />
+                <Text style={[styles.mapButtonText, { color: colors.surface }]}>
+                  Open with Google Maps
+                </Text>
+              </TouchableOpacity>
+            )}
         </View>
       </View>
     );

@@ -45,9 +45,7 @@ export default function DelayCard({
         <Text style={[styles.label, { color: colors.textSecondary }]}>
           Instant
         </Text>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>
-          30s
-        </Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>30s</Text>
       </View>
     </View>
   );

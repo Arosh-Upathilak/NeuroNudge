@@ -1,6 +1,5 @@
 import cloudinary from "../config/cloudinary";
 
-
 /**
  * Cloudinary service for uploading and managing remote image files.
  */
@@ -17,12 +16,14 @@ export class CloudinaryService {
       };
     } catch (error) {
       // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
-      throw new Error(`Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error });
+      throw new Error(
+        `Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { cause: error },
+      );
     }
   }
 
   async deleteImage(publicId: string) {
-      
     try {
       const result = await cloudinary.uploader.destroy(publicId);
 
@@ -36,16 +37,17 @@ export class CloudinaryService {
       };
     } catch (error) {
       // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
-      throw new Error(`Failed to delete image from Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error });
+      throw new Error(
+        `Failed to delete image from Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { cause: error },
+      );
     }
   }
 
   async updateImage(oldPublicId: string, newFilePath: string) {
     try {
-      // Delete old image
       await this.deleteImage(oldPublicId);
 
-      // Upload new image
       const result = await this.uploadImage(newFilePath);
 
       return {
@@ -54,7 +56,10 @@ export class CloudinaryService {
       };
     } catch (error) {
       // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
-      throw new Error(`Failed to update image: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error });
+      throw new Error(
+        `Failed to update image: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { cause: error },
+      );
     }
   }
 
@@ -72,7 +77,10 @@ export class CloudinaryService {
       };
     } catch (error) {
       // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
-      throw new Error(`Failed to replace image: ${error instanceof Error ? error.message : "Unknown error"}`, { cause: error });
+      throw new Error(
+        `Failed to replace image: ${error instanceof Error ? error.message : "Unknown error"}`,
+        { cause: error },
+      );
     }
   }
 }

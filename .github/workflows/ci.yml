@@ -2,16 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [main,dev]
+    branches: [main, dev]
 
   pull_request:
-    branches: [main,dev]
+    branches: [main, dev]
 
   workflow_dispatch:
 
 jobs:
   backend:
-    name: Backend 
+    name: Backend
     runs-on: ubuntu-latest
 
     defaults:
@@ -42,7 +42,7 @@ jobs:
         run: npm run build
 
   mobile:
-    name: Mobile 
+    name: Mobile
     runs-on: ubuntu-latest
 
     defaults:

@@ -20,8 +20,8 @@ export const MemoryController = {
    * CREATE MEMORY
    */
   createMemory: async (
-    req: AuthRequest< {id: string }, unknown, CreateMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, CreateMemoryInput>,
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -87,8 +87,8 @@ export const MemoryController = {
    * GET MEMORY BY ID
    */
   getMemoryById: async (
-    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, GetandDeleteMemoryInput>,
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -119,8 +119,8 @@ export const MemoryController = {
    * UPDATE MEMORY
    */
   updateMemory: async (
-    req: AuthRequest<{id: string }, unknown, UpdateMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, UpdateMemoryInput>,
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -129,7 +129,7 @@ export const MemoryController = {
       const result = await MemoryService.updateMemory(
         memoryId,
         userId,
-        req.body
+        req.body,
       );
 
       return res.status(200).json({
@@ -148,8 +148,8 @@ export const MemoryController = {
    * DELETE MEMORY
    */
   deleteMemory: async (
-    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, GetandDeleteMemoryInput>,
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -173,8 +173,8 @@ export const MemoryController = {
    * UPSERT MEMORY IMAGE
    */
   upsertMemoryImage: async (
-    req: AuthRequest<{id: string }, unknown, UpsertMemoryImageInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, UpsertMemoryImageInput>,
+    res: Response,
   ) => {
     try {
       const memoryId = req.params.id;
@@ -215,8 +215,8 @@ export const MemoryController = {
    * DELETE MEMORY IMAGE
    */
   deleteMemoryImage: async (
-    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, GetandDeleteMemoryInput>,
+    res: Response,
   ) => {
     try {
       const memoryId = req.params.id;

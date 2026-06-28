@@ -1,8 +1,6 @@
 import { InferenceClient } from "@huggingface/inference";
 
-const client = new InferenceClient(
-  process.env.HUGGINGFACE_API_KEY as string
-);
+const client = new InferenceClient(process.env.HUGGINGFACE_API_KEY as string);
 
 export class HuggingFaceService {
   async extractEntities(data: unknown) {

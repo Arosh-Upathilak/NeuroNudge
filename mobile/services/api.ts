@@ -11,7 +11,6 @@ import { getCurrentIdToken } from "./firebase";
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface ApiUser {
   id: string;
@@ -35,7 +34,6 @@ export interface ApiErrorResponse {
   };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
  * Builds the Authorization header with a fresh Firebase ID token.
@@ -48,7 +46,6 @@ const buildAuthHeaders = async (): Promise<HeadersInit> => {
   };
 };
 
-// ─── Endpoints ────────────────────────────────────────────────────────────────
 
 /**
  * Synchronizes the authenticated Firebase user's record with the backend database.
@@ -87,7 +84,9 @@ export const sendVerificationEmail = async (): Promise<void> => {
 
   if (!response.ok) {
     const data: ApiErrorResponse = await response.json();
-    throw new Error(data.error?.message ?? "Failed to send verification email.");
+    throw new Error(
+      data.error?.message ?? "Failed to send verification email.",
+    );
   }
 };
 
@@ -109,7 +108,25 @@ export const requestPasswordReset = async (email: string): Promise<void> => {
   }
 };
 
-// ─── Memories, Messages, & NLP Endpoints ─────────────────────────────────────
+/**
+ * Clears all user data (memories and chat history) from the backend database.
+ */
+export const clearUserData = async (): Promise<void> => {
+  const headers = await buildAuthHeaders();
+
+  const response = await fetch(`${BASE_URL}/api/user/data`, {
+    method: "DELETE",
+    headers,
+  });
+
+  const data: ApiSuccessResponse | ApiErrorResponse = await response.json();
+
+  if (!response.ok || !data.success) {
+    const error = data as ApiErrorResponse;
+    throw new Error(error.error?.message ?? "Failed to clear user data.");
+  }
+};
+
 
 export interface ApiMemory {
   memoryId: string;
@@ -141,7 +158,8 @@ export interface ApiMessage {
 }
 
 export interface NlpChatResponse {
-  status?: "CREATED" | "UPDATED" | "FOUND" | "MULTIPLE_MATCHES" | "NOT_FOUND" | "CHAT";
+  status?:
+    "CREATED" | "UPDATED" | "FOUND" | "MULTIPLE_MATCHES" | "NOT_FOUND" | "CHAT";
   intent?: string;
   reply: string;
   memories?: {
@@ -208,7 +226,7 @@ export const sendNlpChat = async (
   userText: string,
   latitude?: number,
   longitude?: number,
-  imageUri?: string
+  imageUri?: string,
 ): Promise<NlpChatResponse> => {
   const headers = await buildAuthMultipartHeaders();
   const formData = new FormData();
@@ -244,4 +262,3 @@ export const sendNlpChat = async (
   }
   return data.data;
 };
-

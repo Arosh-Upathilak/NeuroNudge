@@ -26,7 +26,9 @@ export default function MemoryCard({
 
   return (
     <View style={[styles.cardContainer, { backgroundColor: colors.card }]}>
-      <View style={[styles.imageContainer, { backgroundColor: colors.background }]}>
+      <View
+        style={[styles.imageContainer, { backgroundColor: colors.background }]}
+      >
         {imageSource ? (
           <Image source={imageSource} style={styles.image} resizeMode="cover" />
         ) : iconName ? (
@@ -38,8 +40,15 @@ export default function MemoryCard({
           {title}
         </Text>
         <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
-          <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
+          <Ionicons
+            name="location-outline"
+            size={14}
+            color={colors.textSecondary}
+          />
+          <Text
+            style={[styles.locationText, { color: colors.textSecondary }]}
+            numberOfLines={1}
+          >
             {location}
           </Text>
         </View>

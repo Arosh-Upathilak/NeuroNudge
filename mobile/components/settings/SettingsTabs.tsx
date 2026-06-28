@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 
 import { ScaledSheet } from "react-native-size-matters";
 
@@ -12,9 +8,7 @@ import { useTheme } from "../../hooks/useTheme";
 
 interface SettingsTabsProps {
   activeTab: "profile" | "alerts" | "privacy";
-  onTabChange: (
-    tab: "profile" | "alerts" | "privacy"
-  ) => void;
+  onTabChange: (tab: "profile" | "alerts" | "privacy") => void;
 }
 
 export default function SettingsTabs({
@@ -24,10 +18,10 @@ export default function SettingsTabs({
   const { colors }: { colors: ThemeColors } = useTheme();
 
   const tabs: ("profile" | "alerts" | "privacy")[] = [
-  "profile",
-  "alerts",
-  "privacy",
-];
+    "profile",
+    "alerts",
+    "privacy",
+  ];
 
   return (
     <View style={styles.container}>
@@ -42,9 +36,7 @@ export default function SettingsTabs({
             style={[
               styles.tabButton,
               {
-                backgroundColor: isActive
-                  ? colors.primary
-                  : colors.card,
+                backgroundColor: isActive ? colors.primary : colors.card,
               },
             ]}
           >
@@ -52,14 +44,11 @@ export default function SettingsTabs({
               style={[
                 styles.tabText,
                 {
-                  color: isActive
-                    ? colors.navbarActiveText
-                    : colors.text,
+                  color: isActive ? colors.navbarActiveText : colors.text,
                 },
               ]}
             >
-              {tab.charAt(0).toUpperCase() +
-                tab.slice(1)}
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </Text>
           </TouchableOpacity>
         );

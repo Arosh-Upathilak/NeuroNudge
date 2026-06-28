@@ -1,11 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Linking,
-  Alert,
-} from "react-native";
+import { View, Text, TouchableOpacity, Linking, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -18,35 +12,30 @@ export default function CheckEmailScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
   const openEmailApp = async (): Promise<void> => {
-  try {
-    const gmailUrl = "googlegmail://";
+    try {
+      const gmailUrl = "googlegmail://";
 
-    const canOpenGmail =
-      await Linking.canOpenURL(gmailUrl);
+      const canOpenGmail = await Linking.canOpenURL(gmailUrl);
 
-    if (canOpenGmail) {
-      await Linking.openURL(gmailUrl);
-      return;
+      if (canOpenGmail) {
+        await Linking.openURL(gmailUrl);
+        return;
+      }
+
+      const supported = await Linking.canOpenURL("mailto:");
+
+      if (supported) {
+        await Linking.openURL("mailto:");
+      } else {
+        Alert.alert(
+          "Email App Not Found",
+          "No email application is installed on this device.",
+        );
+      }
+    } catch {
+      Alert.alert("Error", "Unable to open the email application.");
     }
-
-    const supported =
-      await Linking.canOpenURL("mailto:");
-
-    if (supported) {
-      await Linking.openURL("mailto:");
-    } else {
-      Alert.alert(
-        "Email App Not Found",
-        "No email application is installed on this device."
-      );
-    }
-  } catch {
-    Alert.alert(
-      "Error",
-      "Unable to open the email application."
-    );
-  }
-};
+  };
 
   return (
     <SafeAreaView
@@ -66,11 +55,7 @@ export default function CheckEmailScreen(): React.JSX.Element {
             },
           ]}
         >
-          <Ionicons
-            name="mail"
-            size={50}
-            color={colors.primary}
-          />
+          <Ionicons name="mail" size={50} color={colors.primary} />
         </View>
 
         <Text
@@ -120,9 +105,7 @@ export default function CheckEmailScreen(): React.JSX.Element {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={() =>
-            router.replace("/(auth)/login")
-          }
+          onPress={() => router.replace("/(auth)/login")}
           activeOpacity={0.7}
         >
           <Text

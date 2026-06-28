@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
@@ -29,7 +25,11 @@ export default function ThresholdActionCard({
 }: ThresholdActionCardProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const actionsList: { id: ThresholdAction; label: string; description: string; isPlaceholder?: boolean }[] = [
+  const actionsList: {
+    id: ThresholdAction;
+    label: string;
+    description: string;
+  }[] = [
     {
       id: "none",
       label: "Notify Only",
@@ -43,18 +43,20 @@ export default function ThresholdActionCard({
     {
       id: "anc",
       label: "Only Turn on ANC",
-      description: "Activate Active Noise Cancellation (Hardware simulation).",
-      isPlaceholder: true,
+      description: "Activate Active Noise Cancellation.",
     },
     {
       id: "both",
       label: "Turn on ANC & Play Sound",
       description: "Activate ANC and mask with background nature sounds.",
-      isPlaceholder: true,
     },
   ];
 
-  const soundsList: { id: BackgroundSound; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+  const soundsList: {
+    id: BackgroundSound;
+    label: string;
+    icon: keyof typeof Ionicons.glyphMap;
+  }[] = [
     { id: "ocean", label: "Ocean Waves", icon: "water-outline" },
     { id: "river", label: "River Stream", icon: "leaf-outline" },
     { id: "rain", label: "Rain Shower", icon: "rainy-outline" },
@@ -95,21 +97,18 @@ export default function ThresholdActionCard({
                         styles.optionLabel,
                         {
                           color: isSelected ? colors.primary : colors.text,
-                          fontFamily: isSelected ? Fonts.semiBold : Fonts.medium,
+                          fontFamily: isSelected
+                            ? Fonts.semiBold
+                            : Fonts.medium,
                         },
                       ]}
                     >
                       {item.label}
                     </Text>
-                    {item.isPlaceholder && (
-                      <View style={[styles.placeholderBadge, { backgroundColor: colors.divider }]}>
-                        <Text style={[styles.placeholderBadgeText, { color: colors.textSecondary }]}>
-                          Simulated
-                        </Text>
-                      </View>
-                    )}
                   </View>
-                  <Text style={[styles.optionDesc, { color: colors.textSecondary }]}>
+                  <Text
+                    style={[styles.optionDesc, { color: colors.textSecondary }]}
+                  >
                     {item.description}
                   </Text>
                 </View>
@@ -118,7 +117,9 @@ export default function ThresholdActionCard({
                   style={[
                     styles.radioCircle,
                     {
-                      borderColor: isSelected ? colors.primary : colors.textSecondary,
+                      borderColor: isSelected
+                        ? colors.primary
+                        : colors.textSecondary,
                     },
                   ]}
                 >
@@ -141,7 +142,12 @@ export default function ThresholdActionCard({
 
       {/* Background Sound Selector Sub-Menu */}
       {showSoundSelector && (
-        <View style={[styles.soundSelectorContainer, { borderTopColor: colors.divider }]}>
+        <View
+          style={[
+            styles.soundSelectorContainer,
+            { borderTopColor: colors.divider },
+          ]}
+        >
           <Text style={[styles.soundSelectorTitle, { color: colors.text }]}>
             Select Calm Sound
           </Text>
@@ -154,7 +160,9 @@ export default function ThresholdActionCard({
                   style={[
                     styles.soundTab,
                     {
-                      backgroundColor: isSoundSelected ? colors.primary : colors.background,
+                      backgroundColor: isSoundSelected
+                        ? colors.primary
+                        : colors.background,
                     },
                   ]}
                   onPress={() => onSelectedSoundChange(sound.id)}
@@ -162,7 +170,9 @@ export default function ThresholdActionCard({
                   <Ionicons
                     name={sound.icon}
                     size={16}
-                    color={isSoundSelected ? colors.surface : colors.textSecondary}
+                    color={
+                      isSoundSelected ? colors.surface : colors.textSecondary
+                    }
                     style={styles.soundIcon}
                   />
                   <Text
@@ -170,7 +180,9 @@ export default function ThresholdActionCard({
                       styles.soundLabel,
                       {
                         color: isSoundSelected ? colors.surface : colors.text,
-                        fontFamily: isSoundSelected ? Fonts.medium : Fonts.regular,
+                        fontFamily: isSoundSelected
+                          ? Fonts.medium
+                          : Fonts.regular,
                       },
                     ]}
                   >
@@ -237,17 +249,6 @@ const styles = ScaledSheet.create({
 
   optionLabel: {
     fontSize: FontSizes.md,
-  },
-
-  placeholderBadge: {
-    paddingHorizontal: "6@s",
-    paddingVertical: "2@vs",
-    borderRadius: "8@s",
-  },
-
-  placeholderBadgeText: {
-    fontSize: "9@s",
-    fontFamily: Fonts.medium,
   },
 
   optionDesc: {

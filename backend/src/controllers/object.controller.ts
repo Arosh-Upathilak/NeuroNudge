@@ -17,9 +17,7 @@ export class UploadController {
         });
       }
 
-      const result = await cloudinaryService.uploadImage(
-        req.file.path
-      );
+      const result = await cloudinaryService.uploadImage(req.file.path);
 
       return res.status(200).json({
         success: true,
@@ -54,7 +52,7 @@ export class UploadController {
 
       const result = await cloudinaryService.replaceImage(
         publicId,
-        req.file.path
+        req.file.path,
       );
 
       return res.status(200).json({
@@ -80,10 +78,8 @@ export class UploadController {
   async deleteImage(req: Request, res: Response) {
     try {
       const { publicId } = req.body;
-      
-      const result = await cloudinaryService.deleteImage(
-        publicId
-      );
+
+      const result = await cloudinaryService.deleteImage(publicId);
 
       return res.status(200).json({
         success: true,

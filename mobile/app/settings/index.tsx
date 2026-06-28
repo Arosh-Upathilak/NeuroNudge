@@ -1,9 +1,5 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-} from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ScaledSheet } from "react-native-size-matters";
@@ -18,33 +14,28 @@ import PrivacyTab from "../../components/settings/PrivacyTab";
 import { useTheme } from "../../hooks/useTheme";
 import { Fonts, FontSizes } from "../../constants/theme";
 
-type SettingsTab =
-  | "profile"
-  | "alerts"
-  | "privacy";
+type SettingsTab = "profile" | "alerts" | "privacy";
 
 export default function SettingsScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const [activeTab, setActiveTab] =
-    useState<SettingsTab>("profile");
+  const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
 
-  const renderTabContent =
-    (): React.JSX.Element => {
-      switch (activeTab) {
-        case "profile":
-          return <ProfileTab />;
+  const renderTabContent = (): React.JSX.Element => {
+    switch (activeTab) {
+      case "profile":
+        return <ProfileTab />;
 
-        case "alerts":
-          return <AlertsTab />;
+      case "alerts":
+        return <AlertsTab />;
 
-        case "privacy":
-          return <PrivacyTab />;
+      case "privacy":
+        return <PrivacyTab />;
 
-        default:
-          return <ProfileTab />;
-      }
-    };
+      default:
+        return <ProfileTab />;
+    }
+  };
 
   return (
     <SafeAreaView
@@ -52,8 +43,7 @@ export default function SettingsScreen(): React.JSX.Element {
       style={[
         styles.container,
         {
-          backgroundColor:
-            colors.background,
+          backgroundColor: colors.background,
         },
       ]}
     >
@@ -61,9 +51,7 @@ export default function SettingsScreen(): React.JSX.Element {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={
-          styles.scrollContent
-        }
+        contentContainerStyle={styles.scrollContent}
       >
         <View style={styles.content}>
           <Text
@@ -81,19 +69,14 @@ export default function SettingsScreen(): React.JSX.Element {
             style={[
               styles.subtitle,
               {
-                color:
-                  colors.textSecondary,
+                color: colors.textSecondary,
               },
             ]}
           >
-            Manage your preferences and
-            profile
+            Manage your preferences and profile
           </Text>
 
-          <SettingsTabs
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-          />
+          <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
           {renderTabContent()}
         </View>

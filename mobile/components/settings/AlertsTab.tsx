@@ -1,8 +1,6 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { ScaledSheet } from "react-native-size-matters";
 
@@ -10,21 +8,77 @@ import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 
 import CustomToggle from "./CustomToggle";
+import { NotificationService } from "../../services/NotificationService";
 
 export default function AlertsTab(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const [thresholdAlerts, setThresholdAlerts] =
-    useState(true);
+  const [thresholdAlerts, setThresholdAlerts] = useState(true);
 
-  const [dailySummary, setDailySummary] =
-    useState(false);
+  const [dailySummary, setDailySummary] = useState(false);
 
-  const [pushNotifications, setPushNotifications] =
-    useState(true);
+  const [pushNotifications, setPushNotifications] = useState(true);
 
-  const [inAppSounds, setInAppSounds] =
-    useState(true);
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const threshold = await AsyncStorage.getItem("alerts_threshold");
+        if (threshold !== null) setThresholdAlerts(threshold === "true");
+
+        const daily = await AsyncStorage.getItem("alerts_daily_summary");
+        if (daily !== null) setDailySummary(daily === "true");
+
+        const push = await AsyncStorage.getItem("alerts_push_notifications");
+        if (push !== null) setPushNotifications(push === "true");
+      } catch {}
+    };
+    loadSettings();
+  }, []);
+
+  const handleToggle = async (
+    key: string,
+    value: boolean,
+    setter: React.Dispatch<React.SetStateAction<boolean>>,
+  ) => {
+    setter(value);
+    try {
+      await AsyncStorage.setItem(key, value.toString());
+    } catch {}
+  };
+
+  const handleDailySummaryToggle = async () => {
+    const newVal = !dailySummary;
+    await handleToggle("alerts_daily_summary", newVal, setDailySummary);
+    if (pushNotifications) {
+      NotificationService.scheduleDailySummary(newVal);
+    } else if (!newVal) {
+      NotificationService.scheduleDailySummary(false);
+    }
+  };
+
+  const handlePushNotificationsToggle = async () => {
+    const newVal = !pushNotifications;
+    await handleToggle(
+      "alerts_push_notifications",
+      newVal,
+      setPushNotifications,
+    );
+    if (newVal) {
+      const granted = await NotificationService.requestPermissionsAsync();
+      if (!granted) {
+        setPushNotifications(false);
+        await AsyncStorage.setItem("alerts_push_notifications", "false");
+        return;
+      }
+      if (dailySummary) {
+        NotificationService.scheduleDailySummary(newVal);
+      }
+    } else {
+      await handleToggle("alerts_threshold", false, setThresholdAlerts);
+      await handleToggle("alerts_daily_summary", false, setDailySummary);
+      NotificationService.scheduleDailySummary(false);
+    }
+  };
 
   return (
     <>
@@ -76,8 +130,13 @@ export default function AlertsTab(): React.JSX.Element {
 
           <CustomToggle
             value={thresholdAlerts}
+            disabled={!pushNotifications}
             onToggle={() =>
-              setThresholdAlerts(!thresholdAlerts)
+              handleToggle(
+                "alerts_threshold",
+                !thresholdAlerts,
+                setThresholdAlerts,
+              )
             }
           />
         </View>
@@ -131,9 +190,8 @@ export default function AlertsTab(): React.JSX.Element {
 
           <CustomToggle
             value={dailySummary}
-            onToggle={() =>
-              setDailySummary(!dailySummary)
-            }
+            disabled={!pushNotifications}
+            onToggle={handleDailySummaryToggle}
           />
         </View>
       </View>
@@ -174,41 +232,7 @@ export default function AlertsTab(): React.JSX.Element {
 
           <CustomToggle
             value={pushNotifications}
-            onToggle={() =>
-              setPushNotifications(
-                !pushNotifications
-              )
-            }
-          />
-        </View>
-
-        <View
-          style={[
-            styles.divider,
-            {
-              backgroundColor:
-                colors.divider,
-            },
-          ]}
-        />
-
-        <View style={styles.settingRow}>
-          <Text
-            style={[
-              styles.itemTitle,
-              {
-                color: colors.text,
-              },
-            ]}
-          >
-            In-App Sounds
-          </Text>
-
-          <CustomToggle
-            value={inAppSounds}
-            onToggle={() =>
-              setInAppSounds(!inAppSounds)
-            }
+            onToggle={handlePushNotificationsToggle}
           />
         </View>
       </View>

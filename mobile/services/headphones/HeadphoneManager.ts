@@ -1,17 +1,14 @@
-import { IHeadphoneIntegration, AncMode } from './types';
-import { SoundpeatsIntegration } from './SoundpeatsIntegration';
+import { IHeadphoneIntegration, AncMode } from "./types";
+import { SoundpeatsIntegration } from "./SoundpeatsIntegration";
 
 export class HeadphoneManager {
   private static instance: HeadphoneManager;
-  
-  // List of all available integrations
+
   private integrations: IHeadphoneIntegration[] = [];
-  
-  // The currently active integration after scanning
+
   private activeIntegration: IHeadphoneIntegration | null = null;
 
   private constructor() {
-    // Register known integrations here
     this.integrations.push(new SoundpeatsIntegration());
   }
 
@@ -34,8 +31,7 @@ export class HeadphoneManager {
         return this.activeIntegration;
       }
     }
-    
-    // Reset if no devices found
+
     this.activeIntegration = null;
     return null;
   }
@@ -60,7 +56,9 @@ export class HeadphoneManager {
    */
   public async setAncMode(mode: AncMode): Promise<void> {
     if (!this.activeIntegration) {
-      console.warn("[HeadphoneManager] Cannot set ANC mode: no active integration.");
+      console.warn(
+        "[HeadphoneManager] Cannot set ANC mode: no active integration.",
+      );
       return;
     }
     await this.activeIntegration.setAncMode(mode);

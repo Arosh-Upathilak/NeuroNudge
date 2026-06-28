@@ -1,8 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import {
-  TouchableOpacity,
-  Animated,
-} from "react-native";
+import { TouchableOpacity, Animated } from "react-native";
 
 import { ScaledSheet, scale } from "react-native-size-matters";
 import { useTheme } from "../../hooks/useTheme";
@@ -10,19 +7,17 @@ import { useTheme } from "../../hooks/useTheme";
 interface CustomToggleProps {
   value: boolean;
   onToggle: () => void;
+  disabled?: boolean;
 }
 
 export default function CustomToggle({
   value,
   onToggle,
+  disabled = false,
 }: CustomToggleProps): React.JSX.Element {
-  const { colors }: { colors: ThemeColors } =
-    useTheme();
+  const { colors }: { colors: ThemeColors } = useTheme();
 
-  const translateX =
-    useRef(
-      new Animated.Value(value ? scale(20) : 0)
-    ).current;
+  const translateX = useRef(new Animated.Value(value ? scale(20) : 0)).current;
 
   useEffect(() => {
     Animated.timing(translateX, {
@@ -36,12 +31,12 @@ export default function CustomToggle({
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onToggle}
+      disabled={disabled}
       style={[
         styles.track,
         {
-          backgroundColor: value
-            ? colors.primary
-            : "#C9CECA",
+          backgroundColor: value ? colors.primary : "#C9CECA",
+          opacity: disabled ? 0.5 : 1,
         },
       ]}
     >

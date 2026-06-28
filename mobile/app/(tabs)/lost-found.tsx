@@ -4,30 +4,80 @@
  */
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { View, Text, FlatList, TouchableOpacity, TextInput, Platform, Animated, Keyboard, Dimensions, Alert, ActivityIndicator, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  TextInput,
+  Platform,
+  Animated,
+  Keyboard,
+  Dimensions,
+  Alert,
+  ActivityIndicator,
+  StyleSheet,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 
 import { ScaledSheet, scale } from "react-native-size-matters";
 import MemoryCard from "../../components/MemoryCard";
-import ChatMessage, { type ChatMessageData } from "../../components/ChatMessage";
-import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
+import ChatMessage, {
+  type ChatMessageData,
+} from "../../components/ChatMessage";
+import {
+  ExpoSpeechRecognitionModule,
+  useSpeechRecognitionEvent,
+} from "expo-speech-recognition";
 import * as ImagePicker from "expo-image-picker";
 import { Image } from "expo-image";
 import * as Location from "expo-location";
 import { useFocusEffect } from "@react-navigation/native";
-import { getMemories, getMessages, sendNlpChat, type ApiMemory } from "../../services/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import {
+  getMemories,
+  getMessages,
+  sendNlpChat,
+  type ApiMemory,
+} from "../../services/api";
+import { NotificationService } from "../../services/NotificationService";
 
 const getMemoryIcon = (title: string): keyof typeof Ionicons.glyphMap => {
   const lower = title.toLowerCase();
   if (lower.includes("key")) return "key-outline";
-  if (lower.includes("wallet") || lower.includes("card") || lower.includes("money")) return "wallet-outline";
+  if (
+    lower.includes("wallet") ||
+    lower.includes("card") ||
+    lower.includes("money")
+  )
+    return "wallet-outline";
   if (lower.includes("glass")) return "glasses-outline";
-  if (lower.includes("phone") || lower.includes("mobile") || lower.includes("device")) return "phone-portrait-outline";
-  if (lower.includes("headphone") || lower.includes("earbud") || lower.includes("pod")) return "headset-outline";
-  if (lower.includes("bag") || lower.includes("backpack") || lower.includes("purse")) return "briefcase-outline";
-  if (lower.includes("book") || lower.includes("notebook") || lower.includes("journal")) return "book-outline";
+  if (
+    lower.includes("phone") ||
+    lower.includes("mobile") ||
+    lower.includes("device")
+  )
+    return "phone-portrait-outline";
+  if (
+    lower.includes("headphone") ||
+    lower.includes("earbud") ||
+    lower.includes("pod")
+  )
+    return "headset-outline";
+  if (
+    lower.includes("bag") ||
+    lower.includes("backpack") ||
+    lower.includes("purse")
+  )
+    return "briefcase-outline";
+  if (
+    lower.includes("book") ||
+    lower.includes("notebook") ||
+    lower.includes("journal")
+  )
+    return "book-outline";
   return "archive-outline";
 };
 
@@ -64,16 +114,21 @@ const formatTimeAgo = (dateString?: string) => {
 
 const formatLocationText = (
   description: string | null,
-  location: { latitude: number; longitude: number } | null
+  location: { latitude: number; longitude: number } | null,
 ) => {
   if (!description && !location) return "No description provided";
-  
-  // Clean description of any LLM-concatenated Image/Location strings
+
   let cleanDesc = description ? description : "";
   cleanDesc = cleanDesc.replace(/Image:\s*https?:\/\/\S+/gi, "");
   cleanDesc = cleanDesc.replace(/\(Public ID:[^)]+\)/gi, "");
-  cleanDesc = cleanDesc.replace(/,? Location:\s*Latitude\s*[-+]?[0-9]*\.?[0-9]+,\s*Longitude\s*[-+]?[0-9]*\.?[0-9]+/gi, "");
-  cleanDesc = cleanDesc.replace(/Latitude\s*[-+]?[0-9]*\.?[0-9]+,\s*Longitude\s*[-+]?[0-9]*\.?[0-9]+/gi, "");
+  cleanDesc = cleanDesc.replace(
+    /,? Location:\s*Latitude\s*[-+]?[0-9]*\.?[0-9]+,\s*Longitude\s*[-+]?[0-9]*\.?[0-9]+/gi,
+    "",
+  );
+  cleanDesc = cleanDesc.replace(
+    /Latitude\s*[-+]?[0-9]*\.?[0-9]+,\s*Longitude\s*[-+]?[0-9]*\.?[0-9]+/gi,
+    "",
+  );
   cleanDesc = cleanDesc.trim().replace(/^,|,$/g, "").trim();
 
   if (cleanDesc) {
@@ -126,7 +181,7 @@ export default function LostFoundScreen(): React.JSX.Element {
             duration: 500,
             useNativeDriver: true,
           }),
-        ])
+        ]),
       );
       micLoopAnimRef.current.start();
     } else {
@@ -156,7 +211,6 @@ export default function LostFoundScreen(): React.JSX.Element {
     setChatInput(orig + (orig && transcript ? " " : "") + transcript);
   });
   useSpeechRecognitionEvent("error", (event) => {
-    console.log("Speech Error:", event.error, event.message);
     setIsListening(false);
   });
 
@@ -165,8 +219,7 @@ export default function LostFoundScreen(): React.JSX.Element {
     try {
       const data = await getMemories();
       setMemories(data);
-    } catch (err: any) {
-      console.error("Error loading memories:", err);
+    } catch {
     } finally {
       setIsLoadingMemories(false);
     }
@@ -190,7 +243,6 @@ export default function LostFoundScreen(): React.JSX.Element {
             try {
               parsedAi = JSON.parse(msg.aiContent);
             } catch {
-              // Not JSON
             }
           }
 
@@ -202,10 +254,14 @@ export default function LostFoundScreen(): React.JSX.Element {
                 title: mem.title,
                 location: formatLocationText(
                   mem.description || null,
-                  mem.latitude && mem.longitude ? { latitude: mem.latitude, longitude: mem.longitude } : null
+                  mem.latitude && mem.longitude
+                    ? { latitude: mem.latitude, longitude: mem.longitude }
+                    : null,
                 ),
                 imageUri: mem.imageUrl || undefined,
-                timeAgo: formatTimeAgo(mem.createdat || mem.createdAt || msg.createdAt),
+                timeAgo: formatTimeAgo(
+                  mem.createdat || mem.createdAt || msg.createdAt,
+                ),
                 latitude: mem.latitude,
                 longitude: mem.longitude,
               });
@@ -225,59 +281,70 @@ export default function LostFoundScreen(): React.JSX.Element {
         }
       }
       setChatMessages(formatted);
-    } catch (err: any) {
-      console.error("Error loading messages:", err);
-    }
+    } catch {}
   };
 
   useFocusEffect(
     React.useCallback(() => {
       loadMemories();
       loadMessages();
-    }, [])
+    }, []),
   );
 
   const handleMicPress = async () => {
     if (chatInput.trim().length > 0 && !isListening) {
-      // 1. Capture values synchronously
       const currentText = chatInput.trim();
       const currentPhoto = capturedPhotoUri;
 
-      // 2. Immediately update UI to show message and clear inputs
       const newUserMsg: ChatMessageData = {
         id: Date.now().toString(),
         type: "user",
         text: currentText,
         imageUri: currentPhoto || undefined,
       };
-      // For inverted list, new messages go to the FRONT
       setChatMessages((prev) => [newUserMsg, ...prev]);
       setChatInput("");
       setCapturedPhotoUri(null);
       setIsProcessing(true);
 
-      // Force scroll to visual bottom (offset 0) when USER sends a message
-      setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 100);
+      setTimeout(
+        () =>
+          chatListRef.current?.scrollToOffset({ offset: 0, animated: true }),
+        100,
+      );
 
-      // 3. Now perform heavy asynchronous work (GPS)
-      const { status } = await Location.requestForegroundPermissionsAsync();
       let latitude: number | undefined = undefined;
       let longitude: number | undefined = undefined;
 
-      if (status === "granted") {
-        const location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Highest });
-        latitude = location.coords.latitude;
-        longitude = location.coords.longitude;
-      } else {
+      const locSetting = await AsyncStorage.getItem("privacy_location_access");
+      if (locSetting === "false") {
         Alert.alert(
           "Location Disabled",
-          "Your memory is being saved without GPS coordinates because location access was denied."
+          "Your memory is being saved without GPS coordinates because location access is disabled in Privacy Settings.",
         );
+      } else {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === "granted") {
+          const location = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Highest,
+          });
+          latitude = location.coords.latitude;
+          longitude = location.coords.longitude;
+        } else {
+          Alert.alert(
+            "Location Disabled",
+            "Your memory is being saved without GPS coordinates because location access was denied.",
+          );
+        }
       }
 
-      // 4. Send request to backend
       try {
-        const aiResponse = await sendNlpChat(currentText, latitude, longitude, currentPhoto || undefined);
+        const aiResponse = await sendNlpChat(
+          currentText,
+          latitude,
+          longitude,
+          currentPhoto || undefined,
+        );
 
         const newSystemMsg: ChatMessageData = {
           id: `${Date.now()}_system`,
@@ -294,10 +361,14 @@ export default function LostFoundScreen(): React.JSX.Element {
               title: mem.title,
               location: formatLocationText(
                 mem.description || null,
-                mem.latitude && mem.longitude ? { latitude: mem.latitude, longitude: mem.longitude } : null
+                mem.latitude && mem.longitude
+                  ? { latitude: mem.latitude, longitude: mem.longitude }
+                  : null,
               ),
               imageUri: mem.imageUrl || undefined,
-              timeAgo: formatTimeAgo(mem.createdat || mem.createdAt || new Date().toISOString()),
+              timeAgo: formatTimeAgo(
+                mem.createdat || mem.createdAt || new Date().toISOString(),
+              ),
               latitude: mem.latitude,
               longitude: mem.longitude,
             });
@@ -306,22 +377,28 @@ export default function LostFoundScreen(): React.JSX.Element {
 
         setChatMessages((prev) => [...newWidgets, newSystemMsg, ...prev]);
 
-        // Refresh memories in background
         await loadMemories();
+        await NotificationService.updateDailySummaryIfNeeded();
       } catch (error: any) {
-        console.error("Failed to send message to backend:", error);
         setChatMessages((prev) => [
           {
             id: `${Date.now()}_error`,
             type: "system",
-            text: `Error: ${error.message || "Failed to process chat message."}`
+            text: `Error: ${error.message || "Failed to process chat message."}`,
           },
-          ...prev
+          ...prev,
         ]);
       } finally {
         setIsProcessing(false);
         if (isAtBottomRef.current) {
-          setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 100);
+          setTimeout(
+            () =>
+              chatListRef.current?.scrollToOffset({
+                offset: 0,
+                animated: true,
+              }),
+            100,
+          );
         }
       }
 
@@ -331,18 +408,44 @@ export default function LostFoundScreen(): React.JSX.Element {
       ExpoSpeechRecognitionModule.stop();
       return;
     }
-    const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-    if (!result.granted) {
-      Alert.alert("Permission Required", "Please allow microphone access to use voice dictation.");
+    const micSetting = await AsyncStorage.getItem("privacy_microphone_access");
+    if (micSetting === "false") {
+      Alert.alert(
+        "Permission Disabled",
+        "Microphone access is disabled in Privacy Settings.",
+      );
       return;
     }
-    ExpoSpeechRecognitionModule.start({ lang: "en-US", interimResults: true, continuous: false });
+    const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+    if (!result.granted) {
+      Alert.alert(
+        "Permission Required",
+        "Please allow microphone access to use voice dictation.",
+      );
+      return;
+    }
+    ExpoSpeechRecognitionModule.start({
+      lang: "en-US",
+      interimResults: true,
+      continuous: false,
+    });
   };
 
   const handleCameraPress = async () => {
+    const camSetting = await AsyncStorage.getItem("privacy_camera_access");
+    if (camSetting === "false") {
+      Alert.alert(
+        "Permission Disabled",
+        "Camera access is disabled in Privacy Settings.",
+      );
+      return;
+    }
     const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissionResult.granted) {
-      Alert.alert("Permission Required", "Please allow camera access to take a photo.");
+      Alert.alert(
+        "Permission Required",
+        "Please allow camera access to take a photo.",
+      );
       return;
     }
 
@@ -358,13 +461,12 @@ export default function LostFoundScreen(): React.JSX.Element {
     }
   };
 
-  // Calculate the exact initial width of a single toggle tab to prevent visual pop-in on first render
   const initialTabWidth = useMemo(() => {
-    // Screen width - container padding (20*2) - toggleContainer margin (16) - toggleContainer inner padding (4*2)
-    return (Dimensions.get("window").width - scale(40) - scale(16) - scale(8)) / 2;
+    return (
+      (Dimensions.get("window").width - scale(40) - scale(16) - scale(8)) / 2
+    );
   }, []);
 
-  // Toggle slider animation
   const [tabWidth, setTabWidth] = useState(initialTabWidth);
   const slideAnim = useRef(new Animated.Value(1)).current; // Starts at 1 because initial state is "Chat"
 
@@ -383,11 +485,16 @@ export default function LostFoundScreen(): React.JSX.Element {
   });
 
   useEffect(() => {
-    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
-    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showEvent =
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent =
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
 
     const showSub = Keyboard.addListener(showEvent, (e) => {
-      const offset = Platform.OS === "ios" ? e.endCoordinates.height - 130 : e.endCoordinates.height - 110;
+      const offset =
+        Platform.OS === "ios"
+          ? e.endCoordinates.height - 130
+          : e.endCoordinates.height - 110;
       const finalOffset = offset > 0 ? offset : 0;
 
       Animated.parallel([
@@ -400,12 +507,15 @@ export default function LostFoundScreen(): React.JSX.Element {
           toValue: finalOffset,
           duration: e.duration || 250,
           useNativeDriver: false,
-        })
+        }),
       ]).start();
 
-      // Smart scroll: Only scroll if user is at the visual bottom
       if (isAtBottomRef.current) {
-        setTimeout(() => chatListRef.current?.scrollToOffset({ offset: 0, animated: true }), 50);
+        setTimeout(
+          () =>
+            chatListRef.current?.scrollToOffset({ offset: 0, animated: true }),
+          50,
+        );
       }
     });
 
@@ -420,7 +530,7 @@ export default function LostFoundScreen(): React.JSX.Element {
           toValue: 0,
           duration: e.duration || 250,
           useNativeDriver: false,
-        })
+        }),
       ]).start();
     });
 
@@ -436,7 +546,7 @@ export default function LostFoundScreen(): React.JSX.Element {
     return memories.filter(
       (m) =>
         m.title.toLowerCase().includes(lowerQuery) ||
-        (m.description && m.description.toLowerCase().includes(lowerQuery))
+        (m.description && m.description.toLowerCase().includes(lowerQuery)),
     );
   }, [searchQuery, memories]);
 
@@ -444,7 +554,9 @@ export default function LostFoundScreen(): React.JSX.Element {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Toggle Bar */}
       <View style={styles.toggleRow}>
-        <View style={[styles.toggleContainer, { backgroundColor: colors.card }]}>
+        <View
+          style={[styles.toggleContainer, { backgroundColor: colors.card }]}
+        >
           {tabWidth > 0 && (
             <Animated.View
               style={[
@@ -452,8 +564,8 @@ export default function LostFoundScreen(): React.JSX.Element {
                 {
                   backgroundColor: colors.primary,
                   width: tabWidth,
-                  transform: [{ translateX }]
-                }
+                  transform: [{ translateX }],
+                },
               ]}
             />
           )}
@@ -462,13 +574,37 @@ export default function LostFoundScreen(): React.JSX.Element {
             onLayout={(e) => setTabWidth(e.nativeEvent.layout.width)}
             onPress={() => setActiveTab("Memories")}
           >
-            <Text style={[styles.toggleText, { color: activeTab === "Memories" ? colors.surface : colors.textSecondary }]}>Memories</Text>
+            <Text
+              style={[
+                styles.toggleText,
+                {
+                  color:
+                    activeTab === "Memories"
+                      ? colors.surface
+                      : colors.textSecondary,
+                },
+              ]}
+            >
+              Memories
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.toggleButton}
             onPress={() => setActiveTab("Chat")}
           >
-            <Text style={[styles.toggleText, { color: activeTab === "Chat" ? colors.surface : colors.textSecondary }]}>Chat</Text>
+            <Text
+              style={[
+                styles.toggleText,
+                {
+                  color:
+                    activeTab === "Chat"
+                      ? colors.surface
+                      : colors.textSecondary,
+                },
+              ]}
+            >
+              Chat
+            </Text>
           </TouchableOpacity>
         </View>
         {activeTab === "Memories" && (
@@ -483,22 +619,34 @@ export default function LostFoundScreen(): React.JSX.Element {
 
       {/* Header Row */}
       <View style={styles.headerRow}>
-        <Text style={[styles.title, { color: colors.text }]}>{activeTab === "Memories" ? "Memories" : "Chat"}</Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>{activeTab === "Memories" ? "Sorted by Added Date" : "AI Assistant"}</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {activeTab === "Memories" ? "Memories" : "Chat"}
+        </Text>
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          {activeTab === "Memories" ? "Sorted by Added Date" : "AI Assistant"}
+        </Text>
       </View>
 
       {/* Content Area */}
-      <View style={{ flex: 1, position: 'relative', justifyContent: 'flex-end' }}>
+      <View
+        style={{ flex: 1, position: "relative", justifyContent: "flex-end" }}
+      >
         {/* Memories View (Absolute behind floating inputs) */}
         <View
           style={{
             ...StyleSheet.absoluteFillObject,
-            opacity: activeTab === "Memories" ? 1 : 0
+            opacity: activeTab === "Memories" ? 1 : 0,
           }}
           pointerEvents={activeTab === "Memories" ? "auto" : "none"}
         >
           {isLoadingMemories && memories.length === 0 ? (
-            <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
               <ActivityIndicator size="large" color={colors.primary} />
             </View>
           ) : (
@@ -513,8 +661,14 @@ export default function LostFoundScreen(): React.JSX.Element {
                   location={formatLocationText(item.description, item.location)}
                   dateStr={formatMemoryDate(item.createdAt)}
                   highlightDate={false}
-                  imageSource={item.image?.imageUrl ? { uri: item.image.imageUrl } : undefined}
-                  iconName={item.image?.imageUrl ? undefined : getMemoryIcon(item.title)}
+                  imageSource={
+                    item.image?.imageUrl
+                      ? { uri: item.image.imageUrl }
+                      : undefined
+                  }
+                  iconName={
+                    item.image?.imageUrl ? undefined : getMemoryIcon(item.title)
+                  }
                 />
               )}
             />
@@ -525,7 +679,7 @@ export default function LostFoundScreen(): React.JSX.Element {
         <View
           style={{
             ...StyleSheet.absoluteFillObject,
-            opacity: activeTab === "Chat" ? 1 : 0
+            opacity: activeTab === "Chat" ? 1 : 0,
           }}
           pointerEvents={activeTab === "Chat" ? "box-none" : "none"}
         >
@@ -535,10 +689,15 @@ export default function LostFoundScreen(): React.JSX.Element {
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             inverted={true}
-            contentContainerStyle={[styles.chatListContent, { paddingTop: inputBarHeight + scale(30), paddingBottom: scale(20) }]}
+            contentContainerStyle={[
+              styles.chatListContent,
+              {
+                paddingTop: inputBarHeight + scale(30),
+                paddingBottom: scale(20),
+              },
+            ]}
             onScroll={(e) => {
               const { contentOffset } = e.nativeEvent;
-              // 50px tolerance for "at visual bottom" (offset 0 in inverted list)
               isAtBottomRef.current = contentOffset.y <= 50;
             }}
             scrollEventThrottle={16}
@@ -547,9 +706,25 @@ export default function LostFoundScreen(): React.JSX.Element {
               <View>
                 {isProcessing && (
                   <View style={styles.systemContainer}>
-                    <View style={[styles.systemBubble, { backgroundColor: colors.card }]}>
-                      <ActivityIndicator size="small" color={colors.primary} style={{ marginRight: 8 }} />
-                      <Text style={[styles.systemText, { color: colors.textSecondary }]}>AI is thinking...</Text>
+                    <View
+                      style={[
+                        styles.systemBubble,
+                        { backgroundColor: colors.card },
+                      ]}
+                    >
+                      <ActivityIndicator
+                        size="small"
+                        color={colors.primary}
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text
+                        style={[
+                          styles.systemText,
+                          { color: colors.textSecondary },
+                        ]}
+                      >
+                        AI is thinking...
+                      </Text>
                     </View>
                   </View>
                 )}
@@ -563,10 +738,23 @@ export default function LostFoundScreen(): React.JSX.Element {
         {activeTab === "Memories" ? (
           <View style={styles.staticWrapper} pointerEvents="box-none">
             <Animated.View
-              style={[styles.animatedContainer, { transform: [{ translateY: keyboardOffset }] }]}
+              style={[
+                styles.animatedContainer,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
             >
-              <View style={[styles.searchContainer, { backgroundColor: colors.card }]}>
-                <Ionicons name="search-outline" size={20} color={colors.textSecondary} style={styles.searchIcon} />
+              <View
+                style={[
+                  styles.searchContainer,
+                  { backgroundColor: colors.card },
+                ]}
+              >
+                <Ionicons
+                  name="search-outline"
+                  size={20}
+                  color={colors.textSecondary}
+                  style={styles.searchIcon}
+                />
                 <TextInput
                   style={[styles.searchInput, { color: colors.text }]}
                   placeholder="Search stored Memories..."
@@ -580,26 +768,48 @@ export default function LostFoundScreen(): React.JSX.Element {
         ) : (
           <View style={styles.staticWrapper} pointerEvents="box-none">
             <Animated.View
-              style={[styles.animatedContainer, { transform: [{ translateY: keyboardOffset }] }]}
+              style={[
+                styles.animatedContainer,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
               pointerEvents="box-none"
               onLayout={(e) => setInputBarHeight(e.nativeEvent.layout.height)}
             >
               {capturedPhotoUri && (
                 <View style={styles.photoPreviewContainer}>
-                  <Image source={{ uri: capturedPhotoUri }} style={styles.photoPreviewImage} contentFit="cover" />
-                  <TouchableOpacity style={styles.photoCancelButton} onPress={() => setCapturedPhotoUri(null)}>
+                  <Image
+                    source={{ uri: capturedPhotoUri }}
+                    style={styles.photoPreviewImage}
+                    contentFit="cover"
+                  />
+                  <TouchableOpacity
+                    style={styles.photoCancelButton}
+                    onPress={() => setCapturedPhotoUri(null)}
+                  >
                     <Ionicons name="close" size={16} color="#fff" />
                   </TouchableOpacity>
                 </View>
               )}
               <View style={styles.chatInputRow}>
-                <View style={[styles.chatInputContainer, { backgroundColor: colors.card }]}>
+                <View
+                  style={[
+                    styles.chatInputContainer,
+                    { backgroundColor: colors.card },
+                  ]}
+                >
                   <TouchableOpacity onPress={handleCameraPress}>
-                    <Ionicons name="camera-outline" size={24} color={colors.textSecondary} style={styles.chatCameraIcon} />
+                    <Ionicons
+                      name="camera-outline"
+                      size={24}
+                      color={colors.textSecondary}
+                      style={styles.chatCameraIcon}
+                    />
                   </TouchableOpacity>
                   <TextInput
                     style={[styles.searchInput, { color: colors.text }]}
-                    placeholder={isListening ? "Listening..." : "What are you looking for?"}
+                    placeholder={
+                      isListening ? "Listening..." : "What are you looking for?"
+                    }
                     placeholderTextColor={colors.textSecondary}
                     value={chatInput}
                     onChangeText={setChatInput}
@@ -607,15 +817,32 @@ export default function LostFoundScreen(): React.JSX.Element {
                   />
                 </View>
                 <TouchableOpacity
-                  style={[styles.chatMicButton, { backgroundColor: isListening ? "#ff4444" : colors.primary }]}
+                  style={[
+                    styles.chatMicButton,
+                    {
+                      backgroundColor: isListening ? "#ff4444" : colors.primary,
+                    },
+                  ]}
                   onPress={handleMicPress}
                 >
-                  <Animated.View style={{ transform: [{ scale: micScaleAnim }] }}>
+                  <Animated.View
+                    style={{ transform: [{ scale: micScaleAnim }] }}
+                  >
                     <Ionicons
-                      name={chatInput.trim().length > 0 && !isListening ? "send" : "mic-outline"}
-                      size={chatInput.trim().length > 0 && !isListening ? 20 : 24}
+                      name={
+                        chatInput.trim().length > 0 && !isListening
+                          ? "send"
+                          : "mic-outline"
+                      }
+                      size={
+                        chatInput.trim().length > 0 && !isListening ? 20 : 24
+                      }
                       color={colors.surface}
-                      style={chatInput.trim().length > 0 && !isListening ? { marginLeft: 4 } : undefined}
+                      style={
+                        chatInput.trim().length > 0 && !isListening
+                          ? { marginLeft: 4 }
+                          : undefined
+                      }
                     />
                   </Animated.View>
                 </TouchableOpacity>

@@ -5,7 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
- ActivityIndicator } from "react-native";
+  ActivityIndicator,
+} from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -49,43 +50,20 @@ export default function ForgotPasswordScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: colors.background },
-      ]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <View style={styles.content}>
-        <Text
-          style={[
-            styles.title,
-            { color: colors.primary },
-          ]}
-        >
+        <Text style={[styles.title, { color: colors.primary }]}>
           Forgot Password?
         </Text>
 
-        <Text
-          style={[
-            styles.subtitle,
-            { color: colors.textSecondary },
-          ]}
-        >
-          Enter your email address and we&apos;ll send you
-          instructions to reset your password.
+        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+          Enter your email address and we&apos;ll send you instructions to reset
+          your password.
         </Text>
 
-        <View
-          style={[
-            styles.card,
-            { backgroundColor: colors.card },
-          ]}
-        >
-          <Text
-            style={[
-              styles.label,
-              { color: colors.text },
-            ]}
-          >
+        <View style={[styles.card, { backgroundColor: colors.card }]}>
+          <Text style={[styles.label, { color: colors.text }]}>
             Email Address
           </Text>
 
@@ -111,18 +89,12 @@ export default function ForgotPasswordScreen(): React.JSX.Element {
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              style={[
-                styles.input,
-                { color: colors.text },
-              ]}
+              style={[styles.input, { color: colors.text }]}
             />
           </View>
 
           <TouchableOpacity
-            style={[
-              styles.button,
-              { backgroundColor: colors.primary },
-            ]}
+            style={[styles.button, { backgroundColor: colors.primary }]}
             onPress={handleResetPassword}
             disabled={isLoading}
             activeOpacity={0.8}
@@ -131,10 +103,7 @@ export default function ForgotPasswordScreen(): React.JSX.Element {
               <ActivityIndicator size="small" color={colors.navbarActiveText} />
             ) : (
               <Text
-                style={[
-                  styles.buttonText,
-                  { color: colors.navbarActiveText },
-                ]}
+                style={[styles.buttonText, { color: colors.navbarActiveText }]}
               >
                 Send Reset Link
               </Text>
@@ -144,16 +113,9 @@ export default function ForgotPasswordScreen(): React.JSX.Element {
 
         <TouchableOpacity
           style={styles.backContainer}
-          onPress={() =>
-            router.push("/(auth)/login")
-          }
+          onPress={() => router.push("/(auth)/login")}
         >
-          <Text
-            style={[
-              styles.backText,
-              { color: colors.primary },
-            ]}
-          >
+          <Text style={[styles.backText, { color: colors.primary }]}>
             ← Back to Login
           </Text>
         </TouchableOpacity>

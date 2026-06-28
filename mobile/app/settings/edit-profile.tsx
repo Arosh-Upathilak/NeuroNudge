@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -18,23 +19,37 @@ import { useAuth } from "../../contexts/AuthContext";
 
 export default function EditProfileScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
-  const { user } = useAuth();
+  const { user, updateProfileName } = useAuth();
 
-  const [fullName, setFullName] =
-    useState(user?.displayName || "User");
+  const [fullName, setFullName] = useState(user?.displayName || "User");
 
-  const [email, setEmail] =
-    useState(user?.email || "");
+  const [email, setEmail] = useState(user?.email || "");
 
-  const [username, setUsername] =
-    useState(
-      user?.displayName
-        ? "@" + user.displayName.toLowerCase().replace(/\s+/g, "")
-        : (user?.email ? "@" + user.email.split("@")[0] : "@user")
-    );
+  const [isSaving, setIsSaving] = useState(false);
 
-  const handleSave = (): void => {
-    router.back();
+  const handleSave = async (): Promise<void> => {
+    if (fullName.trim() === "") {
+      Alert.alert("Error", "Full name cannot be empty.");
+      return;
+    }
+
+    if (fullName === user?.displayName) {
+      router.back();
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await updateProfileName(fullName);
+      Alert.alert("Success", "Profile updated successfully.");
+      router.back();
+    } catch (error) {
+      const errMsg =
+        error instanceof Error ? error.message : "Failed to update profile";
+      Alert.alert("Error", errMsg);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -42,33 +57,19 @@ export default function EditProfileScreen(): React.JSX.Element {
       style={[
         styles.container,
         {
-          backgroundColor:
-            colors.background,
+          backgroundColor: colors.background,
         },
       ]}
     >
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView showsVerticalScrollIndicator={false}>
         {/* Header */}
 
         <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-          >
-            <Ionicons
-              name="arrow-back"
-              size={24}
-              color={colors.text}
-            />
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={colors.text} />
           </TouchableOpacity>
 
-          <Text
-            style={[
-              styles.headerTitle,
-              { color: colors.text },
-            ]}
-          >
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
             Edit Profile
           </Text>
 
@@ -83,32 +84,22 @@ export default function EditProfileScreen(): React.JSX.Element {
               style={[
                 styles.avatar,
                 {
-                  backgroundColor:
-                    colors.primary,
+                  backgroundColor: colors.primary,
                 },
               ]}
             >
-              <Ionicons
-                name="person-outline"
-                size={50}
-                color="#FFFFFF"
-              />
+              <Ionicons name="person-outline" size={50} color="#FFFFFF" />
             </View>
 
             <TouchableOpacity
               style={[
                 styles.editAvatarButton,
                 {
-                  backgroundColor:
-                    colors.primary,
+                  backgroundColor: colors.primary,
                 },
               ]}
             >
-              <Ionicons
-                name="camera-outline"
-                size={18}
-                color="#FFFFFF"
-              />
+              <Ionicons name="camera-outline" size={18} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </View>
@@ -119,19 +110,11 @@ export default function EditProfileScreen(): React.JSX.Element {
           style={[
             styles.card,
             {
-              backgroundColor:
-                colors.card,
+              backgroundColor: colors.card,
             },
           ]}
         >
-          <Text
-            style={[
-              styles.label,
-              { color: colors.text },
-            ]}
-          >
-            Full Name
-          </Text>
+          <Text style={[styles.label, { color: colors.text }]}>Full Name</Text>
 
           <TextInput
             value={fullName}
@@ -139,60 +122,27 @@ export default function EditProfileScreen(): React.JSX.Element {
             style={[
               styles.input,
               {
-                backgroundColor:
-                  colors.surface,
+                backgroundColor: colors.surface,
                 color: colors.text,
-                borderColor:
-                  colors.divider,
+                borderColor: colors.divider,
               },
             ]}
           />
 
-          <Text
-            style={[
-              styles.label,
-              { color: colors.text },
-            ]}
-          >
-            Email
-          </Text>
+          <Text style={[styles.label, { color: colors.text }]}>Email</Text>
 
           <TextInput
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
+            editable={false}
             style={[
               styles.input,
               {
-                backgroundColor:
-                  colors.surface,
+                backgroundColor: colors.surface,
                 color: colors.text,
-                borderColor:
-                  colors.divider,
-              },
-            ]}
-          />
-
-          <Text
-            style={[
-              styles.label,
-              { color: colors.text },
-            ]}
-          >
-            Username
-          </Text>
-
-          <TextInput
-            value={username}
-            onChangeText={setUsername}
-            style={[
-              styles.input,
-              {
-                backgroundColor:
-                  colors.surface,
-                color: colors.text,
-                borderColor:
-                  colors.divider,
+                borderColor: colors.divider,
+                opacity: 0.6,
               },
             ]}
           />
@@ -201,16 +151,14 @@ export default function EditProfileScreen(): React.JSX.Element {
             style={[
               styles.saveButton,
               {
-                backgroundColor:
-                  colors.primary,
+                backgroundColor: isSaving ? colors.divider : colors.primary,
               },
             ]}
             onPress={handleSave}
+            disabled={isSaving}
           >
-            <Text
-              style={styles.saveButtonText}
-            >
-              Save Changes
+            <Text style={styles.saveButtonText}>
+              {isSaving ? "Saving..." : "Save Changes"}
             </Text>
           </TouchableOpacity>
         </View>

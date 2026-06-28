@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
@@ -19,7 +14,12 @@ interface HeadphoneCardProps {
   onConnectToggle?: () => void;
 }
 
-export default function HeadphoneCard({ isConnected = false, isConnecting = false, deviceName, onConnectToggle }: HeadphoneCardProps): React.JSX.Element {
+export default function HeadphoneCard({
+  isConnected = false,
+  isConnecting = false,
+  deviceName,
+  onConnectToggle,
+}: HeadphoneCardProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
   return (
@@ -40,7 +40,8 @@ export default function HeadphoneCard({ isConnected = false, isConnecting = fals
         style={[
           styles.iconContainer,
           {
-            backgroundColor: isConnected || isConnecting ? colors.primary : colors.surface,
+            backgroundColor:
+              isConnected || isConnecting ? colors.primary : colors.surface,
           },
         ]}
       >
@@ -67,23 +68,26 @@ export default function HeadphoneCard({ isConnected = false, isConnecting = fals
           {isConnecting
             ? "Scanning for devices..."
             : isConnected
-            ? deviceName || "Supported Headphones"
-            : "Optimize your experience"}
+              ? deviceName || "Supported Headphones"
+              : "Optimize your experience"}
         </Text>
 
         <Text
           style={[
             styles.description,
             {
-              color: isConnected || isConnecting ? colors.primary : colors.textSecondary,
+              color:
+                isConnected || isConnecting
+                  ? colors.primary
+                  : colors.textSecondary,
             },
           ]}
         >
           {isConnecting
             ? "Searching for nearby supported headphones."
             : isConnected
-            ? "Supported headphone is connected."
-            : "Tap to check for a compatible headphone to enable active noise cancellation."}
+              ? "Supported headphone is connected."
+              : "Tap to check for a compatible headphone to enable active noise cancellation."}
         </Text>
       </View>
     </TouchableOpacity>

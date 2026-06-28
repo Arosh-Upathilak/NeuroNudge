@@ -25,7 +25,6 @@ import { getReactNativePersistence } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-// ─── Config ──────────────────────────────────────────────────────────────────
 
 const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY!,
@@ -37,7 +36,6 @@ const firebaseConfig = {
   measurementId: process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-// ─── Singleton Initialization ─────────────────────────────────────────────────
 
 /**
  * Initialize the Firebase app only once. On subsequent imports,
@@ -56,8 +54,10 @@ try {
     persistence: getReactNativePersistence(AsyncStorage),
   });
 } catch (error: any) {
-  // If initializeAuth fails (e.g. during Fast Refresh), fallback to getAuth
-  console.warn("[Firebase] initializeAuth failed, falling back to getAuth:", error);
+  console.warn(
+    "[Firebase] initializeAuth failed, falling back to getAuth:",
+    error,
+  );
   auth = getAuth(app);
 }
 
@@ -68,7 +68,6 @@ const db: Firestore = getFirestore(app);
 
 export { auth, db };
 
-// ─── Auth Helpers ─────────────────────────────────────────────────────────────
 
 /**
  * Creates a new Firebase user with email + password, sets
@@ -77,12 +76,12 @@ export { auth, db };
 export const firebaseSignUp = async (
   email: string,
   password: string,
-  name: string
+  name: string,
 ): Promise<UserCredential> => {
   const credential = await createUserWithEmailAndPassword(
     auth,
     email,
-    password
+    password,
   );
   await updateProfile(credential.user, { displayName: name });
   return credential;
@@ -93,7 +92,7 @@ export const firebaseSignUp = async (
  */
 export const firebaseSignIn = async (
   email: string,
-  password: string
+  password: string,
 ): Promise<UserCredential> => {
   return signInWithEmailAndPassword(auth, email, password);
 };

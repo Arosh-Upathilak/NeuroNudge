@@ -13,20 +13,16 @@ router.post(
   "/upload",
   authMiddleware,
   upload.single("image"),
-  uploadController.uploadImage.bind(uploadController)
+  uploadController.uploadImage.bind(uploadController),
 );
 
 router.put(
   "/upload",
   authMiddleware,
   upload.single("image"),
-  uploadController.updateImage
+  uploadController.updateImage,
 );
 
-router.delete(
-  "/upload",
-  authMiddleware,
-  uploadController.deleteImage
-);
+router.delete("/upload", authMiddleware, uploadController.deleteImage);
 
 export default router;

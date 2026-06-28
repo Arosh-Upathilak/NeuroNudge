@@ -19,48 +19,41 @@ export default function DashboardScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
   const { user } = useAuth();
 
-  const [currentTime, setCurrentTime] = useState<Date>(
-  new Date()
-);
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
 
-useEffect(() => {
-  const interval = setInterval(() => {
-    setCurrentTime(new Date());
-  }, 60000);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
 
-  return () => clearInterval(interval);
-}, []);
+    return () => clearInterval(interval);
+  }, []);
 
-const formattedDate =
-  currentTime.toLocaleDateString("en-US", {
+  const formattedDate = currentTime.toLocaleDateString("en-US", {
     weekday: "long",
     month: "long",
     day: "numeric",
   });
 
-const hour = currentTime.getHours();
+  const hour = currentTime.getHours();
 
-const greeting =
-  hour < 12
-    ? "Good morning"
-    : hour < 18
-    ? "Good afternoon"
-    : "Good evening";
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
     <SafeAreaView
       edges={["bottom", "left", "right"]}
-      style={[
-        styles.container,
-        { backgroundColor: colors.background },
-      ]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         <Text style={[styles.greeting, { color: colors.text }]}>
-          {greeting}, {user?.displayName ? user.displayName.split(" ")[0] : (user?.email?.split("@")[0] || "User")}
+          {greeting},{" "}
+          {user?.displayName
+            ? user.displayName.split(" ")[0]
+            : user?.email?.split("@")[0] || "User"}
         </Text>
         <Text style={[styles.date, { color: colors.textSecondary }]}>
           {formattedDate}
@@ -104,5 +97,5 @@ const styles = ScaledSheet.create({
     fontSize: FontSizes.md,
     fontFamily: Fonts.regular,
     marginBottom: "14@vs",
-  }
+  },
 });

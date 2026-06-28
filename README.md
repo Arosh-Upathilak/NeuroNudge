@@ -17,10 +17,10 @@ NeuroNudge/
 
 Before running the project, ensure the following are installed:
 
-* Node.js (v20 or later recommended)
-* npm
-* Git
-* Expo CLI (for mobile development)
+- Node.js (v20 or later recommended)
+- npm
+- Git
+- Expo CLI (for mobile development)
 
 Verify installation:
 
@@ -58,13 +58,13 @@ PORT=5000
 
 ### Environment Variables
 
-| Variable | Description                     |
-| -------- | ------------------------------- |
-| PORT     | Port used by the backend server |
-| FIREBASE_PROJECT_ID | Firebase Project ID |
-| FIREBASE_CLIENT_EMAIL | Firebase Service Account Client Email |
-| FIREBASE_PRIVATE_KEY | Firebase Service Account Private Key (escaped newlines) |
-| FIREBASE_WEB_API_KEY | Firebase Web API Key for OAuth token exchange |
+| Variable              | Description                                             |
+| --------------------- | ------------------------------------------------------- |
+| PORT                  | Port used by the backend server                         |
+| FIREBASE_PROJECT_ID   | Firebase Project ID                                     |
+| FIREBASE_CLIENT_EMAIL | Firebase Service Account Client Email                   |
+| FIREBASE_PRIVATE_KEY  | Firebase Service Account Private Key (escaped newlines) |
+| FIREBASE_WEB_API_KEY  | Firebase Web API Key for OAuth token exchange           |
 
 ---
 
@@ -248,18 +248,18 @@ npm run web
 
 ## Backend
 
-* Node.js
-* Express.js
-* TypeScript
-* ESLint
-* dotenv
+- Node.js
+- Express.js
+- TypeScript
+- ESLint
+- dotenv
 
 ## Mobile
 
-* React Native
-* Expo
-* TypeScript
-* Expo Router
+- React Native
+- Expo
+- TypeScript
+- Expo Router
 
 ---
 
@@ -305,10 +305,10 @@ npm start
 
 # Git Guidelines
 
-* Never commit `.env` files.
-* Keep `.env.example` updated with all required variables.
-* Create feature branches for new development.
-* Submit pull requests for code review.
+- Never commit `.env` files.
+- Keep `.env.example` updated with all required variables.
+- Create feature branches for new development.
+- Submit pull requests for code review.
 
 ---
 

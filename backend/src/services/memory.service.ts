@@ -1,4 +1,4 @@
-import { PrismaClient,Prisma } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import {
   CreateMemoryInput,
   UpdateMemoryInput,
@@ -34,8 +34,8 @@ export const MemoryService = {
           data.latitude !== undefined && data.longitude !== undefined
             ? {
                 create: {
-                 latitude: Number(data.latitude),
-                 longitude: Number(data.longitude),
+                  latitude: Number(data.latitude),
+                  longitude: Number(data.longitude),
                 },
               }
             : undefined,
@@ -83,48 +83,48 @@ export const MemoryService = {
   /**
    * UPDATE MEMORY
    */
-updateMemory: async (
-  memoryId: string,
-  userId: string,
-  data: UpdateMemoryInput
-) => {
-  const updateData: Prisma.MemoryUpdateInput = {};
+  updateMemory: async (
+    memoryId: string,
+    userId: string,
+    data: UpdateMemoryInput,
+  ) => {
+    const updateData: Prisma.MemoryUpdateInput = {};
 
-  if (data.title !== undefined) {
-    updateData.title = data.title;
-  }
+    if (data.title !== undefined) {
+      updateData.title = data.title;
+    }
 
-  if (data.description !== undefined) {
-    updateData.description = data.description;
-  }
+    if (data.description !== undefined) {
+      updateData.description = data.description;
+    }
 
-  if (data.latitude !== undefined && data.longitude !== undefined) {
-    updateData.location = {
-      upsert: {
-        create: {
-          latitude: Number(data.latitude),
-          longitude: Number(data.longitude),
+    if (data.latitude !== undefined && data.longitude !== undefined) {
+      updateData.location = {
+        upsert: {
+          create: {
+            latitude: Number(data.latitude),
+            longitude: Number(data.longitude),
+          },
+          update: {
+            latitude: Number(data.latitude),
+            longitude: Number(data.longitude),
+          },
         },
-        update: {
-          latitude: Number(data.latitude),
-          longitude: Number(data.longitude),
-        },
+      };
+    }
+
+    return await prisma.memory.update({
+      where: {
+        memoryId,
+        userId,
       },
-    };
-  }
-
-  return await prisma.memory.update({
-    where: {
-      memoryId,
-      userId,
-    },
-    data: updateData,
-    include: {
-      location: true,
-      image: true,
-    },
-  });
-},
+      data: updateData,
+      include: {
+        location: true,
+        image: true,
+      },
+    });
+  },
   /**
    * DELETE MEMORY
    */

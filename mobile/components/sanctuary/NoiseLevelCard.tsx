@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
@@ -34,11 +29,13 @@ export default function NoiseLevelCard({
   const isLoud = currentLevel > threshold;
   const volumeFactor = Math.max(0.2, Math.min(1.8, currentLevel / 60));
 
-  // Generate dynamic heights with a small random flutter for live visual feedback
   const getBarHeight = (baseHeight: number) => {
     if (!permissionGranted || !isMonitoringEnabled) return baseHeight;
     const flutter = Math.random() * 8 - 4; // -4 to +4 px
-    return Math.max(8, Math.min(90, Math.round(baseHeight * volumeFactor + flutter)));
+    return Math.max(
+      8,
+      Math.min(90, Math.round(baseHeight * volumeFactor + flutter)),
+    );
   };
 
   return (
@@ -51,7 +48,6 @@ export default function NoiseLevelCard({
       ]}
     >
       {!isMonitoringEnabled ? (
-        // Disabled from Dashboard state
         <View style={styles.permissionContainer}>
           <Ionicons
             name="mic-off-outline"
@@ -62,12 +58,15 @@ export default function NoiseLevelCard({
           <Text style={[styles.permissionTitle, { color: colors.text }]}>
             Ambient Monitoring Disabled
           </Text>
-          <Text style={[styles.permissionDesc, { color: colors.textSecondary }]}>
-            {"Enable \"Ambient Noise Monitoring\" on the Dashboard to measure live noise levels."}
+          <Text
+            style={[styles.permissionDesc, { color: colors.textSecondary }]}
+          >
+            {
+              'Enable "Ambient Noise Monitoring" on the Dashboard to measure live noise levels.'
+            }
           </Text>
         </View>
       ) : permissionGranted === null ? (
-        // Loading state
         <View style={styles.centerContainer}>
           <ActivityIndicator size="small" color={colors.primary} />
           <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
@@ -75,7 +74,6 @@ export default function NoiseLevelCard({
           </Text>
         </View>
       ) : permissionGranted === false ? (
-        // Permission prompt state
         <View style={styles.permissionContainer}>
           <Ionicons
             name="mic-off-outline"
@@ -86,8 +84,11 @@ export default function NoiseLevelCard({
           <Text style={[styles.permissionTitle, { color: colors.text }]}>
             Microphone Access Required
           </Text>
-          <Text style={[styles.permissionDesc, { color: colors.textSecondary }]}>
-            Allow NeuroNudge to access your microphone to measure real-time ambient noise levels.
+          <Text
+            style={[styles.permissionDesc, { color: colors.textSecondary }]}
+          >
+            Allow NeuroNudge to access your microphone to measure real-time
+            ambient noise levels.
           </Text>
           <TouchableOpacity
             style={[styles.button, { backgroundColor: colors.primary }]}
@@ -99,7 +100,6 @@ export default function NoiseLevelCard({
           </TouchableOpacity>
         </View>
       ) : (
-        // Normal monitoring state
         <>
           {/* Badge Row */}
           <View style={styles.badgeRow}>
@@ -113,7 +113,9 @@ export default function NoiseLevelCard({
               ]}
             >
               <Ionicons
-                name={isLoud ? "alert-circle-outline" : "checkmark-circle-outline"}
+                name={
+                  isLoud ? "alert-circle-outline" : "checkmark-circle-outline"
+                }
                 size={14}
                 color={isLoud ? colors.error : colors.primary}
               />
@@ -130,34 +132,35 @@ export default function NoiseLevelCard({
               </Text>
             </View>
 
-            {/* Simulated ANC Badge */}
-            {isLoud && (thresholdAction === "anc" || thresholdAction === "both") && (
-              <View
-                style={[
-                  styles.badge,
-                  styles.ancBadge,
-                  {
-                    backgroundColor: colors.info,
-                  },
-                ]}
-              >
-                <Ionicons
-                  name="shield-checkmark-outline"
-                  size={12}
-                  color={colors.surface}
-                />
-                <Text
+            {/* ANC Badge */}
+            {isLoud &&
+              (thresholdAction === "anc" || thresholdAction === "both") && (
+                <View
                   style={[
-                    styles.badgeText,
+                    styles.badge,
+                    styles.ancBadge,
                     {
-                      color: colors.surface,
+                      backgroundColor: colors.info,
                     },
                   ]}
                 >
-                  ANC Simulated
-                </Text>
-              </View>
-            )}
+                  <Ionicons
+                    name="shield-checkmark-outline"
+                    size={12}
+                    color={colors.surface}
+                  />
+                  <Text
+                    style={[
+                      styles.badgeText,
+                      {
+                        color: colors.surface,
+                      },
+                    ]}
+                  >
+                    ANC Active
+                  </Text>
+                </View>
+              )}
           </View>
 
           {/* Sound Visualizer */}

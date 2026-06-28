@@ -19,7 +19,7 @@ export interface IHeadphoneIntegration {
 
   /**
    * Sets the ANC mode on the device.
-   * 
+   *
    * @param mode The desired ANC mode
    */
   setAncMode(mode: AncMode): Promise<void>;

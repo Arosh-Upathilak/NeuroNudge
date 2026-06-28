@@ -1,9 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
@@ -45,11 +41,7 @@ export default function FeatureCard({
           },
         ]}
       >
-        <Ionicons
-          name={icon}
-          size={22}
-          color="#FFFFFF"
-        />
+        <Ionicons name={icon} size={22} color="#FFFFFF" />
       </View>
 
       <Text

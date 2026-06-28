@@ -18,7 +18,10 @@ import {
   Animated,
   Dimensions,
 } from "react-native";
-import { useSafeAreaInsets, type EdgeInsets } from "react-native-safe-area-context";
+import {
+  useSafeAreaInsets,
+  type EdgeInsets,
+} from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts, FontSizes } from "../constants/theme";
 import { ScaledSheet } from "react-native-size-matters";
@@ -27,15 +30,16 @@ import { useDrawer } from "../contexts/DrawerContext";
 import { useAuth } from "../contexts/AuthContext";
 import { router } from "expo-router";
 
-
 const SCREEN_WIDTH: number = Dimensions.get("window").width;
 const DRAWER_WIDTH: number = SCREEN_WIDTH * 0.78;
 const ANIMATION_DURATION: number = 280;
 
-
-
-
-function MenuItem({ icon, label, onPress, colors }: MenuItemProps): React.JSX.Element {
+function MenuItem({
+  icon,
+  label,
+  onPress,
+  colors,
+}: MenuItemProps): React.JSX.Element {
   return (
     <TouchableOpacity
       style={styles.menuItem}
@@ -45,13 +49,17 @@ function MenuItem({ icon, label, onPress, colors }: MenuItemProps): React.JSX.El
       accessibilityLabel={label}
     >
       <Ionicons name={icon} size={22} color={colors.textSecondary} />
-      <Text style={[styles.menuLabel, { color: colors.text, fontFamily: Fonts.medium }]}>
+      <Text
+        style={[
+          styles.menuLabel,
+          { color: colors.text, fontFamily: Fonts.medium },
+        ]}
+      >
         {label}
       </Text>
     </TouchableOpacity>
   );
 }
-
 
 export default function SideDrawer(): React.JSX.Element | null {
   const { isOpen, closeDrawer } = useDrawer();
@@ -59,8 +67,9 @@ export default function SideDrawer(): React.JSX.Element | null {
   const { signOut, user } = useAuth();
   const insets: EdgeInsets = useSafeAreaInsets();
 
-
-  const translateX = useRef<Animated.Value>(new Animated.Value(DRAWER_WIDTH)).current;
+  const translateX = useRef<Animated.Value>(
+    new Animated.Value(DRAWER_WIDTH),
+  ).current;
   const backdropOpacity = useRef<Animated.Value>(new Animated.Value(0)).current;
 
   useEffect((): void => {
@@ -93,9 +102,8 @@ export default function SideDrawer(): React.JSX.Element | null {
     }
   }, [isOpen, translateX, backdropOpacity]);
 
-
   const thumbTranslateX = useRef<Animated.Value>(
-    new Animated.Value(isDark ? 28 : 0)
+    new Animated.Value(isDark ? 28 : 0),
   ).current;
 
   useEffect((): void => {
@@ -106,14 +114,12 @@ export default function SideDrawer(): React.JSX.Element | null {
     }).start();
   }, [isDark, thumbTranslateX]);
 
-  // Don't render anything if never opened (perf)
   const hasBeenOpened = useRef<boolean>(false);
   if (isOpen) hasBeenOpened.current = true;
   if (!hasBeenOpened.current) return null;
 
   return (
     <View style={styles.overlay} pointerEvents={isOpen ? "auto" : "none"}>
-
       <TouchableWithoutFeedback onPress={closeDrawer}>
         <Animated.View
           style={[
@@ -122,7 +128,6 @@ export default function SideDrawer(): React.JSX.Element | null {
           ]}
         />
       </TouchableWithoutFeedback>
-
 
       <Animated.View
         style={[
@@ -137,29 +142,42 @@ export default function SideDrawer(): React.JSX.Element | null {
           },
         ]}
       >
-
         <View style={styles.profileSection}>
-          <View style={[styles.avatarCircle, { borderColor: colors.textMuted }]}>
-            <Ionicons name="person-outline" size={28} color={colors.textSecondary} />
+          <View
+            style={[styles.avatarCircle, { borderColor: colors.textMuted }]}
+          >
+            <Ionicons
+              name="person-outline"
+              size={28}
+              color={colors.textSecondary}
+            />
           </View>
 
           <View style={styles.profileInfo}>
-            <Text style={[styles.profileName, { color: colors.text, fontFamily: Fonts.semiBold }]}>
+            <Text
+              style={[
+                styles.profileName,
+                { color: colors.text, fontFamily: Fonts.semiBold },
+              ]}
+            >
               {user?.displayName || user?.email?.split("@")[0] || "User"}
             </Text>
-            <TouchableOpacity 
-              activeOpacity={0.7} 
+            <TouchableOpacity
+              activeOpacity={0.7}
               accessibilityLabel="Sign Out"
               onPress={async () => {
                 try {
                   await signOut();
                   closeDrawer();
-                } catch (e) {
-                  console.error(e);
-                }
+                } catch {}
               }}
             >
-              <Text style={[styles.signOutText, { color: colors.error, fontFamily: Fonts.medium }]}>
+              <Text
+                style={[
+                  styles.signOutText,
+                  { color: colors.error, fontFamily: Fonts.medium },
+                ]}
+              >
                 Sign Out
               </Text>
             </TouchableOpacity>
@@ -176,18 +194,18 @@ export default function SideDrawer(): React.JSX.Element | null {
           </TouchableOpacity>
         </View>
 
-
-        <View style={[styles.separator, { backgroundColor: colors.navbarBorder }]} />
-
+        <View
+          style={[styles.separator, { backgroundColor: colors.navbarBorder }]}
+        />
 
         <View style={styles.menuSection}>
           <MenuItem
-          icon="settings-outline"
-          label="Settings"
-          colors={colors}
-          onPress={() => {
-            closeDrawer();
-            router.push("/settings");
+            icon="settings-outline"
+            label="Settings"
+            colors={colors}
+            onPress={() => {
+              closeDrawer();
+              router.push("/settings");
             }}
           />
           <MenuItem
@@ -197,13 +215,16 @@ export default function SideDrawer(): React.JSX.Element | null {
           />
         </View>
 
-
         <View style={{ flex: 1 }} />
-
 
         <View style={styles.themeSection}>
           <View style={styles.themeToggleRow}>
-            <Text style={[styles.themeLabel, { color: colors.text, fontFamily: Fonts.medium }]}>
+            <Text
+              style={[
+                styles.themeLabel,
+                { color: colors.text, fontFamily: Fonts.medium },
+              ]}
+            >
               {isDark ? "Dark" : "Light"}
             </Text>
 
@@ -218,7 +239,9 @@ export default function SideDrawer(): React.JSX.Element | null {
                 style={[
                   styles.toggleTrack,
                   {
-                    backgroundColor: isDark ? colors.toggleTrackActive : colors.toggleTrackInactive,
+                    backgroundColor: isDark
+                      ? colors.toggleTrackActive
+                      : colors.toggleTrackInactive,
                   },
                 ]}
               >
@@ -239,12 +262,19 @@ export default function SideDrawer(): React.JSX.Element | null {
                   />
                 </Animated.View>
 
-
                 <View style={[styles.toggleIcon, { left: 6 }]}>
-                  <Ionicons name="sunny" size={14} color={isDark ? colors.textMuted : "transparent"} />
+                  <Ionicons
+                    name="sunny"
+                    size={14}
+                    color={isDark ? colors.textMuted : "transparent"}
+                  />
                 </View>
                 <View style={[styles.toggleIcon, { right: 6 }]}>
-                  <Ionicons name="moon" size={14} color={isDark ? "transparent" : colors.textMuted} />
+                  <Ionicons
+                    name="moon"
+                    size={14}
+                    color={isDark ? "transparent" : colors.textMuted}
+                  />
                 </View>
               </View>
             </TouchableOpacity>
@@ -254,7 +284,6 @@ export default function SideDrawer(): React.JSX.Element | null {
     </View>
   );
 }
-
 
 const styles = ScaledSheet.create({
   overlay: {
