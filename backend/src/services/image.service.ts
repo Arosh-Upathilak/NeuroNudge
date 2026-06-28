@@ -15,10 +15,10 @@ export class CloudinaryService {
         imageUrl: result.secure_url,
       };
     } catch (error) {
-      // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
       throw new Error(
         `Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`,
-        { cause: error },
+        // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
+        { cause: error }
       );
     }
   }
@@ -36,10 +36,10 @@ export class CloudinaryService {
         message: "Image deleted successfully",
       };
     } catch (error) {
-      // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
       throw new Error(
         `Failed to delete image from Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`,
-        { cause: error },
+        // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
+        { cause: error }
       );
     }
   }
@@ -55,10 +55,10 @@ export class CloudinaryService {
         imageUrl: result.imageUrl,
       };
     } catch (error) {
-      // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
       throw new Error(
         `Failed to update image: ${error instanceof Error ? error.message : "Unknown error"}`,
-        { cause: error },
+        // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
+        { cause: error }
       );
     }
   }
@@ -76,10 +76,10 @@ export class CloudinaryService {
         imageUrl: result.secure_url,
       };
     } catch (error) {
-      // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
       throw new Error(
         `Failed to replace image: ${error instanceof Error ? error.message : "Unknown error"}`,
-        { cause: error },
+        // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
+        { cause: error }
       );
     }
   }
