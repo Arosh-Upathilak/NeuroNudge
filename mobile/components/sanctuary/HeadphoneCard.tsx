@@ -2,6 +2,8 @@ import React from "react";
 import {
   View,
   Text,
+  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
@@ -10,15 +12,27 @@ import { ScaledSheet } from "react-native-size-matters";
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 
-export default function HeadphoneCard(): React.JSX.Element {
+interface HeadphoneCardProps {
+  isConnected?: boolean;
+  isConnecting?: boolean;
+  deviceName?: string;
+  onConnectToggle?: () => void;
+}
+
+export default function HeadphoneCard({ isConnected = false, isConnecting = false, deviceName, onConnectToggle }: HeadphoneCardProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onConnectToggle}
+      disabled={isConnecting}
       style={[
         styles.card,
         {
-          backgroundColor: colors.card,
+          backgroundColor: isConnected ? colors.primary + "15" : colors.card,
+          borderColor: isConnected ? colors.primary : "transparent",
+          borderWidth: 1,
         },
       ]}
     >
@@ -26,15 +40,19 @@ export default function HeadphoneCard(): React.JSX.Element {
         style={[
           styles.iconContainer,
           {
-            backgroundColor: colors.surface,
+            backgroundColor: isConnected || isConnecting ? colors.primary : colors.surface,
           },
         ]}
       >
-        <Ionicons
-          name="headset"
-          size={22}
-          color={colors.primary}
-        />
+        {isConnecting ? (
+          <ActivityIndicator size="small" color={colors.background} />
+        ) : (
+          <Ionicons
+            name="headset"
+            size={22}
+            color={isConnected ? colors.background : colors.primary}
+          />
+        )}
       </View>
 
       <View style={styles.textContainer}>
@@ -42,26 +60,33 @@ export default function HeadphoneCard(): React.JSX.Element {
           style={[
             styles.title,
             {
-              color: colors.text,
+              color: isConnected || isConnecting ? colors.primary : colors.text,
             },
           ]}
         >
-          Optimize your experience
+          {isConnecting
+            ? "Scanning for devices..."
+            : isConnected
+            ? deviceName || "Supported Headphones"
+            : "Optimize your experience"}
         </Text>
 
         <Text
           style={[
             styles.description,
             {
-              color: colors.textSecondary,
+              color: isConnected || isConnecting ? colors.primary : colors.textSecondary,
             },
           ]}
         >
-          Connect headphones for active noise
-          cancellation suggestions.
+          {isConnecting
+            ? "Searching for nearby supported headphones."
+            : isConnected
+            ? "Supported headphone is connected."
+            : "Tap to check for a compatible headphone to enable active noise cancellation."}
         </Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

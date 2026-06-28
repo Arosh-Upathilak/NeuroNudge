@@ -4,11 +4,12 @@
  */
 
 import React, { useState, useEffect, useRef } from "react";
-import { Text, ScrollView } from "react-native";
+import { Text, ScrollView, PermissionsAndroid, Platform, Alert } from "react-native";
 import { Fonts } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 import NoiseLevelCard from "../../components/sanctuary/NoiseLevelCard";
 import ThresholdCard from "../../components/sanctuary/ThresholdCard";
+import DelayCard from "../../components/sanctuary/DelayCard";
 import ThresholdActionCard from "../../components/sanctuary/ThresholdActionCard";
 import HeadphoneCard from "../../components/sanctuary/HeadphoneCard";
 
@@ -20,6 +21,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
 import { createAudioPlayer } from "expo-audio";
 
+import { HeadphoneManager } from "../../services/headphones/HeadphoneManager";
+import { AncMode } from "../../services/headphones/types";
+
 type ThresholdAction = "none" | "sound" | "anc" | "both";
 type BackgroundSound = "ocean" | "river" | "rain";
 
@@ -28,9 +32,14 @@ export default function SanctuaryScreen(): React.JSX.Element {
 
   const [currentLevel, setCurrentLevel] = useState(42);
   const [threshold, setThreshold] = useState(65);
+  const [sustainDuration, setSustainDuration] = useState(2);
+  const [isLoudSustained, setIsLoudSustained] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState<boolean | null>(null);
   const [isMonitoring, setIsMonitoring] = useState(false);
   const [isMonitoringEnabled, setIsMonitoringEnabled] = useState(true);
+  const [isHeadphoneConnected, setIsHeadphoneConnected] = useState(false);
+  const [connectedDeviceName, setConnectedDeviceName] = useState<string>("");
+  const [isConnecting, setIsConnecting] = useState(false);
 
   // Threshold Actions & Background Sounds States
   const [action, setAction] = useState<ThresholdAction>("none");
@@ -39,6 +48,7 @@ export default function SanctuaryScreen(): React.JSX.Element {
   const isFocusedRef = useRef(false);
   const hasTriggeredHaptic = useRef(false);
   const isRunningRef = useRef(false);
+  const loudSinceRef = useRef<number | null>(null);
   const readingsWindowRef = useRef<{ db: number; timestamp: number }[]>([]);
 
   // Audio Playback & Fading Refs
@@ -115,8 +125,8 @@ export default function SanctuaryScreen(): React.JSX.Element {
 
     if (playerRef.current) {
       try {
-        playerRef.current.stop();
-        playerRef.current.release();
+        playerRef.current.pause();
+        playerRef.current.remove();
       } catch (err) {
         console.log("Error releasing sound instantly:", err);
       }
@@ -160,7 +170,7 @@ export default function SanctuaryScreen(): React.JSX.Element {
 
       // Async race condition check: if stopAmbientSound was called before player loaded
       if (!shouldBePlayingRef.current) {
-        player.release();
+        player.remove();
         return;
       }
 
@@ -232,8 +242,8 @@ export default function SanctuaryScreen(): React.JSX.Element {
 
         try {
           if (playerRef.current) {
-            playerRef.current.stop();
-            playerRef.current.release();
+            playerRef.current.pause();
+            playerRef.current.remove();
           }
         } catch (err) {
           console.log("Error releasing sound after fade-out:", err);
@@ -252,6 +262,11 @@ export default function SanctuaryScreen(): React.JSX.Element {
         const savedThreshold = await AsyncStorage.getItem("sanctuary_threshold");
         if (savedThreshold !== null) {
           setThreshold(parseInt(savedThreshold, 10));
+        }
+
+        const savedSustain = await AsyncStorage.getItem("sanctuary_sustain");
+        if (savedSustain !== null) {
+          setSustainDuration(parseInt(savedSustain, 10));
         }
 
         const savedAction = await AsyncStorage.getItem("sanctuary_action");
@@ -284,13 +299,12 @@ export default function SanctuaryScreen(): React.JSX.Element {
       const rawDb = Math.max(minDb, Math.min(maxDb, db));
 
       const now = Date.now();
-      // Add new reading to window
       readingsWindowRef.current.push({ db: rawDb, timestamp: now });
 
-      // Keep only readings from the last 10 seconds
-      const tenSecondsAgo = now - 10000;
+      // Keep only readings from the last 5 seconds
+      const fiveSecondsAgo = now - 5000;
       readingsWindowRef.current = readingsWindowRef.current.filter(
-        (r) => r.timestamp >= tenSecondsAgo
+        (r) => r.timestamp >= fiveSecondsAgo
       );
 
       // Compute rolling average
@@ -321,6 +335,13 @@ export default function SanctuaryScreen(): React.JSX.Element {
     console.log("Sanctuary Noise Monitoring Error:", event.error, event.message);
     setIsMonitoring(false);
     isRunningRef.current = false;
+
+    // Automatically restart on no-speech to keep monitoring alive
+    if (event.error === "no-speech" && isFocusedRef.current && permissionGranted && isMonitoringEnabled) {
+      setTimeout(() => {
+        startMonitoring();
+      }, 1000);
+    }
   });
 
   // Check Haptics whenever level changes
@@ -335,13 +356,42 @@ export default function SanctuaryScreen(): React.JSX.Element {
     }
   }, [currentLevel, threshold, permissionGranted, isMonitoringEnabled]);
 
-  // Audio Playback trigger based on threshold breach
+  // Track sustained loud duration
   useEffect(() => {
     const isLoud = currentLevel > threshold;
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    
+    if (isLoud) {
+      if (loudSinceRef.current === null) {
+        loudSinceRef.current = Date.now();
+      }
+      
+      const timeLoud = Date.now() - loudSinceRef.current;
+      const timeRemaining = (sustainDuration * 1000) - timeLoud;
+      
+      if (timeRemaining <= 0) {
+        setIsLoudSustained(true);
+      } else {
+        timeout = setTimeout(() => {
+          setIsLoudSustained(true);
+        }, timeRemaining);
+      }
+    } else {
+      loudSinceRef.current = null;
+      setIsLoudSustained(false);
+    }
+    
+    return () => {
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [currentLevel, threshold, sustainDuration]);
+
+  // Audio Playback trigger based on threshold breach
+  useEffect(() => {
     const shouldPlaySound =
       isMonitoringEnabled &&
       permissionGranted &&
-      isLoud &&
+      isLoudSustained &&
       (action === "sound" || action === "both");
 
     if (shouldPlaySound) {
@@ -350,14 +400,37 @@ export default function SanctuaryScreen(): React.JSX.Element {
       stopAmbientSound();
     }
   }, [
-    currentLevel,
-    threshold,
+    isLoudSustained,
     action,
     selectedSound,
     permissionGranted,
     isMonitoringEnabled,
     playAmbientSound,
     stopAmbientSound,
+  ]);
+
+  // ANC trigger based on threshold breach
+  useEffect(() => {
+    const shouldTriggerAnc =
+      isMonitoringEnabled &&
+      permissionGranted &&
+      isLoudSustained &&
+      (action === "anc" || action === "both");
+
+    if (isHeadphoneConnected) {
+      if (shouldTriggerAnc) {
+        HeadphoneManager.getInstance().setAncMode(AncMode.ANC_ON);
+      } else {
+        // Revert to normal mode when loud noise subsides
+        HeadphoneManager.getInstance().setAncMode(AncMode.NORMAL);
+      }
+    }
+  }, [
+    isLoudSustained,
+    action,
+    permissionGranted,
+    isMonitoringEnabled,
+    isHeadphoneConnected,
   ]);
 
   // Manage monitoring lifecycle based on screen focus
@@ -404,6 +477,16 @@ export default function SanctuaryScreen(): React.JSX.Element {
     }
   };
 
+  const handleDelayChange = async (val: number) => {
+    const rounded = Math.round(val);
+    setSustainDuration(rounded);
+    try {
+      await AsyncStorage.setItem("sanctuary_sustain", rounded.toString());
+    } catch (err) {
+      console.log("Error saving sustain duration:", err);
+    }
+  };
+
   const handleActionChange = async (newAction: ThresholdAction) => {
     setAction(newAction);
     try {
@@ -419,6 +502,53 @@ export default function SanctuaryScreen(): React.JSX.Element {
       await AsyncStorage.setItem("sanctuary_sound", newSound);
     } catch (err) {
       console.log("Error saving sound:", err);
+    }
+  };
+
+  const handleHeadphoneConnectToggle = async () => {
+    if (isHeadphoneConnected) {
+      // Do nothing if already connected, as requested
+      return;
+    }
+
+    try {
+      let granted = true;
+      if (Platform.OS === "android" && Platform.Version >= 31) {
+        const result = await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        ]);
+        granted =
+          result[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] ===
+          PermissionsAndroid.RESULTS.GRANTED;
+      }
+
+      if (!granted) {
+        Alert.alert(
+          "Permission Required",
+          "Bluetooth permission is required to detect headphones."
+        );
+        return;
+      }
+
+      setIsConnecting(true);
+      
+      const manager = HeadphoneManager.getInstance();
+      const integration = await manager.scanAndConnect();
+      
+      if (integration) {
+        setIsHeadphoneConnected(true);
+        setConnectedDeviceName(integration.getDeviceName());
+      } else {
+        Alert.alert(
+          "Device Not Found",
+          "Could not find any supported headphones. Please ensure they are paired in your Android Bluetooth settings first."
+        );
+      }
+      setIsConnecting(false);
+    } catch (err) {
+      console.log("Error requesting BT permissions:", err);
+      setIsConnecting(false);
     }
   };
 
@@ -466,6 +596,11 @@ export default function SanctuaryScreen(): React.JSX.Element {
           onValueChange={handleThresholdChange}
         />
 
+        <DelayCard
+          delay={sustainDuration}
+          onValueChange={handleDelayChange}
+        />
+
         <ThresholdActionCard
           action={action}
           onActionChange={handleActionChange}
@@ -473,7 +608,12 @@ export default function SanctuaryScreen(): React.JSX.Element {
           onSelectedSoundChange={handleSelectedSoundChange}
         />
 
-        <HeadphoneCard />
+        <HeadphoneCard
+          isConnected={isHeadphoneConnected}
+          isConnecting={isConnecting}
+          deviceName={connectedDeviceName}
+          onConnectToggle={handleHeadphoneConnectToggle}
+        />
       </ScrollView>
     </SafeAreaView>
   );
