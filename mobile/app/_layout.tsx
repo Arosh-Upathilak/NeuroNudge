@@ -76,24 +76,25 @@ function ThemedApp(): React.JSX.Element {
   useEffect(() => {
     if (isLoading) return;
 
-    const inAuthGroup = segments[0] === "(auth)";
+    const safeSegments = segments as string[];
+    const inAuthGroup = safeSegments[0] === "(auth)";
 
     if (user) {
       if (user.emailVerified) {
         // Logged in and verified: Redirect away from auth screens and index
-        if (inAuthGroup || !segments[0]) {
+        if (inAuthGroup || !safeSegments[0]) {
           router.replace("/(tabs)" as any);
         }
       } else {
         // Logged in but not verified: Must be on verify-email or check-email
-        if (segments[1] !== "verify-email" && segments[1] !== "check-email") {
+        if (safeSegments[1] !== "verify-email" && safeSegments[1] !== "check-email") {
           router.replace("/verify-email" as any);
         }
       }
     } else {
       // Not logged in: Must be in the auth group (e.g. login, signup)
       // but not on verify-email which requires a user object
-      if (!inAuthGroup || segments[1] === "verify-email") {
+      if (!inAuthGroup || safeSegments[1] === "verify-email") {
         router.replace("/login" as any);
       }
     }
