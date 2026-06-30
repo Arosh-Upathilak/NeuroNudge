@@ -10,6 +10,7 @@ import {
   PermissionsAndroid,
   Platform,
   Alert,
+  AppState,
 } from "react-native";
 import { Fonts } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
@@ -28,6 +29,7 @@ import {
 } from "expo-speech-recognition";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Haptics from "expo-haptics";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { createAudioPlayer } from "expo-audio";
 
 import { HeadphoneManager } from "../../services/headphones/HeadphoneManager";
@@ -160,8 +162,6 @@ export default function SanctuaryScreen(): React.JSX.Element {
 
   const playAmbientSound = React.useCallback(
     async (soundType: BackgroundSound) => {
-      shouldBePlayingRef.current = true;
-
       if (fadeOutIntervalRef.current) {
         clearInterval(fadeOutIntervalRef.current);
         fadeOutIntervalRef.current = null;
@@ -171,41 +171,46 @@ export default function SanctuaryScreen(): React.JSX.Element {
         await unloadSoundInstantly();
       }
 
-      if (playerRef.current) {
-        return;
-      }
+      shouldBePlayingRef.current = true;
 
-      const urls = {
-        rain: "https://archive.org/download/jamendo-082208/01.mp3",
-        river: "https://archive.org/download/jamendo-082208/02.mp3",
-        ocean: "https://archive.org/download/jamendo-082208/03.mp3",
-      };
-      const targetUrl = urls[soundType];
+      let player = playerRef.current;
 
-      try {
-        lastSoundTypeRef.current = soundType;
+      if (!player) {
+        const urls = {
+          rain: "https://archive.org/download/jamendo-082208/01.mp3",
+          river: "https://archive.org/download/jamendo-082208/02.mp3",
+          ocean: "https://archive.org/download/jamendo-082208/03.mp3",
+        };
+        const targetUrl = urls[soundType];
 
-        const player = createAudioPlayer(targetUrl);
-        player.loop = true;
-        player.volume = 0;
+        try {
+          lastSoundTypeRef.current = soundType;
 
-        if (!shouldBePlayingRef.current) {
-          player.remove();
+          player = createAudioPlayer(targetUrl);
+          player.loop = true;
+          player.volume = 0;
+
+          if (!shouldBePlayingRef.current) {
+            player.remove();
+            return;
+          }
+
+          playerRef.current = player;
+          await player.play();
+          currentVolumeRef.current = 0;
+        } catch {
           return;
         }
+      }
 
-        playerRef.current = player;
-        await player.play();
-        currentVolumeRef.current = 0;
+      if (fadeInIntervalRef.current) clearInterval(fadeInIntervalRef.current);
 
-        if (fadeInIntervalRef.current) clearInterval(fadeInIntervalRef.current);
+      const targetVol = 0.5;
+      const duration = 1500;
+      const intervalMs = 100;
+      const step = targetVol / (duration / intervalMs);
 
-        const targetVol = 0.5;
-        const duration = 1500;
-        const intervalMs = 100;
-        const step = targetVol / (duration / intervalMs);
-
-        fadeInIntervalRef.current = setInterval(async () => {
+      fadeInIntervalRef.current = setInterval(async () => {
           currentVolumeRef.current = Math.min(
             targetVol,
             currentVolumeRef.current + step,
@@ -222,7 +227,6 @@ export default function SanctuaryScreen(): React.JSX.Element {
             fadeInIntervalRef.current = null;
           }
         }, intervalMs);
-      } catch {}
     },
     [unloadSoundInstantly],
   );
@@ -368,8 +372,9 @@ export default function SanctuaryScreen(): React.JSX.Element {
     }
   }, [currentLevel, threshold, permissionGranted, isMonitoringEnabled]);
 
+  const isLoud = currentLevel > threshold;
+
   useEffect(() => {
-    const isLoud = currentLevel > threshold;
     let timeout: ReturnType<typeof setTimeout> | null = null;
 
     if (isLoud) {
@@ -395,7 +400,7 @@ export default function SanctuaryScreen(): React.JSX.Element {
     return () => {
       if (timeout) clearTimeout(timeout);
     };
-  }, [currentLevel, threshold, sustainDuration]);
+  }, [isLoud, sustainDuration]);
 
   useEffect(() => {
     const shouldNotify =
@@ -477,6 +482,7 @@ export default function SanctuaryScreen(): React.JSX.Element {
   useFocusEffect(
     React.useCallback(() => {
       isFocusedRef.current = true;
+      activateKeepAwakeAsync("sanctuary").catch(() => {});
 
       const initMonitoring = async () => {
         try {
@@ -501,6 +507,7 @@ export default function SanctuaryScreen(): React.JSX.Element {
 
       return () => {
         isFocusedRef.current = false;
+        deactivateKeepAwake("sanctuary").catch(() => {});
         stopMonitoring();
         unloadSoundInstantly();
       };
@@ -511,6 +518,34 @@ export default function SanctuaryScreen(): React.JSX.Element {
       unloadSoundInstantly,
     ]),
   );
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState.match(/inactive|background/)) {
+        deactivateKeepAwake("sanctuary").catch(() => {});
+        stopMonitoring();
+        unloadSoundInstantly();
+      } else if (nextAppState === "active") {
+        if (isFocusedRef.current) {
+          activateKeepAwakeAsync("sanctuary").catch(() => {});
+          if (isMonitoringEnabled && permissionGranted) {
+            startMonitoring();
+          }
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [
+    stopMonitoring,
+    unloadSoundInstantly,
+    isMonitoringEnabled,
+    permissionGranted,
+    startMonitoring,
+  ]);
+
 
   const handleThresholdChange = async (val: number) => {
     const rounded = Math.round(val);

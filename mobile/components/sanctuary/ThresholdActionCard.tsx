@@ -292,10 +292,11 @@ const styles = ScaledSheet.create({
 
   soundTab: {
     flex: 1,
-    flexDirection: "row",
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: "10@vs",
+    paddingVertical: "8@vs",
+    paddingHorizontal: "4@s",
     borderRadius: "12@s",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
@@ -305,10 +306,11 @@ const styles = ScaledSheet.create({
   },
 
   soundIcon: {
-    marginRight: "4@s",
+    marginBottom: "4@vs",
   },
 
   soundLabel: {
     fontSize: "11@s",
+    textAlign: "center",
   },
 });
