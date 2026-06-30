@@ -7,19 +7,16 @@ import { MessageRole } from "@prisma/client";
 const messageService = new MessageService();
 
 const getErrorMessage = (error: unknown): string =>
-  error instanceof Error
-    ? error.message
-    : "Internal Server Error";
+  error instanceof Error ? error.message : "Internal Server Error";
 
 /* ================= PARAM HELPER ================= */
-const toString = (v: string | string[]) =>
-  Array.isArray(v) ? v[0] : v;
+const toString = (v: string | string[]) => (Array.isArray(v) ? v[0] : v);
 
 export const MessageController = {
   /* ================= CREATE MESSAGE ================= */
   createMessage: async (
     req: AuthRequest<object, object, CreateMessageRequestBody>,
-    res: Response
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -70,8 +67,6 @@ export const MessageController = {
       });
     }
   },
-
- 
 
   /* ================= DELETE MESSAGE ================= */
   deleteMessage: async (req: AuthRequest, res: Response) => {

@@ -6,10 +6,6 @@
 
 import { useThemeContext } from "../contexts/ThemeContext";
 
-
-
-
-
 export function useTheme(): UseThemeReturn {
   const { isDark, colors, toggleTheme } = useThemeContext();
 

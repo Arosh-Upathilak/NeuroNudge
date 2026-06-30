@@ -17,32 +17,27 @@ import { useColorScheme, type ColorSchemeName } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Colors } from "../constants/theme";
 
-
 const THEME_STORAGE_KEY: string = "neuronudge_theme_mode";
-
-
-
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-
-export function ThemeProvider({ children }: PropsWithChildren): React.JSX.Element {
+export function ThemeProvider({
+  children,
+}: PropsWithChildren): React.JSX.Element {
   const systemColorScheme: ColorSchemeName = useColorScheme();
   const [themeMode, setThemeModeState] = useState<ThemeMode>(
-    systemColorScheme === "dark" ? "dark" : "light"
+    systemColorScheme === "dark" ? "dark" : "light",
   );
 
-  // Load persistent theme preference on initialization
   useEffect((): void => {
     const loadTheme = async (): Promise<void> => {
       try {
-        const storedTheme: string | null = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+        const storedTheme: string | null =
+          await AsyncStorage.getItem(THEME_STORAGE_KEY);
         if (storedTheme === "light" || storedTheme === "dark") {
           setThemeModeState(storedTheme);
         }
-      } catch (error) {
-        console.error("Failed to load theme preference from AsyncStorage:", error);
-      }
+      } catch {}
     };
     loadTheme();
   }, [setThemeModeState]);
@@ -52,17 +47,17 @@ export function ThemeProvider({ children }: PropsWithChildren): React.JSX.Elemen
 
   const setThemeMode = useCallback((mode: ThemeMode): void => {
     setThemeModeState(mode);
-    AsyncStorage.setItem(THEME_STORAGE_KEY, mode).catch((error: unknown): void => {
-      console.error("Failed to save theme preference to AsyncStorage:", error);
-    });
+    AsyncStorage.setItem(THEME_STORAGE_KEY, mode).catch(
+      (error: unknown): void => {},
+    );
   }, []);
 
   const toggleTheme = useCallback((): void => {
     setThemeModeState((prev: ThemeMode): ThemeMode => {
       const next: ThemeMode = prev === "dark" ? "light" : "dark";
-      AsyncStorage.setItem(THEME_STORAGE_KEY, next).catch((error: unknown): void => {
-        console.error("Failed to save toggled theme preference to AsyncStorage:", error);
-      });
+      AsyncStorage.setItem(THEME_STORAGE_KEY, next).catch(
+        (error: unknown): void => {},
+      );
       return next;
     });
   }, []);
@@ -75,16 +70,13 @@ export function ThemeProvider({ children }: PropsWithChildren): React.JSX.Elemen
       toggleTheme,
       setThemeMode,
     }),
-    [isDark, colors, themeMode, toggleTheme, setThemeMode]
+    [isDark, colors, themeMode, toggleTheme, setThemeMode],
   );
 
   return (
-    <ThemeContext.Provider value={value}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
-
 
 export function useThemeContext(): ThemeContextType {
   const context: ThemeContextType | undefined = useContext(ThemeContext);

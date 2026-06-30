@@ -51,19 +51,24 @@ export default function SignupScreen(): React.JSX.Element {
     }
 
     if (password.length < 6) {
-      Alert.alert("Validation Error", "Password must be at least 6 characters.");
+      Alert.alert(
+        "Validation Error",
+        "Password must be at least 6 characters.",
+      );
       return;
     }
 
     if (!acceptedTerms) {
-      Alert.alert("Validation Error", "Please accept the Terms and Conditions.");
+      Alert.alert(
+        "Validation Error",
+        "Please accept the Terms and Conditions.",
+      );
       return;
     }
 
     setIsSubmitting(true);
     try {
       await signUp(email.trim(), password, fullName.trim());
-      // Navigation is handled by the route guard in _layout.tsx
     } catch (error) {
       Alert.alert("Sign Up Failed", (error as Error).message);
     } finally {
@@ -73,10 +78,7 @@ export default function SignupScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: colors.background },
-      ]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <View style={styles.content}>
         <Text
@@ -236,11 +238,7 @@ export default function SignupScreen(): React.JSX.Element {
               onPress={() => setShowPassword(!showPassword)}
             >
               <Ionicons
-                name={
-                  showPassword
-                    ? "eye-outline"
-                    : "eye-off-outline"
-                }
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={22}
                 color={colors.textSecondary}
               />
@@ -264,11 +262,7 @@ export default function SignupScreen(): React.JSX.Element {
               ]}
             >
               {acceptedTerms && (
-                <Ionicons
-                  name="checkmark"
-                  size={14}
-                  color="#FFFFFF"
-                />
+                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
               )}
             </View>
 
@@ -281,21 +275,11 @@ export default function SignupScreen(): React.JSX.Element {
               ]}
             >
               I agree to the{" "}
-              <Text
-                style={[
-                  styles.linkText,
-                  { color: colors.primary },
-                ]}
-              >
+              <Text style={[styles.linkText, { color: colors.primary }]}>
                 Terms and Conditions
               </Text>{" "}
               and{" "}
-              <Text
-                style={[
-                  styles.linkText,
-                  { color: colors.primary },
-                ]}
-              >
+              <Text style={[styles.linkText, { color: colors.primary }]}>
                 Privacy Policy
               </Text>
               .
@@ -350,9 +334,7 @@ export default function SignupScreen(): React.JSX.Element {
             Already have an account?
           </Text>
 
-          <TouchableOpacity
-            onPress={() => router.push("/login" as any)}
-          >
+          <TouchableOpacity onPress={() => router.push("/login" as any)}>
             <Text
               style={[
                 styles.signInLink,
@@ -361,7 +343,8 @@ export default function SignupScreen(): React.JSX.Element {
                 },
               ]}
             >
-              {" "}Sign In
+              {" "}
+              Sign In
             </Text>
           </TouchableOpacity>
         </View>

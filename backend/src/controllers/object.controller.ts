@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import fs from "fs";
 import { CloudinaryService } from "../services/image.service";
 
 const cloudinaryService = new CloudinaryService();
@@ -16,9 +17,7 @@ export class UploadController {
         });
       }
 
-      const result = await cloudinaryService.uploadImage(
-        req.file.path
-      );
+      const result = await cloudinaryService.uploadImage(req.file.path);
 
       return res.status(200).json({
         success: true,
@@ -29,6 +28,14 @@ export class UploadController {
         success: false,
         message: "Upload failed",
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   }
 
@@ -45,7 +52,7 @@ export class UploadController {
 
       const result = await cloudinaryService.replaceImage(
         publicId,
-        req.file.path
+        req.file.path,
       );
 
       return res.status(200).json({
@@ -57,16 +64,22 @@ export class UploadController {
         success: false,
         message: "Failed to update image",
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   }
 
   async deleteImage(req: Request, res: Response) {
     try {
       const { publicId } = req.body;
-      
-      const result = await cloudinaryService.deleteImage(
-        publicId
-      );
+
+      const result = await cloudinaryService.deleteImage(publicId);
 
       return res.status(200).json({
         success: true,

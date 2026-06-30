@@ -4,12 +4,7 @@ import tseslint from "typescript-eslint";
 
 export default tseslint.config(
   {
-    ignores: [
-      "dist/**",
-      "node_modules/**",
-      "coverage/**",
-      "*.config.js",
-    ],
+    ignores: ["dist/**", "node_modules/**", "coverage/**", "*.config.js"],
   },
 
   js.configs.recommended,
@@ -44,11 +39,10 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
 
       // Require semicolons
-      "semi": ["error", "always"],
+      semi: ["error", "always"],
 
       // Use single quotes
-      "quotes": ["error", "double"],
-
+      quotes: ["error", "double"],
     },
-  }
+  },
 );

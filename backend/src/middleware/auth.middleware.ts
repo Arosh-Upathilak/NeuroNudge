@@ -9,7 +9,7 @@ import { AuthRequest, AuthPayload } from "../types/auth.types";
 export const authMiddleware = async (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ): Promise<void> => {
   const authHeader = req.headers.authorization;
 

@@ -5,13 +5,11 @@ import { upload } from "../middleware/upload.middleware";
 
 const router = Router();
 
-
-
 router.post(
   "/",
   authMiddleware,
   upload.single("image"),
-  MemoryController.createMemory.bind(MemoryController)
+  MemoryController.createMemory.bind(MemoryController),
 );
 /**
  * GET ALL MEMORIES
@@ -19,7 +17,7 @@ router.post(
 router.get(
   "/",
   authMiddleware,
-  MemoryController.getMemories.bind(MemoryController)
+  MemoryController.getMemories.bind(MemoryController),
 );
 
 /**
@@ -27,8 +25,8 @@ router.get(
  */
 router.get(
   "/:id",
- authMiddleware,
-  MemoryController.getMemoryById.bind(MemoryController)
+  authMiddleware,
+  MemoryController.getMemoryById.bind(MemoryController),
 );
 
 /**
@@ -37,7 +35,7 @@ router.get(
 router.put(
   "/:id",
   authMiddleware,
-  MemoryController.updateMemory.bind(MemoryController)
+  MemoryController.updateMemory.bind(MemoryController),
 );
 
 /**
@@ -46,7 +44,7 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  MemoryController.deleteMemory.bind(MemoryController)
+  MemoryController.deleteMemory.bind(MemoryController),
 );
 
 /**
@@ -55,9 +53,9 @@ router.delete(
  */
 router.put(
   "/:id/image",
- authMiddleware,
+  authMiddleware,
   upload.single("image"),
-  MemoryController.upsertMemoryImage.bind(MemoryController)
+  MemoryController.upsertMemoryImage.bind(MemoryController),
 );
 
 /**
@@ -66,7 +64,7 @@ router.put(
 router.delete(
   "/:id/image",
   authMiddleware,
-  MemoryController.deleteMemoryImage.bind(MemoryController)
+  MemoryController.deleteMemoryImage.bind(MemoryController),
 );
 
 export default router;

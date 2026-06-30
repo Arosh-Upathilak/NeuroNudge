@@ -2,7 +2,11 @@
  * Google Sign-In web platform helper.
  * Uses Firebase's signInWithPopup and GoogleAuthProvider.
  */
-import { GoogleAuthProvider, signInWithPopup, type UserCredential } from "firebase/auth";
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  type UserCredential,
+} from "firebase/auth";
 import { auth } from "./firebase";
 
 /**

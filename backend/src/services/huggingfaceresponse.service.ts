@@ -1,8 +1,6 @@
 import { InferenceClient } from "@huggingface/inference";
 
-const client = new InferenceClient(
-  process.env.HUGGINGFACE_API_KEY as string
-);
+const client = new InferenceClient(process.env.HUGGINGFACE_API_KEY as string);
 
 export interface MemoryResponse {
   memoryId?: string;
@@ -24,7 +22,7 @@ export class HuggingFaceResponseService {
   async generateResponse(
     intent: string,
     question: string,
-    memories: MemoryResponse[]
+    memories: MemoryResponse[],
   ): Promise<AIResponse> {
     const prompt = `
 You are a memory assistant.
@@ -74,19 +72,18 @@ Return this exact schema:
           {
             role: "system",
             content:
-              "You are a memory assistant that always returns valid JSON."
+              "You are a memory assistant that always returns valid JSON.",
           },
           {
             role: "user",
-            content: prompt
-          }
+            content: prompt,
+          },
         ],
         temperature: 0.1,
-        max_tokens: 3000
+        max_tokens: 3000,
       });
 
-      const text =
-        response.choices?.[0]?.message?.content?.trim() || "";
+      const text = response.choices?.[0]?.message?.content?.trim() || "";
 
       const cleanedText = text
         .replace(/^```json\s*/i, "")
@@ -95,9 +92,7 @@ Return this exact schema:
         .trim();
 
       return JSON.parse(cleanedText) as AIResponse;
-    } catch (error) {
-      console.error("HuggingFace Response Error:", error);
-
+    } catch {
       return {
         status: "NOT_FOUND",
         reply: "Sorry, I couldn't process your request.",

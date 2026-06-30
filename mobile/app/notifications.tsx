@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -18,27 +24,45 @@ const FILTER_PILLS: NotificationFilter[] = ["All", "Unread", "Sound", "Items"];
 export default function NotificationsScreen(): React.JSX.Element {
   const router = useRouter();
   const { colors }: { colors: ThemeColors } = useTheme();
-  const { unreadCount, markAllAsRead, getFilteredNotifications, deleteNotification } = useNotifications();
-  
+  const {
+    unreadCount,
+    markAllAsRead,
+    getFilteredNotifications,
+    deleteNotification,
+  } = useNotifications();
+
   const [activeFilter, setActiveFilter] = useState<NotificationFilter>("All");
-  const [notificationToDelete, setNotificationToDelete] = useState<string | null>(null);
+  const [notificationToDelete, setNotificationToDelete] = useState<
+    string | null
+  >(null);
 
   const filteredNotifications = getFilteredNotifications(activeFilter);
-  const todayNotifications = filteredNotifications.filter((n) => n.section === "TODAY");
-  const earlierNotifications = filteredNotifications.filter((n) => n.section === "EARLIER");
+  const todayNotifications = filteredNotifications.filter(
+    (n) => n.section === "TODAY",
+  );
+  const earlierNotifications = filteredNotifications.filter(
+    (n) => n.section === "EARLIER",
+  );
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+    <SafeAreaView
+      style={[styles.container, { backgroundColor: colors.background }]}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Ionicons name="close-outline" size={28} color={colors.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Notifications</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          Notifications
+        </Text>
         {unreadCount > 0 && (
-          <Animated.View 
-            entering={FadeIn} 
-            exiting={FadeOut} 
+          <Animated.View
+            entering={FadeIn}
+            exiting={FadeOut}
             style={[styles.badge, { backgroundColor: colors.primary }]}
           >
             <Text style={styles.badgeText}>{unreadCount}</Text>
@@ -48,9 +72,9 @@ export default function NotificationsScreen(): React.JSX.Element {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Filters */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
           style={styles.filtersScroll}
           contentContainerStyle={styles.filtersContainer}
         >
@@ -61,14 +85,16 @@ export default function NotificationsScreen(): React.JSX.Element {
                 key={pill}
                 style={[
                   styles.pill,
-                  { backgroundColor: isActive ? colors.primary : colors.card }
+                  { backgroundColor: isActive ? colors.primary : colors.card },
                 ]}
                 onPress={() => setActiveFilter(pill)}
               >
-                <Text style={[
-                  styles.pillText,
-                  { color: isActive ? "#FFFFFF" : colors.text }
-                ]}>
+                <Text
+                  style={[
+                    styles.pillText,
+                    { color: isActive ? "#FFFFFF" : colors.text },
+                  ]}
+                >
                   {pill}
                 </Text>
               </TouchableOpacity>
@@ -78,15 +104,28 @@ export default function NotificationsScreen(): React.JSX.Element {
 
         {/* Mark All As Read */}
         {unreadCount > 0 && (
-          <Animated.View 
+          <Animated.View
             entering={FadeIn}
             exiting={FadeOut}
             layout={Layout.springify()}
             style={styles.markReadButton}
           >
-            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', gap: scale(4) }} onPress={markAllAsRead}>
-              <Ionicons name="checkmark-done-outline" size={16} color={colors.primary} />
-              <Text style={[styles.markReadText, { color: colors.primary }]}>Mark all as read</Text>
+            <TouchableOpacity
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: scale(4),
+              }}
+              onPress={markAllAsRead}
+            >
+              <Ionicons
+                name="checkmark-done-outline"
+                size={16}
+                color={colors.primary}
+              />
+              <Text style={[styles.markReadText, { color: colors.primary }]}>
+                Mark all as read
+              </Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -94,12 +133,22 @@ export default function NotificationsScreen(): React.JSX.Element {
         {/* TODAY SECTION */}
         {todayNotifications.length > 0 && (
           <Animated.View layout={Layout.springify()} style={styles.section}>
-            <Animated.Text layout={Layout.springify()} style={[styles.sectionTitle, { color: colors.textSecondary }]}>TODAY</Animated.Text>
+            <Animated.Text
+              layout={Layout.springify()}
+              style={[styles.sectionTitle, { color: colors.textSecondary }]}
+            >
+              TODAY
+            </Animated.Text>
             {todayNotifications.map((notification) => (
-              <Animated.View key={notification.id} entering={FadeIn} exiting={FadeOut} layout={Layout.springify()}>
-                <NotificationCard 
-                  notification={notification} 
-                  colors={colors} 
+              <Animated.View
+                key={notification.id}
+                entering={FadeIn}
+                exiting={FadeOut}
+                layout={Layout.springify()}
+              >
+                <NotificationCard
+                  notification={notification}
+                  colors={colors}
                   onDelete={() => setNotificationToDelete(notification.id)}
                 />
               </Animated.View>
@@ -109,13 +158,26 @@ export default function NotificationsScreen(): React.JSX.Element {
 
         {/* EARLIER SECTION */}
         {earlierNotifications.length > 0 && (
-          <Animated.View layout={Layout.springify()} style={[styles.section, { marginTop: verticalScale(12) }]}>
-            <Animated.Text layout={Layout.springify()} style={[styles.sectionTitle, { color: colors.textSecondary }]}>EARLIER</Animated.Text>
+          <Animated.View
+            layout={Layout.springify()}
+            style={[styles.section, { marginTop: verticalScale(12) }]}
+          >
+            <Animated.Text
+              layout={Layout.springify()}
+              style={[styles.sectionTitle, { color: colors.textSecondary }]}
+            >
+              EARLIER
+            </Animated.Text>
             {earlierNotifications.map((notification) => (
-              <Animated.View key={notification.id} entering={FadeIn} exiting={FadeOut} layout={Layout.springify()}>
-                <NotificationCard 
-                  notification={notification} 
-                  colors={colors} 
+              <Animated.View
+                key={notification.id}
+                entering={FadeIn}
+                exiting={FadeOut}
+                layout={Layout.springify()}
+              >
+                <NotificationCard
+                  notification={notification}
+                  colors={colors}
                   onDelete={() => setNotificationToDelete(notification.id)}
                 />
               </Animated.View>
@@ -127,41 +189,71 @@ export default function NotificationsScreen(): React.JSX.Element {
       {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity disabled={true} style={{ opacity: 0.5 }}>
-          <Text style={[styles.footerText, { color: colors.primary }]}>Notification Settings</Text>
+          <Text style={[styles.footerText, { color: colors.primary }]}>
+            Notification Settings
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Custom Confirmation Modal */}
       {notificationToDelete && (
-        <Animated.View 
-          entering={FadeIn} 
-          exiting={FadeOut} 
+        <Animated.View
+          entering={FadeIn}
+          exiting={FadeOut}
           style={StyleSheet.absoluteFillObject}
         >
-          <TouchableOpacity 
-            style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0,0,0,0.5)' }]} 
-            activeOpacity={1} 
-            onPress={() => setNotificationToDelete(null)} 
+          <TouchableOpacity
+            style={[
+              StyleSheet.absoluteFillObject,
+              { backgroundColor: "rgba(0,0,0,0.5)" },
+            ]}
+            activeOpacity={1}
+            onPress={() => setNotificationToDelete(null)}
           />
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: scale(20) }} pointerEvents="box-none">
-            <Animated.View entering={FadeIn.delay(100)} exiting={FadeOut} style={[styles.modalCard, { backgroundColor: colors.card }]}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Delete Notification</Text>
-              <Text style={[styles.modalText, { color: colors.textSecondary }]}>Are you sure you want to delete this notification?</Text>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              padding: scale(20),
+            }}
+            pointerEvents="box-none"
+          >
+            <Animated.View
+              entering={FadeIn.delay(100)}
+              exiting={FadeOut}
+              style={[styles.modalCard, { backgroundColor: colors.card }]}
+            >
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Delete Notification
+              </Text>
+              <Text style={[styles.modalText, { color: colors.textSecondary }]}>
+                Are you sure you want to delete this notification?
+              </Text>
               <View style={styles.modalButtons}>
-                <TouchableOpacity 
-                  style={[styles.modalButton, { backgroundColor: colors.background }]} 
+                <TouchableOpacity
+                  style={[
+                    styles.modalButton,
+                    { backgroundColor: colors.background },
+                  ]}
                   onPress={() => setNotificationToDelete(null)}
                 >
-                  <Text style={[styles.modalButtonText, { color: colors.text }]}>Cancel</Text>
+                  <Text
+                    style={[styles.modalButtonText, { color: colors.text }]}
+                  >
+                    Cancel
+                  </Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={[styles.modalButton, { backgroundColor: '#ff4444' }]} 
+                <TouchableOpacity
+                  style={[styles.modalButton, { backgroundColor: "#ff4444" }]}
                   onPress={() => {
                     deleteNotification(notificationToDelete);
                     setNotificationToDelete(null);
                   }}
                 >
-                  <Text style={[styles.modalButtonText, { color: '#ffffff' }]}>Delete</Text>
+                  <Text style={[styles.modalButtonText, { color: "#ffffff" }]}>
+                    Delete
+                  </Text>
                 </TouchableOpacity>
               </View>
             </Animated.View>
@@ -172,7 +264,15 @@ export default function NotificationsScreen(): React.JSX.Element {
   );
 }
 
-function NotificationCard({ notification, colors, onDelete }: { notification: NotificationItem, colors: ThemeColors, onDelete: () => void }) {
+function NotificationCard({
+  notification,
+  colors,
+  onDelete,
+}: {
+  notification: NotificationItem;
+  colors: ThemeColors;
+  onDelete: () => void;
+}) {
   return (
     <View style={[styles.card, { backgroundColor: colors.card }]}>
       {/* Left Icon */}
@@ -183,16 +283,35 @@ function NotificationCard({ notification, colors, onDelete }: { notification: No
       {/* Right Content */}
       <View style={styles.cardContent}>
         <View style={styles.cardHeader}>
-          <Text style={[styles.categoryTitle, { color: colors.primary }]}>{notification.category}</Text>
+          <Text style={[styles.categoryTitle, { color: colors.primary }]}>
+            {notification.category}
+          </Text>
           <View style={styles.timeContainer}>
-            <Text style={[styles.timeText, { color: colors.textSecondary }]}>{notification.timeAgo}</Text>
-            {notification.isUnread && <View style={[styles.unreadDot, { backgroundColor: colors.primary }]} />}
-            <TouchableOpacity onPress={onDelete} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
-              <Ionicons name="trash-outline" size={16} color={colors.textSecondary} style={{ marginLeft: scale(4) }} />
+            <Text style={[styles.timeText, { color: colors.textSecondary }]}>
+              {notification.timeAgo}
+            </Text>
+            {notification.isUnread && (
+              <View
+                style={[styles.unreadDot, { backgroundColor: colors.primary }]}
+              />
+            )}
+            <TouchableOpacity
+              onPress={onDelete}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name="trash-outline"
+                size={16}
+                color={colors.textSecondary}
+                style={{ marginLeft: scale(4) }}
+              />
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={[styles.messageText, { color: colors.text }]} numberOfLines={3}>
+        <Text
+          style={[styles.messageText, { color: colors.text }]}
+          numberOfLines={3}
+        >
           {notification.message}
         </Text>
       </View>

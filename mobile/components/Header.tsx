@@ -8,12 +8,7 @@
  */
 
 import React from "react";
-import {
-  View,
-  Text,
-
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -21,11 +16,7 @@ import { Fonts, FontSizes } from "../constants/theme";
 import { useTheme } from "../hooks/useTheme";
 import { useDrawer } from "../contexts/DrawerContext";
 
-
 import { ScaledSheet } from "react-native-size-matters";
-
-
-
 
 export default function Header(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
@@ -34,7 +25,7 @@ export default function Header(): React.JSX.Element {
 
   return (
     <SafeAreaView
-      edges={['top']}
+      edges={["top"]}
       style={[
         styles.container,
         {
@@ -43,7 +34,6 @@ export default function Header(): React.JSX.Element {
         },
       ]}
     >
-
       <Text style={[styles.brandText, { color: colors.headerText }]}>
         NeuroNudge
       </Text>
@@ -51,7 +41,7 @@ export default function Header(): React.JSX.Element {
       <View style={styles.iconsContainer}>
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => router.push('/notifications')}
+          onPress={() => router.push("/notifications")}
           activeOpacity={0.7}
           accessibilityLabel="Notifications"
           accessibilityRole="button"

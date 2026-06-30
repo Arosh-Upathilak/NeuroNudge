@@ -45,14 +45,16 @@ export default function LoginScreen(): React.JSX.Element {
     }
 
     if (password.length < 6) {
-      Alert.alert("Validation Error", "Password must be at least 6 characters.");
+      Alert.alert(
+        "Validation Error",
+        "Password must be at least 6 characters.",
+      );
       return;
     }
 
     setIsSubmitting(true);
     try {
       await signIn(email.trim(), password);
-      // Navigation is handled by the route guard in _layout.tsx
     } catch (error) {
       Alert.alert("Sign In Failed", (error as Error).message);
     } finally {
@@ -64,7 +66,6 @@ export default function LoginScreen(): React.JSX.Element {
     setIsGoogleSubmitting(true);
     try {
       await signInWithGoogle();
-      // Navigation is handled by the route guard in _layout.tsx
     } catch (error) {
       Alert.alert("Google Sign In Failed", (error as Error).message);
     } finally {
@@ -74,10 +75,7 @@ export default function LoginScreen(): React.JSX.Element {
 
   return (
     <SafeAreaView
-      style={[
-        styles.container,
-        { backgroundColor: colors.background },
-      ]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
       <View style={styles.content}>
         <Text
@@ -197,11 +195,7 @@ export default function LoginScreen(): React.JSX.Element {
               onPress={() => setShowPassword(!showPassword)}
             >
               <Ionicons
-                name={
-                  showPassword
-                    ? "eye-outline"
-                    : "eye-off-outline"
-                }
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={22}
                 color={colors.textSecondary}
               />
@@ -225,13 +219,13 @@ export default function LoginScreen(): React.JSX.Element {
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={(isSubmitting || isGoogleSubmitting) ? 1 : 0.8}
+            activeOpacity={isSubmitting || isGoogleSubmitting ? 1 : 0.8}
             disabled={isSubmitting || isGoogleSubmitting}
             style={[
               styles.signInButton,
               {
                 backgroundColor: colors.primary,
-                opacity: (isSubmitting || isGoogleSubmitting) ? 0.8 : 1,
+                opacity: isSubmitting || isGoogleSubmitting ? 0.8 : 1,
               },
             ]}
             onPress={handleLogin}
@@ -260,22 +254,26 @@ export default function LoginScreen(): React.JSX.Element {
           </TouchableOpacity>
 
           <View style={styles.dividerContainer}>
-            <View style={[styles.dividerLine, { backgroundColor: colors.divider }]} />
+            <View
+              style={[styles.dividerLine, { backgroundColor: colors.divider }]}
+            />
             <Text style={[styles.dividerText, { color: colors.textSecondary }]}>
               OR
             </Text>
-            <View style={[styles.dividerLine, { backgroundColor: colors.divider }]} />
+            <View
+              style={[styles.dividerLine, { backgroundColor: colors.divider }]}
+            />
           </View>
 
           <TouchableOpacity
-            activeOpacity={(isSubmitting || isGoogleSubmitting) ? 1 : 0.8}
+            activeOpacity={isSubmitting || isGoogleSubmitting ? 1 : 0.8}
             disabled={isSubmitting || isGoogleSubmitting}
             style={[
               styles.googleButton,
               {
                 backgroundColor: colors.surface,
                 borderColor: colors.divider,
-                opacity: (isSubmitting || isGoogleSubmitting) ? 0.8 : 1,
+                opacity: isSubmitting || isGoogleSubmitting ? 0.8 : 1,
               },
             ]}
             onPress={handleGoogleLogin}
@@ -284,11 +282,7 @@ export default function LoginScreen(): React.JSX.Element {
               <ActivityIndicator size="small" color={colors.text} />
             ) : (
               <>
-                <Ionicons
-                  name="logo-google"
-                  size={20}
-                  color={colors.text}
-                />
+                <Ionicons name="logo-google" size={20} color={colors.text} />
                 <Text
                   style={[
                     styles.googleText,
@@ -316,9 +310,7 @@ export default function LoginScreen(): React.JSX.Element {
             Don&apos;t have an account?
           </Text>
 
-          <TouchableOpacity
-            onPress={() => router.push("/signup")}
-          >
+          <TouchableOpacity onPress={() => router.push("/signup")}>
             <Text
               style={[
                 styles.createAccount,
@@ -327,7 +319,8 @@ export default function LoginScreen(): React.JSX.Element {
                 },
               ]}
             >
-              {" "}Create one
+              {" "}
+              Create one
             </Text>
           </TouchableOpacity>
         </View>

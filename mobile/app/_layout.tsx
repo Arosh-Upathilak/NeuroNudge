@@ -10,7 +10,7 @@
 
 import React, { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
-import { Stack, router } from "expo-router";
+import { Stack, router, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
   useFonts,
@@ -70,27 +70,41 @@ function ThemedApp(): React.JSX.Element {
   const { colors, isDark }: { colors: ThemeColors; isDark: boolean } =
     useTheme();
   const { user, isLoading } = useAuth();
+  const segments = useSegments();
 
-  // Guard: redirect based on auth state once Firebase has resolved.
   useEffect(() => {
     if (isLoading) return;
 
+    const safeSegments = segments as string[];
+    const inAuthGroup = safeSegments[0] === "(auth)";
+
     if (user) {
       if (user.emailVerified) {
-        router.replace("/(tabs)" as any);
+        if (inAuthGroup || !safeSegments[0]) {
+          router.replace("/(tabs)" as any);
+        }
       } else {
-        router.replace("/verify-email" as any);
+        if (
+          safeSegments[1] !== "verify-email" &&
+          safeSegments[1] !== "check-email"
+        ) {
+          router.replace("/verify-email" as any);
+        }
       }
     } else {
-      router.replace("/login" as any);
+      if (!inAuthGroup || safeSegments[1] === "verify-email") {
+        router.replace("/login" as any);
+      }
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, segments]);
 
-  // Show a neutral loading screen while Firebase resolves the persisted session.
   if (isLoading) {
     return (
       <View
-        style={[styles.loadingContainer, { backgroundColor: colors.background }]}
+        style={[
+          styles.loadingContainer,
+          { backgroundColor: colors.background },
+        ]}
       >
         <ActivityIndicator size="large" color={colors.primary} />
       </View>

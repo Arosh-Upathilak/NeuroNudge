@@ -21,9 +21,6 @@ server.get("/", (_req: Request, res: Response) => {
   res.send("Hello world");
 });
 
-
-
-// Register routes
 server.use("/api/images", imageRoutes);
 server.use("/api/memories", memoryRoutes);
 server.use("/api/nlp", nlpRoutes);
@@ -37,4 +34,3 @@ const startServer = async () => {
 };
 
 startServer();
-
