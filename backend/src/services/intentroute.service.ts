@@ -1,10 +1,10 @@
 
 import { MemoryService } from "./memory.service";
-import { HuggingFaceResponseService } from "./huggingfaceresponse.service";
+import { AIResponseService } from "./Airesponse.service";
 import {MessageService} from "./message.service";
 import { UpdateMemoryInput} from "../types/memory.types";
 
-const huggingfaceresponse = new HuggingFaceResponseService();
+const aiResponseService = new AIResponseService();
 const messageService = new MessageService();
 
 export interface NLPResult {
@@ -86,7 +86,7 @@ export class IntentRouterService {
     );
 
     const aiResponse =
-      await huggingfaceresponse.generateResponse(
+      await aiResponseService.generateResponse(
         "RETRIEVE_MEMORY",
         usertext,
         formattedMemories
@@ -128,7 +128,7 @@ export class IntentRouterService {
       );
 
       const aiResponse =
-        await huggingfaceresponse.generateResponse(
+        await aiResponseService.generateResponse(
           "UPDATE_MEMORY",
           usertext,
           formattedMemories
@@ -194,7 +194,7 @@ export class IntentRouterService {
       );
 
       const aiResponse =
-        await huggingfaceresponse.generateResponse(
+        await aiResponseService.generateResponse(
           "DELETE_MEMORY",
           usertext,
           formattedMemories

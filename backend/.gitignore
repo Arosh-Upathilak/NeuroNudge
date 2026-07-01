@@ -20,3 +20,4 @@ getAllUsers.ts
 test/
 .vercel
 .env*
+mockAuth

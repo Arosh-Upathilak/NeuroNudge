@@ -1,9 +1,3 @@
-import { InferenceClient } from "@huggingface/inference";
-
-const client = new InferenceClient(
-  process.env.HUGGINGFACE_API_KEY as string
-);
-
 export interface MemoryResponse {
   memoryId?: string;
   title: string;
@@ -20,7 +14,7 @@ export interface AIResponse {
   memories?: MemoryResponse[];
 }
 
-export class HuggingFaceResponseService {
+export class AIResponseService {
   async generateResponse(
     intent: string,
     question: string,
@@ -68,25 +62,41 @@ Return this exact schema:
 `;
 
     try {
-      const response = await client.chatCompletion({
-        model: "Qwen/Qwen3-8B",
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a memory assistant that always returns valid JSON."
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
           },
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        temperature: 0.1,
-        max_tokens: 3000
-      });
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  {
+                    text: prompt,
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 3000,
+            },
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Gemini API Error: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const result = await response.json();
 
       const text =
-        response.choices?.[0]?.message?.content?.trim() || "";
+        result.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ?? "";
 
       const cleanedText = text
         .replace(/^```json\s*/i, "")
@@ -96,7 +106,7 @@ Return this exact schema:
 
       return JSON.parse(cleanedText) as AIResponse;
     } catch (error) {
-      console.error("HuggingFace Response Error:", error);
+      console.error("Gemini Response Error:", error);
 
       return {
         status: "NOT_FOUND",
