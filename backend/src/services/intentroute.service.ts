@@ -221,7 +221,7 @@ export class IntentRouterService {
       `Memory with ID ${data.memoryId} deleted successfully.`
     );
 
-    const message = `removed from my memory successfully.`;
+    const message = "removed from my memory successfully.";
 
     await messageService.createMessage({
       userId: data.userId,

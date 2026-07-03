@@ -89,7 +89,8 @@ For CHAT:
       );
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") {
-        throw new Error("AI_TIMEOUT");
+         const timeoutError = new Error("AI_TIMEOUT");
+        (timeoutError as Error & { cause?: unknown }).cause = err;
       }
       throw err; // network error, DNS failure, etc.
     } finally {
