@@ -4,9 +4,6 @@
  * with full TypeScript type safety.
  */
 
-
-
-
 export const Colors: Record<ThemeMode, ThemeColors> = {
   light: {
     primary: "#3C6255",
@@ -83,7 +80,6 @@ export const Colors: Record<ThemeMode, ThemeColors> = {
     moonIcon: "#5A9E8F",
   },
 } as const;
-
 
 export const Fonts: FontFamilies = {
   regular: "Poppins-Regular",

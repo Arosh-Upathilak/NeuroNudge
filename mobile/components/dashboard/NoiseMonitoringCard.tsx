@@ -1,21 +1,38 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text } from "react-native";
 
 import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import CustomToggle from "../settings/CustomToggle";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function NoiseMonitoringCard(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const [enabled, setEnabled] =
-    useState(true);
+  const [enabled, setEnabled] = useState(true);
+
+  useEffect(() => {
+    const loadStatus = async () => {
+      try {
+        const stored = await AsyncStorage.getItem("ambient_noise_enabled");
+        if (stored !== null) {
+          setEnabled(stored === "true");
+        }
+      } catch {}
+    };
+    loadStatus();
+  }, []);
+
+  const handleToggle = async () => {
+    const nextVal = !enabled;
+    setEnabled(nextVal);
+    try {
+      await AsyncStorage.setItem("ambient_noise_enabled", nextVal.toString());
+    } catch {}
+  };
 
   return (
     <View
@@ -31,16 +48,11 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
           style={[
             styles.iconContainer,
             {
-              backgroundColor:
-                colors.background,
+              backgroundColor: colors.background,
             },
           ]}
         >
-          <Ionicons
-            name="mic"
-            size={18}
-            color={colors.primary}
-          />
+          <Ionicons name="mic" size={18} color={colors.primary} />
         </View>
 
         <Text
@@ -55,30 +67,7 @@ export default function NoiseMonitoringCard(): React.JSX.Element {
         </Text>
       </View>
 
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => setEnabled((prev) => !prev)}
-        accessibilityRole="switch"
-        accessibilityState={{ checked: enabled }}
-        accessibilityLabel="Toggle ambient noise monitoring"
-        style={[
-          styles.toggleTrack,
-          {
-            backgroundColor: enabled ? colors.primary : "#C9CECA",
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.toggleThumb,
-            {
-              alignSelf: enabled
-                ? "flex-end"
-                : "flex-start",
-            },
-          ]}
-        />
-      </TouchableOpacity>
+      <CustomToggle value={enabled} onToggle={handleToggle} />
     </View>
   );
 }
@@ -112,20 +101,5 @@ const styles = ScaledSheet.create({
     fontSize: FontSizes.md,
     fontFamily: Fonts.medium,
     flexShrink: 1,
-  },
-
-  toggleTrack: {
-    width: "52@s",
-    height: "32@vs",
-    borderRadius: "16@s",
-    justifyContent: "center",
-    paddingHorizontal: "3@s",
-  },
-
-  toggleThumb: {
-    width: "26@s",
-    height: "26@s",
-    borderRadius: "13@s",
-    backgroundColor: "#FFFFFF",
   },
 });

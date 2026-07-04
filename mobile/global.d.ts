@@ -1,7 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 
 declare global {
-  // ─── Theme Constants ─────────────────────────────────────────────────────────
 
   interface ThemeColors {
     readonly primary: string;
@@ -53,7 +52,6 @@ declare global {
 
   type ThemeMode = "light" | "dark";
 
-  // ─── Contexts & Hooks ───────────────────────────────────────────────────────
 
   interface DrawerContextType {
     readonly isOpen: boolean;
@@ -76,7 +74,6 @@ declare global {
     readonly toggleTheme: () => void;
   }
 
-  // ─── Component Props ─────────────────────────────────────────────────────────
 
   interface HeaderProps {
     readonly onNotificationPress?: () => void;
@@ -103,7 +100,6 @@ declare global {
     readonly inactiveIcon: TabIconName;
   }
 
-  // ─── Auth ─────────────────────────────────────────────────────────────────────
 
   interface AuthUser {
     readonly uid: string;
@@ -113,27 +109,19 @@ declare global {
   }
 
   interface AuthContextType {
-    /** The currently authenticated user, or null if signed out. */
     readonly user: AuthUser | null;
-    /** True while Firebase is resolving the initial auth state on startup. */
     readonly isLoading: boolean;
-    /** Signs in with email + password via Firebase. */
     readonly signIn: (email: string, password: string) => Promise<void>;
-    /** Creates a Firebase user and sends verification email. Does not register with backend yet. */
     readonly signUp: (
       email: string,
       password: string,
-      name: string
+      name: string,
     ) => Promise<void>;
-    /** Signs the current user out of Firebase. */
     readonly signOut: () => Promise<void>;
-    /** Signs in with Google. */
     readonly signInWithGoogle: () => Promise<void>;
-    /** Reloads the Firebase user to check for email verification status. Registers backend user if verified. */
     readonly reloadUser: () => Promise<void>;
-    /** Resends the verification email. */
     readonly resendVerificationEmail: () => Promise<void>;
-    /** Sends a password reset email to the user. */
     readonly resetPassword: (email: string) => Promise<void>;
+    readonly updateProfileName: (name: string) => Promise<void>;
   }
 }

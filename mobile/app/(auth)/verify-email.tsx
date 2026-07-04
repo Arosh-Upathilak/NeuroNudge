@@ -17,7 +17,7 @@ import { useAuth } from "../../contexts/AuthContext";
 export default function VerifyEmailScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
   const { user, reloadUser, resendVerificationEmail, signOut } = useAuth();
-  
+
   const [isReloading, setIsReloading] = useState<boolean>(false);
   const [isResending, setIsResending] = useState<boolean>(false);
 
@@ -25,14 +25,11 @@ export default function VerifyEmailScreen(): React.JSX.Element {
     setIsReloading(true);
     try {
       await reloadUser();
-      // If verified, reloadUser() updates state and _layout.tsx will redirect.
-      // If not verified, we show an alert.
-      // Wait a moment for state to settle
       setTimeout(() => {
         setIsReloading(false);
         Alert.alert(
           "Not Verified",
-          "We checked your account but the email is not verified yet. Please check your inbox and click the link."
+          "We checked your account but the email is not verified yet. Please check your inbox and click the link.",
         );
       }, 1000);
     } catch (error) {
@@ -56,7 +53,6 @@ export default function VerifyEmailScreen(): React.JSX.Element {
   const handleSignOut = async (): Promise<void> => {
     try {
       await signOut();
-      // Route guard will redirect to login
     } catch (error) {
       Alert.alert("Sign Out Failed", (error as Error).message);
     }
@@ -104,7 +100,9 @@ export default function VerifyEmailScreen(): React.JSX.Element {
         >
           We&apos;ve sent a verification link to
           {"\n"}
-          <Text style={{ fontFamily: Fonts.semiBold, color: colors.text }}>{user?.email}</Text>
+          <Text style={{ fontFamily: Fonts.semiBold, color: colors.text }}>
+            {user?.email}
+          </Text>
           {"\n\n"}
           Please verify your account to continue.
         </Text>
@@ -154,7 +152,12 @@ export default function VerifyEmailScreen(): React.JSX.Element {
                 },
               ]}
             >
-              Didn&apos;t receive it? <Text style={{ color: colors.primary, fontFamily: Fonts.semiBold }}>Resend</Text>
+              Didn&apos;t receive it?{" "}
+              <Text
+                style={{ color: colors.primary, fontFamily: Fonts.semiBold }}
+              >
+                Resend
+              </Text>
             </Text>
           )}
         </TouchableOpacity>

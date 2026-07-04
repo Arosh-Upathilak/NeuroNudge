@@ -1,164 +1,101 @@
 /**
- * Custom bottom tab bar (Footer / Navbar) for the NeuroNudge app.
- * Active tab renders as a pill-shaped button with the primary brand color.
- * Supports light and dark themes.
+ * Dashboard screen – the main landing page of the app.
+ * Shows a personalised greeting and the current date.
  */
 
-import React from "react";
-import {
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import React, { useEffect, useState } from "react";
+import { Text, ScrollView } from "react-native";
 import { Fonts, FontSizes } from "../../constants/theme";
-import { ScaledSheet } from "react-native-size-matters";
 import { useTheme } from "../../hooks/useTheme";
+import FeatureCard from "../../components/dashboard/FeatureCard";
+import NoiseMonitoringCard from "../../components/dashboard/NoiseMonitoringCard";
+import { router } from "expo-router";
+import { useAuth } from "../../contexts/AuthContext";
 
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ScaledSheet } from "react-native-size-matters";
 
-
-
-const TAB_CONFIG: Readonly<Record<string, TabConfig>> = {
-  index: {
-    label: "Dashboard",
-    activeIcon: "grid",
-    inactiveIcon: "grid-outline",
-  },
-  sanctuary: {
-    label: "Sanctuary",
-    activeIcon: "options",
-    inactiveIcon: "options-outline",
-  },
-  "lost-found": {
-    label: "Lost-Found",
-    activeIcon: "archive",
-    inactiveIcon: "archive-outline",
-  },
-} as const;
-
-
-export default function TabBar({
-  state,
-  descriptors,
-  navigation,
-}: BottomTabBarProps): React.JSX.Element {
+export default function DashboardScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { user } = useAuth();
+
+  const [currentTime, setCurrentTime] = useState<Date>(new Date());
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const formattedDate = currentTime.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+
+  const hour = currentTime.getHours();
+
+  const greeting =
+    hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
     <SafeAreaView
-      edges={['bottom']}
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.navbarBackground,
-          borderTopColor: colors.navbarBorder,
-          paddingBottom: 10,
-        },
-      ]}
+      edges={["bottom", "left", "right"]}
+      style={[styles.container, { backgroundColor: colors.background }]}
     >
-      {state.routes.map((route, index: number) => {
-        const { options } = descriptors[route.key];
-        const isFocused: boolean = state.index === index;
-        const config: TabConfig | undefined = TAB_CONFIG[route.name];
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        <Text style={[styles.greeting, { color: colors.text }]}>
+          {greeting},{" "}
+          {user?.displayName
+            ? user.displayName.split(" ")[0]
+            : user?.email?.split("@")[0] || "User"}
+        </Text>
+        <Text style={[styles.date, { color: colors.textSecondary }]}>
+          {formattedDate}
+        </Text>
 
-        if (!config) return null;
+        <FeatureCard
+          title="Sound Sanctuary"
+          description="Manage your acoustic environment and access calming audioscapes."
+          icon="volume-medium"
+          onPress={() => router.push("/(tabs)/sanctuary")}
+        />
 
-        const onPress = (): void => {
-          const event = navigation.emit({
-            type: "tabPress",
-            target: route.key,
-            canPreventDefault: true,
-          });
+        <FeatureCard
+          title="Lost-to-Found"
+          description="Quickly locate essential items or log new misplaced objects."
+          icon="archive"
+          onPress={() => router.push("/(tabs)/lost-found")}
+        />
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name, route.params);
-          }
-        };
-
-        const onLongPress = (): void => {
-          navigation.emit({
-            type: "tabLongPress",
-            target: route.key,
-          });
-        };
-
-        const iconName: TabIconName = isFocused
-          ? config.activeIcon
-          : config.inactiveIcon;
-        const iconColor: string = isFocused
-          ? colors.navbarActiveText
-          : colors.navbarInactiveText;
-        const textColor: string = isFocused
-          ? colors.navbarActiveText
-          : colors.navbarInactiveText;
-
-        return (
-          <TouchableOpacity
-            key={route.key}
-            accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
-            accessibilityLabel={options.tabBarAccessibilityLabel}
-            onPress={onPress}
-            onLongPress={onLongPress}
-            activeOpacity={0.7}
-            style={[
-              styles.tabButton,
-              isFocused && [
-                styles.tabButtonActive,
-                { backgroundColor: colors.navbarActiveBackground, shadowColor: colors.shadow },
-              ],
-            ]}
-          >
-            <Ionicons name={iconName} size={22} color={iconColor} />
-            <Text
-              style={[
-                styles.tabLabel,
-                {
-                  color: textColor,
-                  fontFamily: isFocused ? Fonts.semiBold : Fonts.medium,
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {config.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
+        <NoiseMonitoringCard />
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-
 const styles = ScaledSheet.create({
   container: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    paddingTop: "12@vs",
-    paddingHorizontal: "16@s",
-    borderTopWidth: StyleSheet.hairlineWidth,
+    flex: 1,
   },
-  tabButton: {
-  flex: 1,
-  alignItems: "center",
-  justifyContent: "center",
-  flexDirection: "column",
-  gap: "4@vs",
-  paddingVertical: "10@vs",
-  marginHorizontal: "4@s",
-  borderRadius: "30@s",
-},
-  tabButtonActive: {
-    elevation: 2,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
+  scrollContent: {
+    paddingHorizontal: "20@s",
+    paddingTop: "8@vs",
+    paddingBottom: "80@vs",
   },
-  tabLabel: {
-    fontSize: FontSizes.xs,
-    letterSpacing: 0.2,
+  greeting: {
+    fontSize: FontSizes.xxl,
+    fontFamily: Fonts.bold,
+    marginBottom: "2@vs",
+  },
+  date: {
+    fontSize: FontSizes.md,
+    fontFamily: Fonts.regular,
+    marginBottom: "14@vs",
   },
 });

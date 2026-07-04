@@ -10,7 +10,7 @@ router.post(
   "/chat",
   authMiddleware,
   upload.single("image"),
-  NLPController.processMessage.bind(NLPController)
+  NLPController.processMessage.bind(NLPController),
 );
 
 export default router;

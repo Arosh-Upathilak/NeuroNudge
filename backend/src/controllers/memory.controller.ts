@@ -1,4 +1,5 @@
 import { Response } from "express";
+import fs from "fs";
 import { MemoryService } from "../services/memory.service";
 import { CloudinaryService } from "../services/image.service";
 import { AuthRequest } from "../types/auth.types";
@@ -19,8 +20,8 @@ export const MemoryController = {
    * CREATE MEMORY
    */
   createMemory: async (
-    req: AuthRequest< {id: string }, unknown, CreateMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, CreateMemoryInput>,
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -50,6 +51,14 @@ export const MemoryController = {
         success: false,
         message: (error as Error).message,
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   },
 
@@ -78,8 +87,8 @@ export const MemoryController = {
    * GET MEMORY BY ID
    */
   getMemoryById: async (
-    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, GetandDeleteMemoryInput>,
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -110,8 +119,8 @@ export const MemoryController = {
    * UPDATE MEMORY
    */
   updateMemory: async (
-    req: AuthRequest<{id: string }, unknown, UpdateMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, UpdateMemoryInput>,
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -120,7 +129,7 @@ export const MemoryController = {
       const result = await MemoryService.updateMemory(
         memoryId,
         userId,
-        req.body
+        req.body,
       );
 
       return res.status(200).json({
@@ -139,8 +148,8 @@ export const MemoryController = {
    * DELETE MEMORY
    */
   deleteMemory: async (
-    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, GetandDeleteMemoryInput>,
+    res: Response,
   ) => {
     try {
       const userId = req.user!.uid;
@@ -164,8 +173,8 @@ export const MemoryController = {
    * UPSERT MEMORY IMAGE
    */
   upsertMemoryImage: async (
-    req: AuthRequest<{id: string }, unknown, UpsertMemoryImageInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, UpsertMemoryImageInput>,
+    res: Response,
   ) => {
     try {
       const memoryId = req.params.id;
@@ -191,6 +200,14 @@ export const MemoryController = {
         success: false,
         message: (error as Error).message,
       });
+    } finally {
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (err) {
+          console.error("Failed to delete temp file:", err);
+        }
+      }
     }
   },
 
@@ -198,8 +215,8 @@ export const MemoryController = {
    * DELETE MEMORY IMAGE
    */
   deleteMemoryImage: async (
-    req: AuthRequest<{id: string }, unknown, GetandDeleteMemoryInput>,
-    res: Response
+    req: AuthRequest<{ id: string }, unknown, GetandDeleteMemoryInput>,
+    res: Response,
   ) => {
     try {
       const memoryId = req.params.id;

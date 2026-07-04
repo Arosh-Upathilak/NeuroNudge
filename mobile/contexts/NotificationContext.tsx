@@ -37,7 +37,8 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     iconName: "stats-chart",
     timeAgo: "2 min ago",
     isUnread: true,
-    message: "Ambient noise level exceeded your comfort threshold. Rain sounds activated automatically.",
+    message:
+      "Ambient noise level exceeded your comfort threshold. Rain sounds activated automatically.",
     section: "TODAY",
   },
   {
@@ -60,36 +61,49 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
   },
 ];
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextType | undefined>(
+  undefined,
+);
 
-export function NotificationProvider({ children }: PropsWithChildren): React.JSX.Element {
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+export function NotificationProvider({
+  children,
+}: PropsWithChildren): React.JSX.Element {
+  const [notifications, setNotifications] = useState<NotificationItem[]>(
+    INITIAL_NOTIFICATIONS,
+  );
 
   const unreadCount = useMemo(
     () => notifications.filter((notification) => notification.isUnread).length,
-    [notifications]
+    [notifications],
   );
 
-  const addNotification = useCallback((notification: NotificationItem): void => {
-    setNotifications((prev) => [notification, ...prev]);
-  }, []);
+  const addNotification = useCallback(
+    (notification: NotificationItem): void => {
+      setNotifications((prev) => [notification, ...prev]);
+    },
+    [],
+  );
 
   const markAsRead = useCallback((id: string): void => {
     setNotifications((prev) =>
       prev.map((notification) =>
-        notification.id === id ? { ...notification, isUnread: false } : notification
-      )
+        notification.id === id
+          ? { ...notification, isUnread: false }
+          : notification,
+      ),
     );
   }, []);
 
   const markAllAsRead = useCallback((): void => {
     setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, isUnread: false }))
+      prev.map((notification) => ({ ...notification, isUnread: false })),
     );
   }, []);
 
   const deleteNotification = useCallback((id: string): void => {
-    setNotifications((prev) => prev.filter((notification) => notification.id !== id));
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== id),
+    );
   }, []);
 
   const getFilteredNotifications = useCallback(
@@ -97,11 +111,13 @@ export function NotificationProvider({ children }: PropsWithChildren): React.JSX
       notifications.filter((notification) => {
         if (filter === "All") return true;
         if (filter === "Unread") return notification.isUnread;
-        if (filter === "Sound") return notification.category === "Sound Sanctuary";
-        if (filter === "Items") return notification.category === "Lost-to-Found";
+        if (filter === "Sound")
+          return notification.category === "Sound Sanctuary";
+        if (filter === "Items")
+          return notification.category === "Lost-to-Found";
         return true;
       }),
-    [notifications]
+    [notifications],
   );
 
   const value = useMemo(
@@ -122,7 +138,7 @@ export function NotificationProvider({ children }: PropsWithChildren): React.JSX
       markAllAsRead,
       deleteNotification,
       getFilteredNotifications,
-    ]
+    ],
   );
 
   return (
@@ -136,7 +152,9 @@ export function useNotifications(): NotificationContextType {
   const context = useContext(NotificationContext);
 
   if (context === undefined) {
-    throw new Error("useNotifications must be used within a NotificationProvider");
+    throw new Error(
+      "useNotifications must be used within a NotificationProvider",
+    );
   }
 
   return context;

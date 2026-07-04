@@ -6,7 +6,6 @@ export interface CreateMessageInput {
   role: MessageRole;
   content: string;
   aiContent?: string;
- 
 }
 
 /* ================= UPDATE MESSAGE ================= */
@@ -15,7 +14,6 @@ export interface UpdateMessageInput {
   content?: string;
   aiContent?: string;
   memoryId?: string | null;
-  
 }
 
 /* ================= MESSAGE RESPONSE ================= */

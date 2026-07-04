@@ -5,20 +5,13 @@
  */
 
 import React from "react";
-import {
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
+import { Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Fonts, FontSizes } from "../constants/theme";
 import { ScaledSheet } from "react-native-size-matters";
 import { useTheme } from "../hooks/useTheme";
-
-
-
 
 const TAB_CONFIG: Readonly<Record<string, TabConfig>> = {
   index: {
@@ -38,7 +31,6 @@ const TAB_CONFIG: Readonly<Record<string, TabConfig>> = {
   },
 } as const;
 
-
 export default function TabBar({
   state,
   descriptors,
@@ -48,7 +40,7 @@ export default function TabBar({
 
   return (
     <SafeAreaView
-      edges={['bottom']}
+      edges={["bottom"]}
       style={[
         styles.container,
         {
@@ -107,7 +99,10 @@ export default function TabBar({
               styles.tabButton,
               isFocused && [
                 styles.tabButtonActive,
-                { backgroundColor: colors.navbarActiveBackground, shadowColor: colors.shadow },
+                {
+                  backgroundColor: colors.navbarActiveBackground,
+                  shadowColor: colors.shadow,
+                },
               ],
             ]}
           >
@@ -131,7 +126,6 @@ export default function TabBar({
   );
 }
 
-
 const styles = ScaledSheet.create({
   container: {
     flexDirection: "row",
@@ -142,15 +136,15 @@ const styles = ScaledSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   tabButton: {
-  flex: 1,
-  alignItems: "center",
-  justifyContent: "center",
-  flexDirection: "column",
-  gap: "4@vs",
-  paddingVertical: "10@vs",
-  marginHorizontal: "4@s",
-  borderRadius: "30@s",
-},
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    gap: "4@vs",
+    paddingVertical: "10@vs",
+    marginHorizontal: "4@s",
+    borderRadius: "30@s",
+  },
   tabButtonActive: {
     elevation: 2,
     shadowOffset: { width: 0, height: 2 },

@@ -15,14 +15,21 @@ if (smtpUser && smtpPass) {
     },
   });
 } else {
-  console.warn("WARNING: SMTP_USER or SMTP_PASS environment variables are not set. Nodemailer will fail to send emails.");
+  console.warn(
+    "WARNING: SMTP_USER or SMTP_PASS environment variables are not set. Nodemailer will fail to send emails.",
+  );
 }
 
 /**
  * Returns an HTML email template styled with the NeuroNudge brand aesthetics.
  * Uses the sage green (#3C6255), warm cream (#F5F0EB), and Poppins typography.
  */
-const getHtmlTemplate = (title: string, bodyContent: string, actionUrl: string, actionText: string) => `
+const getHtmlTemplate = (
+  title: string,
+  bodyContent: string,
+  actionUrl: string,
+  actionText: string,
+) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -129,9 +136,15 @@ const getHtmlTemplate = (title: string, bodyContent: string, actionUrl: string, 
 /**
  * Sends a registration/email verification link to the user.
  */
-export const sendVerificationEmail = async (email: string, name: string, link: string): Promise<void> => {
+export const sendVerificationEmail = async (
+  email: string,
+  name: string,
+  link: string,
+): Promise<void> => {
   if (!transporter) {
-    throw new Error("SMTP email service is not properly configured. Check SMTP_USER and SMTP_PASS.");
+    throw new Error(
+      "SMTP email service is not properly configured. Check SMTP_USER and SMTP_PASS.",
+    );
   }
 
   const subject = "Verify your email address for NeuroNudge";
@@ -145,16 +158,27 @@ export const sendVerificationEmail = async (email: string, name: string, link: s
     from: `"${smtpFromName}" <${smtpUser}>`,
     to: email,
     subject,
-    html: getHtmlTemplate("Verify your email", bodyContent, link, "Verify Email"),
+    html: getHtmlTemplate(
+      "Verify your email",
+      bodyContent,
+      link,
+      "Verify Email",
+    ),
   });
 };
 
 /**
  * Sends a password reset link to the user.
  */
-export const sendPasswordResetEmail = async (email: string, name: string, link: string): Promise<void> => {
+export const sendPasswordResetEmail = async (
+  email: string,
+  name: string,
+  link: string,
+): Promise<void> => {
   if (!transporter) {
-    throw new Error("SMTP email service is not properly configured. Check SMTP_USER and SMTP_PASS.");
+    throw new Error(
+      "SMTP email service is not properly configured. Check SMTP_USER and SMTP_PASS.",
+    );
   }
 
   const subject = "Reset your password for NeuroNudge";
@@ -168,6 +192,11 @@ export const sendPasswordResetEmail = async (email: string, name: string, link: 
     from: `"${smtpFromName}" <${smtpUser}>`,
     to: email,
     subject,
-    html: getHtmlTemplate("Reset your password", bodyContent, link, "Reset Password"),
+    html: getHtmlTemplate(
+      "Reset your password",
+      bodyContent,
+      link,
+      "Reset Password",
+    ),
   });
 };

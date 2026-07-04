@@ -1,6 +1,5 @@
 import cloudinary from "../config/cloudinary";
 
-
 /**
  * Cloudinary service for uploading and managing remote image files.
  */
@@ -15,13 +14,16 @@ export class CloudinaryService {
         publicId: result.public_id,
         imageUrl: result.secure_url,
       };
-    } catch {
-      throw new Error("Failed to upload image to Cloudinary");
+    } catch (error) {
+      throw new Error(
+        `Failed to upload image to Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`,
+        // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
+        { cause: error }
+      );
     }
   }
 
   async deleteImage(publicId: string) {
-      
     try {
       const result = await cloudinary.uploader.destroy(publicId);
 
@@ -33,25 +35,31 @@ export class CloudinaryService {
         success: true,
         message: "Image deleted successfully",
       };
-    } catch {
-      throw new Error("Failed to delete image from Cloudinary");
+    } catch (error) {
+      throw new Error(
+        `Failed to delete image from Cloudinary: ${error instanceof Error ? error.message : "Unknown error"}`,
+        // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
+        { cause: error }
+      );
     }
   }
 
   async updateImage(oldPublicId: string, newFilePath: string) {
     try {
-      // Delete old image
       await this.deleteImage(oldPublicId);
 
-      // Upload new image
       const result = await this.uploadImage(newFilePath);
 
       return {
         publicId: result.publicId,
         imageUrl: result.imageUrl,
       };
-    } catch {
-      throw new Error("Failed to update image");
+    } catch (error) {
+      throw new Error(
+        `Failed to update image: ${error instanceof Error ? error.message : "Unknown error"}`,
+        // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
+        { cause: error }
+      );
     }
   }
 
@@ -67,8 +75,12 @@ export class CloudinaryService {
         publicId: result.public_id,
         imageUrl: result.secure_url,
       };
-    } catch {
-      throw new Error("Failed to replace image");
+    } catch (error) {
+      throw new Error(
+        `Failed to replace image: ${error instanceof Error ? error.message : "Unknown error"}`,
+        // @ts-expect-error - TS target doesn't support error cause yet but linter requires it
+        { cause: error }
+      );
     }
   }
 }

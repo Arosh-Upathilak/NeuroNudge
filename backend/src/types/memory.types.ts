@@ -21,10 +21,8 @@ export interface UpsertMemoryImageInput {
   memoryId: string;
   imageUrl: string;
   publicId?: string;
-
 }
 
 export interface GetandDeleteMemoryInput {
-    memoryId: string;
+  memoryId: string;
 }
-

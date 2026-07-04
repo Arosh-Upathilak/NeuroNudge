@@ -1,6 +1,22 @@
 import React from "react";
-import { Redirect } from "expo-router";
+import { View, ActivityIndicator } from "react-native";
+import { useTheme } from "../hooks/useTheme";
+import { ScaledSheet } from "react-native-size-matters";
 
 export default function Index(): React.JSX.Element {
-  return <Redirect href="/(auth)/login" />;
+  const { colors } = useTheme();
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ActivityIndicator size="large" color={colors.primary} />
+    </View>
+  );
 }
+
+const styles = ScaledSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

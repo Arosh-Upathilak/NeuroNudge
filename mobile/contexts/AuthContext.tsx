@@ -21,21 +21,24 @@ import React, {
   useMemo,
   type PropsWithChildren,
 } from "react";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, updateProfile } from "firebase/auth";
 import {
   auth,
   firebaseSignIn,
   firebaseSignUp,
   firebaseSignOut,
 } from "../services/firebase";
-import { syncUser, sendVerificationEmail, requestPasswordReset } from "../services/api";
+import {
+  syncUser,
+  sendVerificationEmail,
+  requestPasswordReset,
+} from "../services/api";
 import { signInWithGoogle as firebaseGoogleSignIn } from "../services/googleAuth";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
 
-// ─── Context ──────────────────────────────────────────────────────────────────
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ─── Firebase error code → friendly message mapping ──────────────────────────
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "auth/user-not-found": "No account found with this email.",
@@ -44,10 +47,8 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "auth/email-already-in-use": "An account with this email already exists.",
   "auth/weak-password": "Password must be at least 6 characters.",
   "auth/invalid-email": "Please enter a valid email address.",
-  "auth/too-many-requests":
-    "Too many failed attempts. Please try again later.",
-  "auth/network-request-failed":
-    "Network error. Please check your connection.",
+  "auth/too-many-requests": "Too many failed attempts. Please try again later.",
+  "auth/network-request-failed": "Network error. Please check your connection.",
 };
 
 /**
@@ -62,7 +63,6 @@ const getAuthErrorMessage = (error: unknown): string => {
   );
 };
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function AuthProvider({
   children,
@@ -70,22 +70,23 @@ export function AuthProvider({
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Subscribe to Firebase auth state changes on mount.
-  // Firebase resolves the persisted session from AsyncStorage automatically.
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: User | null) => {
-      if (firebaseUser) {
-        setUser({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
-          emailVerified: firebaseUser.emailVerified,
-        });
-      } else {
-        setUser(null);
-      }
-      setIsLoading(false);
-    });
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      (firebaseUser: User | null) => {
+        if (firebaseUser) {
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            displayName: firebaseUser.displayName,
+            emailVerified: firebaseUser.emailVerified,
+          });
+        } else {
+          setUser(null);
+        }
+        setIsLoading(false);
+      },
+    );
 
     return unsubscribe;
   }, []);
@@ -98,7 +99,6 @@ export function AuthProvider({
     async (email: string, password: string): Promise<void> => {
       try {
         const credential = await firebaseSignIn(email, password);
-        // Only sync with backend if email is verified
         if (credential.user.emailVerified) {
           await syncUser();
         }
@@ -106,7 +106,7 @@ export function AuthProvider({
         throw new Error(getAuthErrorMessage(error));
       }
     },
-    []
+    [],
   );
 
   /**
@@ -120,26 +120,18 @@ export function AuthProvider({
       try {
         await firebaseSignUp(email, password, name);
         firebaseCreated = true;
-        // Immediately synchronize in backend with isVerified: false
         await syncUser();
-        // Trigger backend verification email via SMTP
         await sendVerificationEmail();
       } catch (error) {
-        // Rollback: delete Firebase user if backend synchronization failed.
         if (firebaseCreated && auth.currentUser) {
           try {
             await auth.currentUser.delete();
-          } catch (deleteError) {
-            console.error(
-              "[AuthContext] Failed to rollback Firebase user:",
-              deleteError
-            );
-          }
+          } catch {}
         }
         throw new Error(getAuthErrorMessage(error));
       }
     },
-    []
+    [],
   );
 
   /**
@@ -150,12 +142,12 @@ export function AuthProvider({
     try {
       if (auth.currentUser) {
         await auth.currentUser.reload();
-        
-        // Update local state to reflect the new emailVerified status
-        const isVerified = auth.currentUser.emailVerified;
-        setUser((prev) => prev ? { ...prev, emailVerified: isVerified } : null);
 
-        // If newly verified, synchronize them in the backend database
+        const isVerified = auth.currentUser.emailVerified;
+        setUser((prev) =>
+          prev ? { ...prev, emailVerified: isVerified } : null,
+        );
+
         if (isVerified) {
           await syncUser();
         }
@@ -169,7 +161,11 @@ export function AuthProvider({
     try {
       await sendVerificationEmail();
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Failed to resend verification email.");
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : "Failed to resend verification email.",
+      );
     }
   }, []);
 
@@ -180,7 +176,11 @@ export function AuthProvider({
     try {
       await requestPasswordReset(email);
     } catch (error) {
-      throw new Error(error instanceof Error ? error.message : "Failed to request password reset.");
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : "Failed to request password reset.",
+      );
     }
   }, []);
 
@@ -191,6 +191,9 @@ export function AuthProvider({
   const signOut = useCallback(async (): Promise<void> => {
     try {
       await firebaseSignOut();
+      try {
+        await GoogleSignin.signOut();
+      } catch {}
     } catch (error) {
       throw new Error(getAuthErrorMessage(error));
     }
@@ -204,9 +207,35 @@ export function AuthProvider({
       await firebaseGoogleSignIn();
       await syncUser();
     } catch (error) {
+      try {
+        await firebaseSignOut();
+      } catch {}
+      try {
+        await GoogleSignin.signOut();
+      } catch {}
       throw new Error(getAuthErrorMessage(error));
     }
   }, []);
+
+  /**
+   * Updates the user's display name in Firebase and syncs with the backend.
+   */
+  const updateProfileName = useCallback(
+    async (displayName: string): Promise<void> => {
+      try {
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { displayName });
+
+          setUser((prev) => (prev ? { ...prev, displayName } : null));
+
+          await syncUser();
+        }
+      } catch (error) {
+        throw new Error(getAuthErrorMessage(error));
+      }
+    },
+    [],
+  );
 
   const value: AuthContextType = useMemo(
     () => ({
@@ -219,14 +248,25 @@ export function AuthProvider({
       reloadUser,
       resendVerificationEmail,
       resetPassword,
+      updateProfileName,
     }),
-    [user, isLoading, signIn, signUp, signOut, signInWithGoogle, reloadUser, resendVerificationEmail, resetPassword]
+    [
+      user,
+      isLoading,
+      signIn,
+      signUp,
+      signOut,
+      signInWithGoogle,
+      reloadUser,
+      resendVerificationEmail,
+      resetPassword,
+      updateProfileName,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
 
 /**
  * Consumes the AuthContext. Must be used within an `<AuthProvider>`.

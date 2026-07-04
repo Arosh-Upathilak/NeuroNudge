@@ -8,30 +8,23 @@ const projectId = process.env.FIREBASE_PROJECT_ID;
 const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
 const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-if (process.env.NODE_ENV !== "test") {
-  if (!projectId || !clientEmail || !privateKey) {
-    console.error("Critical: Missing Firebase configuration variables. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.");
-    process.exit(1);
-  }
+if (!projectId || !clientEmail || !privateKey) {
+  console.error(
+    "Critical: Missing Firebase configuration variables. Check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY.",
+  );
+  process.exit(1);
 }
 
-let authInstance: Auth;
+const formattedPrivateKey = privateKey.replace(/\\n/g, "\n");
 
-if (process.env.NODE_ENV === "test") {
-  authInstance = {} as Auth;
-} else {
-  const formattedPrivateKey = privateKey!.replace(/\\n/g, "\n");
-
-  if (getApps().length === 0) {
-    initializeApp({
-      credential: cert({
-        projectId,
-        clientEmail,
-        privateKey: formattedPrivateKey,
-      }),
-    });
-  }
-  authInstance = getAuth();
+if (getApps().length === 0) {
+  initializeApp({
+    credential: cert({
+      projectId,
+      clientEmail,
+      privateKey: formattedPrivateKey,
+    }),
+  });
 }
 
-export const auth = authInstance;
+export const auth: Auth = getAuth();
