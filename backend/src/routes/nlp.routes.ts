@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { NLPController } from "../controllers/nlp.controller";
+import { NLPController } from "../controllers/nlpgemini.controller";
 
 import { upload } from "../middleware/upload.middleware";
 import { authMiddleware } from "../middleware/auth.middleware";
