@@ -115,10 +115,13 @@ export default function InteractiveThresholdModal({
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    if (playerRef.current) {
+    const player = playerRef.current;
+    if (player) {
       try {
-        playerRef.current.pause();
-      } catch { }
+        player.pause();
+        player.remove();
+      } catch {}
+      playerRef.current = null;
     }
     setIsPlaying(false);
   };
