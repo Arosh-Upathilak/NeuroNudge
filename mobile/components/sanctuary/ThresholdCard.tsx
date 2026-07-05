@@ -1,5 +1,6 @@
-import React from "react";
-import { View, Text } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 import Slider from "@react-native-community/slider";
 
@@ -7,6 +8,7 @@ import { ScaledSheet } from "react-native-size-matters";
 
 import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
+import InteractiveThresholdModal from "./InteractiveThresholdModal";
 
 interface ThresholdCardProps {
   threshold: number;
@@ -18,15 +20,25 @@ export default function ThresholdCard({
   onValueChange,
 }: ThresholdCardProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const [isInteractiveModalVisible, setInteractiveModalVisible] = useState(false);
 
   return (
     <View style={styles.container}>
       {/* Header */}
 
       <View style={styles.header}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          Personal Threshold
-        </Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, { color: colors.text }]}>
+            Personal Threshold
+          </Text>
+          <TouchableOpacity 
+            onPress={() => setInteractiveModalVisible(true)} 
+            style={[styles.interactiveButton, { backgroundColor: colors.primary + "1A" }]}
+          >
+            <Ionicons name="options-outline" size={14} color={colors.primary} />
+            <Text style={[styles.interactiveButtonText, { color: colors.primary }]}>Interactive</Text>
+          </TouchableOpacity>
+        </View>
 
         <Text style={[styles.dbValue, { color: colors.text }]}>
           {Math.round(threshold)} dB
@@ -57,6 +69,12 @@ export default function ThresholdCard({
           Loud
         </Text>
       </View>
+
+      <InteractiveThresholdModal
+        isVisible={isInteractiveModalVisible}
+        onClose={() => setInteractiveModalVisible(false)}
+        onSetThreshold={onValueChange}
+      />
     </View>
   );
 }
@@ -72,6 +90,26 @@ const styles = ScaledSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: "10@vs",
+  },
+
+  titleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  interactiveButton: {
+    marginLeft: "8@s",
+    paddingHorizontal: "8@s",
+    paddingVertical: "4@vs",
+    borderRadius: "12@s",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: "4@s",
+  },
+
+  interactiveButtonText: {
+    fontSize: "10@s",
+    fontFamily: Fonts.medium,
   },
 
   title: {
