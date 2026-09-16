@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "expo-aisee-glasses": ["../src/index"],
+      "expo-aisee-glasses/*": ["../src/*"]
+    }
+  }
+}

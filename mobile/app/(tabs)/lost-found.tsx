@@ -3,7 +3,7 @@
  * or log newly misplaced objects.
  */
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import {
   Alert,
   ActivityIndicator,
   StyleSheet,
+  ToastAndroid,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Fonts, FontSizes } from "../../constants/theme";
@@ -43,6 +44,9 @@ import {
   type ApiMemory,
 } from "../../services/api";
 import { NotificationService } from "../../services/NotificationService";
+import { VoiceCommandStore } from "../../services/voiceCommandStore";
+import { useAiSeeGlasses } from "../../contexts/AiSeeGlassesContext";
+import { AiSeeGlassesService } from "../../services/aisee/AiSeeGlassesService";
 
 const getMemoryIcon = (title: string): keyof typeof Ionicons.glyphMap => {
   const lower = title.toLowerCase();
@@ -144,6 +148,7 @@ const formatLocationText = (
 
 export default function LostFoundScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
+  const { connectionState, isConnected } = useAiSeeGlasses();
   const [searchQuery, setSearchQuery] = useState("");
   const [chatInput, setChatInput] = useState("");
   const [activeTab, setActiveTab] = useState<"Memories" | "Chat">("Chat");
@@ -161,6 +166,9 @@ export default function LostFoundScreen(): React.JSX.Element {
   const originalInputRef = useRef("");
   const chatInputRef = useRef(chatInput);
   const isAtBottomRef = useRef(true);
+
+  // Pending voice command text from Google Assistant deep link
+  const [pendingVoiceText, setPendingVoiceText] = useState<string | null>(null);
 
   useEffect(() => {
     chatInputRef.current = chatInput;
@@ -288,19 +296,42 @@ export default function LostFoundScreen(): React.JSX.Element {
     React.useCallback(() => {
       loadMemories();
       loadMessages();
+
+      // Check for pending voice command from Google Assistant deep link
+      const voiceText = VoiceCommandStore.consume();
+      if (voiceText) {
+        setPendingVoiceText(voiceText);
+      }
     }, []),
   );
 
-  const handleMicPress = async () => {
-    if (chatInput.trim().length > 0 && !isListening) {
-      const currentText = chatInput.trim();
-      const currentPhoto = capturedPhotoUri;
+  // Auto-refresh memories when glasses capture saves a new memory
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+
+    const service = AiSeeGlassesService.getInstance();
+    const removeListener = service.addMemorySavedListener(() => {
+      loadMemories();
+      loadMessages();
+    });
+
+    return () => removeListener();
+  }, []);
+
+  /**
+   * Sends a chat message through the NLP pipeline.
+   * Used by both manual input (handleMicPress) and Google Assistant deep links.
+   */
+  const sendChatMessage = useCallback(
+    async (text: string, photoUri?: string | null) => {
+      const currentText = text.trim();
+      if (!currentText) return;
 
       const newUserMsg: ChatMessageData = {
         id: Date.now().toString(),
         type: "user",
         text: currentText,
-        imageUri: currentPhoto || undefined,
+        imageUri: photoUri || undefined,
       };
       setChatMessages((prev) => [newUserMsg, ...prev]);
       setChatInput("");
@@ -343,7 +374,7 @@ export default function LostFoundScreen(): React.JSX.Element {
           currentText,
           latitude,
           longitude,
-          currentPhoto || undefined,
+          photoUri || undefined,
         );
 
         const newSystemMsg: ChatMessageData = {
@@ -401,7 +432,36 @@ export default function LostFoundScreen(): React.JSX.Element {
           );
         }
       }
+    },
+    [],
+  );
 
+  /**
+   * Auto-process voice command text from Google Assistant / "Hey Google".
+   * Shows a toast, switches to Chat tab, and sends the voice text.
+   */
+  useEffect(() => {
+    if (pendingVoiceText && !isProcessing) {
+      // Show toast on Android to indicate processing
+      if (Platform.OS === "android") {
+        ToastAndroid.show(
+          "Processing your voice command...",
+          ToastAndroid.SHORT,
+        );
+      }
+
+      // Switch to Chat tab
+      setActiveTab("Chat");
+
+      // Auto-send the voice text
+      sendChatMessage(pendingVoiceText);
+      setPendingVoiceText(null);
+    }
+  }, [pendingVoiceText, isProcessing, sendChatMessage]);
+
+  const handleMicPress = async () => {
+    if (chatInput.trim().length > 0 && !isListening) {
+      await sendChatMessage(chatInput, capturedPhotoUri);
       return;
     }
     if (isListening) {
@@ -619,12 +679,36 @@ export default function LostFoundScreen(): React.JSX.Element {
 
       {/* Header Row */}
       <View style={styles.headerRow}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          {activeTab === "Memories" ? "Memories" : "Chat"}
-        </Text>
-        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-          {activeTab === "Memories" ? "Sorted by Added Date" : "AI Assistant"}
-        </Text>
+        <View>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {activeTab === "Memories" ? "Memories" : "Chat"}
+          </Text>
+          <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+            {activeTab === "Memories" ? "Sorted by Added Date" : "AI Assistant"}
+          </Text>
+        </View>
+        {Platform.OS === "android" && (
+          <View style={styles.glassesIndicator}>
+            <Ionicons
+              name="glasses-outline"
+              size={20}
+              color={isConnected ? colors.text : colors.textMuted}
+            />
+            <View
+              style={[
+                styles.glassesStatusDot,
+                {
+                  backgroundColor: isConnected
+                    ? "#34C759"
+                    : connectionState === "CONNECTING" ||
+                        connectionState === "INITIALIZING"
+                      ? "#FF9500"
+                      : "#FF3B30",
+                },
+              ]}
+            />
+          </View>
+        )}
       </View>
 
       {/* Content Area */}
@@ -918,6 +1002,17 @@ const styles = ScaledSheet.create({
     fontSize: FontSizes.xs,
     fontFamily: Fonts.medium,
     marginBottom: "4@vs",
+  },
+  glassesIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: "6@vs",
+  },
+  glassesStatusDot: {
+    width: "8@s",
+    height: "8@s",
+    borderRadius: "4@s",
+    marginLeft: "4@s",
   },
   listContent: {
     paddingBottom: "80@vs",

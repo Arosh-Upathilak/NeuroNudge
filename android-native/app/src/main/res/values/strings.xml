@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">NeuroNudge</string>
+    <string name="default_web_client_id">350883980043-6p6vrrua836opd360ce5fs3khj7iieds.apps.googleusercontent.com</string>
+    <string name="notification_channel_name">NeuroNudge reminders</string>
+</resources>

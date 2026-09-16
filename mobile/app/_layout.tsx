@@ -24,6 +24,7 @@ import { ThemeProvider } from "../contexts/ThemeContext";
 import { DrawerProvider } from "../contexts/DrawerContext";
 import { NotificationProvider } from "../contexts/NotificationContext";
 import { AuthProvider, useAuth } from "../contexts/AuthContext";
+import { AiSeeGlassesProvider } from "../contexts/AiSeeGlassesContext";
 import SideDrawer from "../components/SideDrawer";
 import { useTheme } from "../hooks/useTheme";
 
@@ -54,7 +55,9 @@ export default function RootLayout(): React.JSX.Element | null {
       <DrawerProvider>
         <NotificationProvider>
           <AuthProvider>
-            <ThemedApp />
+            <AiSeeGlassesProvider>
+              <ThemedApp />
+            </AiSeeGlassesProvider>
           </AuthProvider>
         </NotificationProvider>
       </DrawerProvider>
@@ -120,6 +123,11 @@ function ThemedApp(): React.JSX.Element {
         <Stack.Screen
           name="notifications"
           options={{ presentation: "modal" }}
+        />
+        {/* Google Assistant / "Hey Google" deep link handler */}
+        <Stack.Screen
+          name="memory"
+          options={{ headerShown: false, animation: "none" }}
         />
       </Stack>
       <SideDrawer />

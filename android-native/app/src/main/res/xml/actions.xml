@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<actions>
+    <action intentName="actions.intent.CREATE_NOTE">
+        <fulfillment urlTemplate="mobile://memory{?text}">
+            <parameter-mapping intentParameter="note.text" urlParameter="text" />
+        </fulfillment>
+    </action>
+    <action intentName="actions.intent.GET_THING">
+        <fulfillment urlTemplate="mobile://memory{?text}">
+            <parameter-mapping intentParameter="thing.name" urlParameter="text" />
+        </fulfillment>
+    </action>
+    <action intentName="actions.intent.OPEN_APP_FEATURE">
+        <fulfillment urlTemplate="mobile://memory{?text}">
+            <parameter-mapping intentParameter="feature" urlParameter="text" />
+        </fulfillment>
+    </action>
+</actions>

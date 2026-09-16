@@ -7,8 +7,8 @@ import { Fonts, FontSizes } from "../../constants/theme";
 import { useTheme } from "../../hooks/useTheme";
 
 interface SettingsTabsProps {
-  activeTab: "profile" | "alerts" | "privacy";
-  onTabChange: (tab: "profile" | "alerts" | "privacy") => void;
+  activeTab: "profile" | "alerts" | "privacy" | "glasses";
+  onTabChange: (tab: "profile" | "alerts" | "privacy" | "glasses") => void;
 }
 
 export default function SettingsTabs({
@@ -17,10 +17,11 @@ export default function SettingsTabs({
 }: SettingsTabsProps): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
 
-  const tabs: ("profile" | "alerts" | "privacy")[] = [
+  const tabs: ("profile" | "alerts" | "privacy" | "glasses")[] = [
     "profile",
     "alerts",
     "privacy",
+    "glasses",
   ];
 
   return (

@@ -10,11 +10,12 @@ import SettingsTabs from "../../components/settings/SettingsTabs";
 import ProfileTab from "../../components/settings/ProfileTab";
 import AlertsTab from "../../components/settings/AlertsTab";
 import PrivacyTab from "../../components/settings/PrivacyTab";
+import GlassesTab from "../../components/settings/GlassesTab";
 
 import { useTheme } from "../../hooks/useTheme";
 import { Fonts, FontSizes } from "../../constants/theme";
 
-type SettingsTab = "profile" | "alerts" | "privacy";
+type SettingsTab = "profile" | "alerts" | "privacy" | "glasses";
 
 export default function SettingsScreen(): React.JSX.Element {
   const { colors }: { colors: ThemeColors } = useTheme();
@@ -31,6 +32,9 @@ export default function SettingsScreen(): React.JSX.Element {
 
       case "privacy":
         return <PrivacyTab />;
+
+      case "glasses":
+        return <GlassesTab />;
 
       default:
         return <ProfileTab />;
