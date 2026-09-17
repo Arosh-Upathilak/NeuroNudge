@@ -6,7 +6,6 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import com.aisee.glasses.core.AiseeGlassesController
 import com.aisee.glasses.core.AiseeListener
-import com.realsil.sdk.audioconnect.smartwear.ConnectionState
 import android.util.Log
 
 class AISeeGlassesModule : Module() {
@@ -27,40 +26,38 @@ class AISeeGlassesModule : Module() {
     }
 
     Function("init") { apiKey: String ->
-      val context = appContext.reactContext ?: return@Function
-      controller = AiseeGlassesController(context, apiKey, object : AiseeListener {
-        override fun onConnectionState(state: com.aisee.glasses.core.ConnectionState) {
-          sendEvent("onConnectionStateChanged", mapOf("state" to state.name))
-        }
+      val context = appContext.reactContext
+      if (context != null) {
+        controller = AiseeGlassesController(context, apiKey, object : AiseeListener {
+          override fun onConnectionState(state: com.aisee.glasses.core.ConnectionState) {
+            sendEvent("onConnectionStateChanged", mapOf("state" to state.name))
+          }
 
-        override fun onImageCaptured(path: String) {
-          sendEvent("onImageCaptured", mapOf("path" to path))
-        }
+          override fun onPhotoCaptured(uri: android.net.Uri, path: String) {
+            sendEvent("onImageCaptured", mapOf("path" to path))
+          }
 
-        override fun onPhotoCaptured(uri: android.net.Uri, path: String) {
-          sendEvent("onImageCaptured", mapOf("path" to path))
-        }
+          override fun onTranscript(text: String, isFinal: Boolean) {
+            sendEvent("onTranscript", mapOf("text" to text, "isFinal" to isFinal))
+          }
 
-        override fun onTranscript(text: String, isFinal: Boolean) {
-          sendEvent("onTranscript", mapOf("text" to text, "isFinal" to isFinal))
-        }
+          override fun onAudioSaved(path: String) {
+            sendEvent("onAudioSaved", mapOf("path" to path))
+          }
 
-        override fun onAudioSaved(path: String) {
-          sendEvent("onAudioSaved", mapOf("path" to path))
-        }
+          override fun onButtonPressed() {
+            sendEvent("onButtonPressed", mapOf<String, Any>())
+          }
 
-        override fun onButtonPressed() {
-          sendEvent("onButtonPressed", mapOf<String, Any>())
-        }
+          override fun onTriggerDetected(sentence: String) {
+            // Not used via direct module
+          }
 
-        override fun onTriggerDetected(sentence: String) {
-          // Not used via direct module
-        }
-
-        override fun onError(error: com.aisee.glasses.core.AiseeError, message: String?) {
-          Log.e(TAG, "Error: ${error.name} — $message")
-        }
-      })
+          override fun onError(error: com.aisee.glasses.core.AiseeError, message: String?) {
+            Log.e(TAG, "Error: ${error.name} — $message")
+          }
+        })
+      }
     }
 
     Function("connect") { macAddress: String ->
@@ -80,47 +77,49 @@ class AISeeGlassesModule : Module() {
     }
 
     Function("snapPicture") {
-      controller?.snapPicture()
-    }
-
-    Function("setGlassesLed") { on: Boolean ->
-      controller?.setGlassesLed(on)
+      controller?.capturePhoto()
     }
 
     // ─── Foreground Service Methods ─────────────────────────────────────
 
     Function("startService") { macAddress: String, apiKey: String, authToken: String, baseUrl: String ->
-      val context = appContext.reactContext ?: return@Function
-      val intent = Intent(context, AiSeeGlassesForegroundService::class.java).apply {
-        action = AiSeeGlassesForegroundService.ACTION_START
-        putExtra(AiSeeGlassesForegroundService.EXTRA_MAC_ADDRESS, macAddress)
-        putExtra(AiSeeGlassesForegroundService.EXTRA_API_KEY, apiKey)
-        putExtra(AiSeeGlassesForegroundService.EXTRA_AUTH_TOKEN, authToken)
-        putExtra(AiSeeGlassesForegroundService.EXTRA_BASE_URL, baseUrl)
-      }
+      val context = appContext.reactContext
+      if (context != null) {
+        val intent = Intent(context, AiSeeGlassesForegroundService::class.java).apply {
+          action = AiSeeGlassesForegroundService.ACTION_START
+          putExtra(AiSeeGlassesForegroundService.EXTRA_MAC_ADDRESS, macAddress)
+          putExtra(AiSeeGlassesForegroundService.EXTRA_API_KEY, apiKey)
+          putExtra(AiSeeGlassesForegroundService.EXTRA_AUTH_TOKEN, authToken)
+          putExtra(AiSeeGlassesForegroundService.EXTRA_BASE_URL, baseUrl)
+        }
 
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        context.startForegroundService(intent)
-      } else {
-        context.startService(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          context.startForegroundService(intent)
+        } else {
+          context.startService(intent)
+        }
       }
     }
 
     Function("stopService") {
-      val context = appContext.reactContext ?: return@Function
-      val intent = Intent(context, AiSeeGlassesForegroundService::class.java).apply {
-        action = AiSeeGlassesForegroundService.ACTION_STOP
+      val context = appContext.reactContext
+      if (context != null) {
+        val intent = Intent(context, AiSeeGlassesForegroundService::class.java).apply {
+          action = AiSeeGlassesForegroundService.ACTION_STOP
+        }
+        context.startService(intent)
       }
-      context.startService(intent)
     }
 
     Function("updateAuthToken") { token: String ->
-      val context = appContext.reactContext ?: return@Function
-      val intent = Intent(context, AiSeeGlassesForegroundService::class.java).apply {
-        action = AiSeeGlassesForegroundService.ACTION_UPDATE_TOKEN
-        putExtra(AiSeeGlassesForegroundService.EXTRA_AUTH_TOKEN, token)
+      val context = appContext.reactContext
+      if (context != null) {
+        val intent = Intent(context, AiSeeGlassesForegroundService::class.java).apply {
+          action = AiSeeGlassesForegroundService.ACTION_UPDATE_TOKEN
+          putExtra(AiSeeGlassesForegroundService.EXTRA_AUTH_TOKEN, token)
+        }
+        context.startService(intent)
       }
-      context.startService(intent)
     }
 
     Function("isServiceRunning") {

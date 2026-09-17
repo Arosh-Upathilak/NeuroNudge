@@ -17,9 +17,25 @@ android {
   }
 }
 
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xskip-metadata-version-check")
+    }
+}
+
+def libsRepoDir = new File(project.projectDir, "libs-repo")
+
 repositories {
   flatDir {
-    dirs 'libs-repo'
+    dirs libsRepoDir
+  }
+}
+
+rootProject.allprojects {
+  repositories {
+    flatDir {
+      dirs libsRepoDir
+    }
   }
 }
 
@@ -36,4 +52,5 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.preference:preference-ktx:1.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("com.facebook.react:react-android")
 }

@@ -57,7 +57,7 @@ object GeminiSttClient {
                 val payloadBytes = root.toString().toByteArray(Charsets.UTF_8)
 
                 // Make request
-                val url = URL("$URL_STRING?key=$API_KEY")
+                val url = URL("$URL_STRING?key=$apiKey")
                 val conn = url.openConnection() as HttpURLConnection
                 conn.requestMethod = "POST"
                 conn.setRequestProperty("Content-Type", "application/json")

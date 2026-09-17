@@ -23,8 +23,8 @@ let AISeeGlasses: typeof import("expo-aisee-glasses") | null = null;
 if (Platform.OS === "android") {
   try {
     AISeeGlasses = require("expo-aisee-glasses");
-  } catch {
-    console.warn("[AiSeeService] expo-aisee-glasses module not available");
+  } catch (error) {
+    console.warn("[AiSeeService] expo-aisee-glasses module not available", error);
   }
 }
 

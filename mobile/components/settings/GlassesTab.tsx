@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Platform } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Platform, PermissionsAndroid } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { ScaledSheet } from "react-native-size-matters";
@@ -64,6 +64,28 @@ export default function GlassesTab(): React.JSX.Element {
     if (isConnected || isServiceRunning) {
       disconnect();
     } else {
+      if (Platform.OS === 'android' && (Platform.Version as number) >= 31) {
+        try {
+          const permissionsToRequest = [
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+          ];
+          if ((Platform.Version as number) >= 33) {
+            permissionsToRequest.push(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+          }
+          const granted = await PermissionsAndroid.requestMultiple(permissionsToRequest);
+          if (
+            granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN] !== PermissionsAndroid.RESULTS.GRANTED ||
+            granted[PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT] !== PermissionsAndroid.RESULTS.GRANTED
+          ) {
+            console.warn("Bluetooth permissions denied");
+            return;
+          }
+        } catch (err) {
+          console.warn("Error requesting permissions", err);
+        }
+      }
+
       await handleSaveMac();
       await connect(macAddress.trim());
     }
