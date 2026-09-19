@@ -240,10 +240,18 @@ export default function LostFoundScreen(): React.JSX.Element {
 
       for (const msg of data) {
         if (msg.role === "user") {
+          let imageUri = undefined;
+          if (msg.aiContent) {
+            try {
+              const parsedAi = JSON.parse(msg.aiContent);
+              imageUri = parsedAi.imageUri;
+            } catch {}
+          }
           formatted.push({
             id: msg.messageId,
             type: "user",
             text: msg.content,
+            imageUri: imageUri,
           });
         } else {
           let parsedAi = null;

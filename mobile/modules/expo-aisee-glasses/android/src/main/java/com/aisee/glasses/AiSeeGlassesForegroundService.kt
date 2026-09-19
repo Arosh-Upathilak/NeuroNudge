@@ -89,6 +89,8 @@ class AiSeeGlassesForegroundService : Service() {
         return START_STICKY
     }
 
+    private var currentMacAddress: String? = null
+
     override fun onDestroy() {
         super.onDestroy()
         try {
@@ -97,11 +99,26 @@ class AiSeeGlassesForegroundService : Service() {
             Log.e(TAG, "Error disconnecting on destroy", e)
         }
         controller = null
+        currentMacAddress = null
         isRunning = false
         currentConnectionState = "DISCONNECTED"
     }
 
     private fun initAndConnect(macAddress: String, apiKey: String) {
+        if (controller != null && currentMacAddress == macAddress &&
+            (currentConnectionState == "CONNECTED" || currentConnectionState == "READY" || currentConnectionState == "CONNECTING")) {
+            Log.d(TAG, "Service already connected or connecting to $macAddress, skipping duplicate init")
+            return
+        }
+
+        try {
+            controller?.disconnect()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error disconnecting previous controller", e)
+        }
+        controller = null
+        currentMacAddress = macAddress
+
         controller = AiseeGlassesController(applicationContext, apiKey, object : AiseeListener {
             override fun onConnectionState(state: ConnectionState) {
                 currentConnectionState = state.name

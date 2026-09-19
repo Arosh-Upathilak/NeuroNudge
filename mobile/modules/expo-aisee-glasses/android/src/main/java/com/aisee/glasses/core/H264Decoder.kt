@@ -22,55 +22,97 @@ object H264Decoder {
      * @return A decoded Bitmap, or null if decoding fails.
      */
     fun decodeFrame(h264Data: ByteArray, width: Int = 1280, height: Int = 720): Bitmap? {
+        if (h264Data.isEmpty()) return null
+        Log.d(TAG, "Decoding H264 stream (${h264Data.size} bytes)")
+
         var decoder: MediaCodec? = null
         try {
             val format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height)
-            // Ensure the decoder outputs YUV_420_888 so we can read it easily
             format.setInteger(MediaFormat.KEY_COLOR_FORMAT, android.media.MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible)
             
             decoder = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC)
             decoder.configure(format, null, null, 0)
             decoder.start()
 
-            // 1. Queue the H.264 data
-            val inIndex = decoder.dequeueInputBuffer(10000)
-            if (inIndex >= 0) {
-                val inputBuffer = decoder.getInputBuffer(inIndex)
-                inputBuffer?.clear()
-                inputBuffer?.put(h264Data)
-                decoder.queueInputBuffer(inIndex, 0, h264Data.size, 0, MediaCodec.BUFFER_FLAG_END_OF_STREAM)
-            }
-
-            // 2. Dequeue the decoded image
             val bufferInfo = MediaCodec.BufferInfo()
-            var outIndex = decoder.dequeueOutputBuffer(bufferInfo, 100000)
-            
+            var bestBitmap: Bitmap? = null
+            var maxBrightness = 0.0
+            var offset = 0
+            val totalSize = h264Data.size
+            var pts = 0L
             var tries = 0
-            while (outIndex < 0 && tries < 50) {
-                outIndex = decoder.dequeueOutputBuffer(bufferInfo, 10000)
-                tries++
+            var decodedFrameCount = 0
+
+            while (tries < 80) {
+                // 1. Feed input chunks into available decoder input buffers without truncation
+                if (offset < totalSize) {
+                    val inIndex = decoder.dequeueInputBuffer(10000)
+                    if (inIndex >= 0) {
+                        val inputBuffer = decoder.getInputBuffer(inIndex)
+                        if (inputBuffer != null) {
+                            inputBuffer.clear()
+                            val remainingBytes = totalSize - offset
+                            val chunk = Math.min(inputBuffer.remaining(), remainingBytes)
+                            inputBuffer.put(h264Data, offset, chunk)
+                            offset += chunk
+                            val isLast = (offset >= totalSize)
+                            val flags = if (isLast) MediaCodec.BUFFER_FLAG_END_OF_STREAM else 0
+                            decoder.queueInputBuffer(inIndex, 0, chunk, pts, flags)
+                            pts += 33333L
+                        }
+                    }
+                }
+
+                // 2. Dequeue decoded output frames
+                val outIndex = decoder.dequeueOutputBuffer(bufferInfo, 25000)
+                if (outIndex >= 0) {
+                    if (bufferInfo.size > 0) {
+                        val outputImage = decoder.getOutputImage(outIndex)
+                        if (outputImage != null) {
+                            val nv21Bytes = YUV_420_888toNV21(outputImage)
+                            val yuvImage = YuvImage(nv21Bytes, ImageFormat.NV21, outputImage.width, outputImage.height, null)
+                            val outStream = ByteArrayOutputStream()
+                            yuvImage.compressToJpeg(Rect(0, 0, outputImage.width, outputImage.height), 90, outStream)
+                            val jpegBytes = outStream.toByteArray()
+                            val bitmap = BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.size)
+                            outputImage.close()
+
+                            if (bitmap != null) {
+                                decodedFrameCount++
+                                val brightness = calculateBrightness(bitmap)
+                                Log.d(TAG, "Decoded frame #$decodedFrameCount with brightness: $brightness")
+
+                                if (brightness > maxBrightness || bestBitmap == null) {
+                                    maxBrightness = brightness
+                                    bestBitmap = bitmap
+                                }
+
+                                // If we've found an illuminated frame (brightness >= 25.0),
+                                // and we're past the first warmup frame, we can finish early
+                                if (brightness >= 25.0 && decodedFrameCount >= 2) {
+                                    decoder.releaseOutputBuffer(outIndex, false)
+                                    break
+                                }
+                            }
+                        }
+                    }
+                    decoder.releaseOutputBuffer(outIndex, false)
+
+                    if ((bufferInfo.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) {
+                        Log.d(TAG, "Decoder signaled EOS")
+                        break
+                    }
+                } else if (outIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
+                    Log.d(TAG, "Output format changed: ${decoder.outputFormat}")
+                } else if (outIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
+                    if (offset >= totalSize) {
+                        tries++
+                    }
+                }
             }
 
-            if (outIndex >= 0) {
-                val outputImage = decoder.getOutputImage(outIndex)
-                if (outputImage != null) {
-                    val nv21Bytes = YUV_420_888toNV21(outputImage)
-                    val yuvImage = YuvImage(nv21Bytes, ImageFormat.NV21, outputImage.width, outputImage.height, null)
-                    
-                    val outStream = ByteArrayOutputStream()
-                    yuvImage.compressToJpeg(Rect(0, 0, outputImage.width, outputImage.height), 100, outStream)
-                    val jpegBytes = outStream.toByteArray()
-                    
-                    val bitmap = BitmapFactory.decodeByteArray(jpegBytes, 0, jpegBytes.size)
-                    
-                    outputImage.close()
-                    decoder.releaseOutputBuffer(outIndex, false)
-                    return bitmap
-                }
-                decoder.releaseOutputBuffer(outIndex, false)
-            } else {
-                Log.e(TAG, "Failed to get output buffer. outIndex=$outIndex")
-            }
+            Log.i(TAG, "H264 decoding complete. Decoded $decodedFrameCount frames. Best brightness: $maxBrightness")
+            return bestBitmap
         } catch (e: Exception) {
             Log.e(TAG, "Error decoding H264 frame", e)
         } finally {
@@ -136,5 +178,78 @@ object H264Decoder {
         }
 
         return nv21
+    }
+
+    private fun extractFrames(data: ByteArray): List<ByteArray> {
+        val n = data.size
+        val startIndices = mutableListOf<Pair<Int, Int>>() // Pair(offset, startCodeLength)
+        var i = 0
+        while (i < n - 3) {
+            if (data[i] == 0.toByte() && data[i + 1] == 0.toByte()) {
+                if (data[i + 2] == 1.toByte()) {
+                    startIndices.add(Pair(i, 3))
+                    i += 3
+                    continue
+                } else if (data[i + 2] == 0.toByte() && data[i + 3] == 1.toByte()) {
+                    startIndices.add(Pair(i, 4))
+                    i += 4
+                    continue
+                }
+            }
+            i++
+        }
+        if (startIndices.isEmpty()) {
+            return listOf(data)
+        }
+
+        val units = mutableListOf<Triple<Int, Int, Int>>() // Triple(start, length, nalType)
+        for (k in 0 until startIndices.size) {
+            val (start, scLen) = startIndices[k]
+            val end = if (k + 1 < startIndices.size) startIndices[k + 1].first else n
+            val headerIndex = start + scLen
+            val nalType = if (headerIndex < n) (data[headerIndex].toInt() and 0x1F) else 0
+            units.add(Triple(start, end - start, nalType))
+        }
+
+        val frames = mutableListOf<ByteArray>()
+        var current = ByteArrayOutputStream()
+        var hasVcl = false
+
+        for ((start, length, nalType) in units) {
+            val isVcl = (nalType == 1 || nalType == 5)
+            if (isVcl && hasVcl) {
+                frames.add(current.toByteArray())
+                current = ByteArrayOutputStream()
+                hasVcl = false
+            }
+
+            current.write(data, start, length)
+            if (isVcl) {
+                hasVcl = true
+            }
+        }
+
+        if (current.size() > 0) {
+            frames.add(current.toByteArray())
+        }
+
+        return frames
+    }
+
+    private fun calculateBrightness(bitmap: Bitmap): Double {
+        var sumLuma = 0L
+        var count = 0
+        val step = 4
+        for (y in 0 until bitmap.height step step) {
+            for (x in 0 until bitmap.width step step) {
+                val pixel = bitmap.getPixel(x, y)
+                val r = (pixel shr 16) and 0xFF
+                val g = (pixel shr 8) and 0xFF
+                val b = pixel and 0xFF
+                sumLuma += (0.299 * r + 0.587 * g + 0.114 * b).toLong()
+                count++
+            }
+        }
+        return if (count > 0) sumLuma.toDouble() / count else 0.0
     }
 }

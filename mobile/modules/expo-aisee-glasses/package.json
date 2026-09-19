@@ -27,20 +27,7 @@
   "license": "MIT",
   "homepage": "https://github.com#readme",
   "dependencies": {},
-  "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@types/jest": "^29.2.1",
-    "@types/react": "~19.1.1",
-    "babel-preset-expo": "~52.0.0",
-    "eslint": "~9.39.4",
-    "eslint-config-universe": "^15.0.3",
-    "expo": "~54.0.37",
-    "jest": "^29.7.0",
-    "jest-expo": "~54.0.0",
-    "prettier": "^3.0.0",
-    "react-native": "0.81.5",
-    "typescript": "^5.9.2"
-  },
+  "devDependencies": {},
   "jest": {
     "preset": "jest-expo",
     "roots": [

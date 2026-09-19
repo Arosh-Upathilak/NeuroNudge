@@ -1,5 +1,6 @@
 package com.aisee.glasses.core.voice
 
+import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioManager
 import android.media.AudioTrack
@@ -55,6 +56,9 @@ class VoiceStreamClient(
         val now = System.currentTimeMillis()
         recordingStartTime = now
         lastSpokeTime = now
+        synchronized(audioBuffer) {
+            audioBuffer.clear()
+        }
     }
 
     /**
@@ -64,14 +68,7 @@ class VoiceStreamClient(
     fun feedPcmChunk(pcmData: ByteArray) {
         if (pcmData.isEmpty()) return
 
-        // 1. Play the raw PCM bytes directly to the phone speaker so the user can hear it!
-        try {
-            audioTrack?.write(pcmData, 0, pcmData.size)
-        } catch (e: Exception) {
-            Log.e(TAG, "AudioTrack write failed", e)
-        }
-
-        // 2. Convert to Little-Endian shorts
+        // 1. Convert to Little-Endian shorts
         val shortBuffer = ByteBuffer.wrap(pcmData)
             .order(ByteOrder.LITTLE_ENDIAN)
             .asShortBuffer()
@@ -79,9 +76,11 @@ class VoiceStreamClient(
         val shorts = ShortArray(shortBuffer.remaining())
         shortBuffer.get(shorts)
         
-        audioBuffer.addAll(shorts.toList())
+        synchronized(audioBuffer) {
+            audioBuffer.addAll(shorts.toList())
+        }
         
-        // 3. VAD - Calculate RMS
+        // 2. VAD - Calculate RMS
         var sum = 0.0
         for (s in shorts) {
             sum += (s * s).toDouble()
@@ -98,7 +97,8 @@ class VoiceStreamClient(
             // Trigger silence if we've been recording for at least 8 seconds AND we have 1.5s of silence
             if (recordingDuration >= MIN_RECORDING_MS && silenceDuration >= SILENCE_THRESHOLD_MS) {
                 // Prevent multiple triggers
-                lastSpokeTime = now + 100000 
+                lastSpokeTime = Long.MAX_VALUE
+                Log.d(TAG, "VAD silence detected after ${recordingDuration}ms")
                 onSilenceDetected()
             }
         }
@@ -106,9 +106,11 @@ class VoiceStreamClient(
         onPcmChunk(shorts)
     }
 
-    fun saveToWav(context: android.content.Context): java.io.File? {
-        Log.d(TAG, "saveToWav called, buffer size: ${audioBuffer.size}")
-        if (audioBuffer.isEmpty()) {
+    /** Saves recorded PCM into a standard 16kHz 16-bit Mono WAV file in app cache. */
+    fun saveToWav(context: Context): java.io.File? {
+        val shortsCopy = synchronized(audioBuffer) { audioBuffer.toShortArray() }
+        Log.d(TAG, "saveToWav called, buffer size: ${shortsCopy.size}")
+        if (shortsCopy.isEmpty()) {
             Log.w(TAG, "Cannot save WAV: audioBuffer is empty!")
             return null
         }
@@ -118,9 +120,9 @@ class VoiceStreamClient(
             val channels = 1
             val bitsPerSample = 16
             
-            val byteData = ByteArray(audioBuffer.size * 2)
-            for (i in audioBuffer.indices) {
-                val s = audioBuffer[i].toInt()
+            val byteData = ByteArray(shortsCopy.size * 2)
+            for (i in shortsCopy.indices) {
+                val s = shortsCopy[i].toInt()
                 byteData[i * 2] = (s and 0xFF).toByte()
                 byteData[i * 2 + 1] = ((s shr 8) and 0xFF).toByte()
             }

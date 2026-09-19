@@ -4,8 +4,9 @@
     "strict": true,
     "paths": {
       "@/*": ["./*"],
-      "expo-aisee-glasses": ["../expo-aisee-glasses/src/index"]
+      "expo-aisee-glasses": ["./modules/expo-aisee-glasses/build/index"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
+  "exclude": ["node_modules", "modules/**/package", "modules/**/example"]
 }

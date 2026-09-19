@@ -46,6 +46,7 @@ class AiseeGlassesController(
     private var connectionManager: MultiPeripheralConnectionManager? = null
     private var connection: PeripheralConnectionManager? = null
     private var client: com.realsil.sdk.audioconnect.smartwear.SmartWearModelClient? = null
+    private var smartWearCallback: SmartWearModelCallback? = null
     private var voiceStreamClient: VoiceStreamClient? = VoiceStreamClient(
         onPcmChunk = { _ -> },
         onSilenceDetected = {
@@ -127,18 +128,34 @@ class AiseeGlassesController(
         }
     }
 
+    private var lastCaptureTriggerTime = 0L
+
     /** Triggers the interactive workflow: Picture -> Beep -> Voice Record */
+    @Synchronized
     fun capturePhoto() {
+        val now = System.currentTimeMillis()
+        if (now - lastCaptureTriggerTime < 1000) {
+            Log.d(TAG, "capturePhoto: debounced duplicate trigger")
+            return
+        }
         if (isStreaming) {
             Log.d(TAG, "capturePhoto: already streaming, ignoring")
             return
         }
+        lastCaptureTriggerTime = now
         
-        // Ensure voice is stopped before starting stream
+        // Ensure voice is stopped and glasses reset to IDLE before starting stream
         stopVoiceInput()
+        try {
+            client?.setDeviceMode(0.toByte()) // SmartWearConstants.DeviceMode.MODE_IDLE
+        } catch (e: Exception) {
+            Log.w(TAG, "Reset to MODE_IDLE before capture error", e)
+        }
 
         Log.d(TAG, "capturePhoto: starting BT live streaming")
-        videoBuffer.reset()
+        synchronized(videoBuffer) {
+            videoBuffer.reset()
+        }
         isStreaming = true
 
         // Payload for 720p 10fps: <BBhhIIhhBB (32 bytes total padding)
@@ -162,25 +179,27 @@ class AiseeGlassesController(
             .build()
         client?.sendVendorCommand(cmd)
 
-        // Stream for 2.5 seconds then stop and process
+        // Stream for 3.2 seconds then stop and process
         handler.postDelayed({
             if (isStreaming) {
                 stopStreamingAndProcess()
             }
-        }, 2500)
+        }, 3200)
     }
 
+    @Synchronized
     private fun stopStreamingAndProcess() {
+        if (!isStreaming) return
         Log.d(TAG, "Stopping BT stream and processing frame")
         isStreaming = false
         val cmd = Command.Builder()
-            .writeType(2)
+            .writeType(1)
             .packet(33850, ByteArray(0)) // 0x843A STOP_LIVE_STREAMING
             .eventId(33850)
             .build()
         client?.sendVendorCommand(cmd)
 
-        val h264Data = videoBuffer.toByteArray()
+        val h264Data = synchronized(videoBuffer) { videoBuffer.toByteArray() }
         Log.d(TAG, "Captured ${h264Data.size} bytes of H264")
 
         if (h264Data.isNotEmpty()) {
@@ -195,9 +214,25 @@ class AiseeGlassesController(
                         startVoiceInput()
                     }, 500)
                 } else {
-                    Log.e(TAG, "Failed to decode H264 frame")
+                    Log.e(TAG, "Failed to decode H264 frame, proceeding with voice")
+                    handler.post {
+                        listener.onError(AiseeError.PHOTO_FAILED, "Failed to decode H264 frame")
+                    }
+                    playBeep()
+                    handler.postDelayed({
+                        startVoiceInput()
+                    }, 500)
                 }
             }.start()
+        } else {
+            Log.e(TAG, "No H264 data captured during live stream, proceeding with voice")
+            handler.post {
+                listener.onError(AiseeError.PHOTO_FAILED, "No H264 data captured")
+            }
+            playBeep()
+            handler.postDelayed({
+                startVoiceInput()
+            }, 500)
         }
     }
 
@@ -233,6 +268,11 @@ class AiseeGlassesController(
         if (isVoiceActive) {
             isVoiceActive = false
             client?.stopUserVoiceInput()
+            try {
+                client?.setDeviceMode(0.toByte()) // Return glasses to MODE_IDLE
+            } catch (e: Exception) {
+                Log.w(TAG, "Reset to MODE_IDLE after voice error", e)
+            }
             val audioFile = voiceStreamClient?.saveToWav(context)
             if (audioFile != null) {
                 handler.post {
@@ -257,6 +297,11 @@ class AiseeGlassesController(
     fun disconnect() {
         try {
             stopVoiceInput()
+            smartWearCallback?.let {
+                client?.unregisterCallback(it)
+                smartWearCallback = null
+            }
+            connection?.unregisterVendorModelCallback(vendorCallback)
             connection?.disconnect()
         } catch (e: Exception) {
             Log.e(TAG, "Disconnect failed: ${e.message}")
@@ -343,12 +388,16 @@ class AiseeGlassesController(
     }
 
     private fun registerCallback() {
-        client?.registerCallback(object : SmartWearModelCallback() {
-            
+        smartWearCallback?.let {
+            client?.unregisterCallback(it)
+        }
+        val cb = object : SmartWearModelCallback() {
             override fun onReceivedLiveStreamingData(data: ByteArray) {
                 super.onReceivedLiveStreamingData(data)
                 if (isStreaming) {
-                    videoBuffer.write(data)
+                    synchronized(videoBuffer) {
+                        videoBuffer.write(data)
+                    }
                 }
             }
 
@@ -372,6 +421,8 @@ class AiseeGlassesController(
                 }
                 capturePhoto()
             }
-        })
+        }
+        smartWearCallback = cb
+        client?.registerCallback(cb)
     }
 }

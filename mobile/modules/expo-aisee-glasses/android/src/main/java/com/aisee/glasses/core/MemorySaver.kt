@@ -50,7 +50,8 @@ object MemorySaver {
     }
 
     private fun postMemory(payload: MemoryPayload): MemoryResult {
-        val url = URL("${payload.baseUrl}/api/nlp/chat")
+        val cleanBase = payload.baseUrl.trimEnd('/')
+        val url = URL("${cleanBase}/api/nlp/chat")
         val conn = url.openConnection() as HttpURLConnection
 
         conn.requestMethod = "POST"
@@ -101,7 +102,7 @@ object MemorySaver {
             val errorStr = conn.errorStream?.bufferedReader()?.use { it.readText() }
             conn.disconnect()
             Log.e(TAG, "HTTP $responseCode: $errorStr")
-            MemoryResult(false, null, "HTTP $responseCode")
+            MemoryResult(false, null, "HTTP $responseCode: ${errorStr.orEmpty()}")
         }
     }
 
@@ -109,7 +110,7 @@ object MemorySaver {
         out.writeBytes("--$BOUNDARY\r\n")
         out.writeBytes("Content-Disposition: form-data; name=\"$name\"\r\n")
         out.writeBytes("\r\n")
-        out.writeBytes(value)
+        out.write(value.toByteArray(Charsets.UTF_8))
         out.writeBytes("\r\n")
     }
 

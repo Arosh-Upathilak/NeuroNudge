@@ -27,13 +27,6 @@ export const NLPController = {
         ? cloudinaryService.uploadImage(req.file.path)
         : Promise.resolve(null);
 
-      const saveUserMessagePromise = messageService.createMessage({
-        userId,
-        role: "user",
-        content: userText,
-        aiContent: userText,
-      });
-
       const previousMessagesPromise = messageService.getMessagesByUser(userId);
 
       const [uploadResult, previousMessages] = await Promise.all([
@@ -45,6 +38,14 @@ export const NLPController = {
         imageUrl = uploadResult.imageUrl;
         publicId = uploadResult.publicId;
       }
+
+      const userAiContent = imageUrl ? JSON.stringify({ imageUri: imageUrl }) : userText;
+      const saveUserMessagePromise = messageService.createMessage({
+        userId,
+        role: "user",
+        content: userText,
+        aiContent: userAiContent,
+      });
 
       const llmInput = {
         currentMessage: {
@@ -79,7 +80,7 @@ export const NLPController = {
         });
       }
 
-      if (parsed.intent === "CHAT") {
+      if (parsed.intent === "CHAT" || parsed.status === "CHAT") {
         const assistantMessagePromise = messageService.createMessage({
           userId,
           role: "assistant",

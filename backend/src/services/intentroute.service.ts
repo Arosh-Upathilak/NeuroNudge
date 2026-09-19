@@ -24,14 +24,14 @@ export class IntentRouterService {
   static async route(data: NLPResult, usertext: string) {
     switch (data.intent) {
       case "CREATE_MEMORY": {
-        if (!data.title || !data.description) {
-          throw new Error("Missing required entities");
+        if (!data.title) {
+          throw new Error("Missing required entity: title");
         }
 
-        await MemoryService.createMemory({
+        const createdMemory = await MemoryService.createMemory({
           userId: data.userId,
           title: data.title,
-          description: data.description,
+          description: data.description || "Captured via AISee glasses",
           imageUrl: data.imageUrl,
           publicId: data.publicId,
           latitude: data.latitude,
@@ -39,20 +39,33 @@ export class IntentRouterService {
           memoryId: data.memoryId,
         });
 
+        const formattedMemory = {
+          memoryId: createdMemory.memoryId,
+          title: createdMemory.title,
+          description: createdMemory.description ?? undefined,
+          imageUrl: createdMemory.image?.imageUrl ?? undefined,
+          publicId: createdMemory.image?.publicId ?? undefined,
+          latitude: createdMemory.location?.latitude ?? undefined,
+          longitude: createdMemory.location?.longitude ?? undefined,
+          createdat: createdMemory.createdAt ?? undefined,
+        };
+
         const message = `Got it — I’ve saved ${data.title}. You can ask me anytime using a short description, and I’ll recall it for you.`;
+
+        const resultPayload = {
+          status: "CREATED",
+          reply: message,
+          memories: [formattedMemory],
+        };
 
         await messageService.createMessage({
           userId: data.userId,
           role: "assistant",
           content: message,
-          aiContent: message,
+          aiContent: JSON.stringify(resultPayload),
         });
 
-        return {
-          status: "CREATED",
-          reply: message,
-          memories: [],
-        };
+        return resultPayload;
       }
 
       case "RETRIEVE_MEMORY": {
